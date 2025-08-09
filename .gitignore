@@ -1,0 +1,36 @@
+# .gitignore for KaizenLang C# project
+# Ignore build output
+KaizenLang/bin/
+KaizenLang/obj/
+
+# Ignore user-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Ignore VS Code settings
+.vscode/
+
+# Ignore OS generated files
+.DS_Store
+Thumbs.db
+
+# Ignore temporary files
+*.log
+*.tmp
+
+# Ignore compiled files
+*.dll
+*.exe
+*.pdb
+*.cache
+*.sln.ide
+
+# Ignore NuGet packages
+*.nupkg
+# Ignore package restore result
+KaizenLang/packages/
+
+# Ignore PDF and other documentation outputs
+*.pdf
