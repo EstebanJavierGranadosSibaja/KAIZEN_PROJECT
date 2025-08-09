@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("KaizenLang")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+142e0dfac937f42fc0f49e967dab14fdbc81bcb4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6118f98b33785468182222fe12c2de7f13e0160f")]
 [assembly: System.Reflection.AssemblyProductAttribute("KaizenLang")]
 [assembly: System.Reflection.AssemblyTitleAttribute("KaizenLang")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
