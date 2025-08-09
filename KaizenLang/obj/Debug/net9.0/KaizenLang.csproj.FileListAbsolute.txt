@@ -1,0 +1,15 @@
+C:\Users\esteb\OneDrive\Escritorio\KAIZEN_PROJECT\KaizenLang\bin\Debug\net9.0\KaizenLang.exe
+C:\Users\esteb\OneDrive\Escritorio\KAIZEN_PROJECT\KaizenLang\bin\Debug\net9.0\KaizenLang.deps.json
+C:\Users\esteb\OneDrive\Escritorio\KAIZEN_PROJECT\KaizenLang\bin\Debug\net9.0\KaizenLang.runtimeconfig.json
+C:\Users\esteb\OneDrive\Escritorio\KAIZEN_PROJECT\KaizenLang\bin\Debug\net9.0\KaizenLang.dll
+C:\Users\esteb\OneDrive\Escritorio\KAIZEN_PROJECT\KaizenLang\bin\Debug\net9.0\KaizenLang.pdb
+C:\Users\esteb\OneDrive\Escritorio\KAIZEN_PROJECT\KaizenLang\obj\Debug\net9.0\KaizenLang.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\esteb\OneDrive\Escritorio\KAIZEN_PROJECT\KaizenLang\obj\Debug\net9.0\KaizenLang.AssemblyInfoInputs.cache
+C:\Users\esteb\OneDrive\Escritorio\KAIZEN_PROJECT\KaizenLang\obj\Debug\net9.0\KaizenLang.AssemblyInfo.cs
+C:\Users\esteb\OneDrive\Escritorio\KAIZEN_PROJECT\KaizenLang\obj\Debug\net9.0\KaizenLang.csproj.CoreCompileInputs.cache
+C:\Users\esteb\OneDrive\Escritorio\KAIZEN_PROJECT\KaizenLang\obj\Debug\net9.0\KaizenLang.sourcelink.json
+C:\Users\esteb\OneDrive\Escritorio\KAIZEN_PROJECT\KaizenLang\obj\Debug\net9.0\KaizenLang.dll
+C:\Users\esteb\OneDrive\Escritorio\KAIZEN_PROJECT\KaizenLang\obj\Debug\net9.0\refint\KaizenLang.dll
+C:\Users\esteb\OneDrive\Escritorio\KAIZEN_PROJECT\KaizenLang\obj\Debug\net9.0\KaizenLang.pdb
+C:\Users\esteb\OneDrive\Escritorio\KAIZEN_PROJECT\KaizenLang\obj\Debug\net9.0\KaizenLang.genruntimeconfig.cache
+C:\Users\esteb\OneDrive\Escritorio\KAIZEN_PROJECT\KaizenLang\obj\Debug\net9.0\ref\KaizenLang.dll

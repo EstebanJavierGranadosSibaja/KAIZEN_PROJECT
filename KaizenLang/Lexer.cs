@@ -116,5 +116,11 @@ namespace ParadigmasLang
     {
         public string Type { get; set; }
         public string Value { get; set; }
+
+        public Token()
+        {
+            Type = string.Empty;
+            Value = string.Empty;
+        }
     }
 }

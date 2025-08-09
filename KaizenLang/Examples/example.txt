@@ -1,2 +1,0 @@
-// Ejemplo de código fuente para ParadigmasLang
-print "Hola, mundo!"

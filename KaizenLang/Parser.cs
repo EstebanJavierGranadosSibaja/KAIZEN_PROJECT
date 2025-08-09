@@ -177,6 +177,12 @@ namespace ParadigmasLang
     public class Node
     {
         public string Type { get; set; }
-        public List<Node> Children { get; set; } = new List<Node>();
+        public List<Node> Children { get; set; }
+
+        public Node()
+        {
+            Type = string.Empty;
+            Children = new List<Node>();
+        }
     }
 }
