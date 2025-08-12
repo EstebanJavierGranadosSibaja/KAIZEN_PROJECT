@@ -14,14 +14,15 @@ namespace ParadigmasLang
                     "output", "input", "void", "do", "while", "for", "if", "else", "return", "true", "false"
                 };
                 var types = new HashSet<string> {
-                    "int", "float", "double", "boolean", "char", "String", "array"
+                    "int", "float", "double", "boolean", "char", "string", "array"
                 };
                 var operators = new HashSet<string> {
-                    "+", "-", "*", "/", "%", "==", "!=", "<", ">", "<=", ">=", "&&", "||", "!"
+                    "+", "-", "*", "/", "%", "==", "!=", "<", ">", "<=", ">=", "&&", "||", "!", "=", "++", "--"
                 };
                 var delimiters = new HashSet<string> { "(", ")", "{", "}", ";", "," };
 
                 int i = 0;
+                int numInstruction = 0;
                 while (i < source.Length)
                 {
                     if (char.IsWhiteSpace(source[i])) { i++; continue; }
@@ -32,15 +33,18 @@ namespace ParadigmasLang
                         int start = i;
                         while (i < source.Length && (char.IsLetterOrDigit(source[i]) || source[i] == '_')) i++;
                         string word = source.Substring(start, i - start);
-                        if (reserved.Contains(word))
-                            tokens.Add(new Token { Type = "RESERVED", Value = word });
-                        else if (types.Contains(word))
+                        if (types.Contains(word) && numInstruction == 0)
                             tokens.Add(new Token { Type = "TYPE", Value = word });
-                        else
+                        else if (numInstruction != 0)
                             tokens.Add(new Token { Type = "IDENTIFIER", Value = word });
+                        else if (reserved.Contains(word) && numInstruction == 0)
+                            tokens.Add(new Token { Type = "RESERVED", Value = word });
+                        else
+                            tokens.Add(new Token { Type = "INVALID", Value = "INVALID" });
+                        numInstruction++;
                         continue;
                     }
-
+                
                     // Números
                     if (char.IsDigit(source[i]))
                     {
@@ -82,6 +86,7 @@ namespace ParadigmasLang
                     }
                     if (delimiters.Contains(source[i].ToString()))
                     {
+                        if (source[i] == ';') numInstruction = 0;
                         tokens.Add(new Token { Type = "DELIMITER", Value = source[i].ToString() });
                         i++;
                         continue;

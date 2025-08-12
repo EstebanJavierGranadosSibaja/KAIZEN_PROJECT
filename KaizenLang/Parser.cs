@@ -19,7 +19,7 @@ namespace ParadigmasLang
             return root;
         }
 
-    private Node? ParseStatement(List<Token> tokens, ref int pos)
+        private Node? ParseStatement(List<Token> tokens, ref int pos)
         {
             if (Match(tokens, pos, "RESERVED", "if"))
                 return ParseIf(tokens, ref pos);

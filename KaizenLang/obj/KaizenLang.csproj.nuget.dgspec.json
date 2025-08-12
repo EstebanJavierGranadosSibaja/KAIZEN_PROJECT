@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\esteb\\OneDrive\\Escritorio\\KAIZEN_PROJECT\\KaizenLang\\KaizenLang.csproj": {}
+    "c:\\Users\\esteb\\OneDrive\\Escritorio\\KAIZEN_PROJECT\\KaizenLang\\KaizenLang.csproj": {}
   },
   "projects": {
-    "C:\\Users\\esteb\\OneDrive\\Escritorio\\KAIZEN_PROJECT\\KaizenLang\\KaizenLang.csproj": {
+    "c:\\Users\\esteb\\OneDrive\\Escritorio\\KAIZEN_PROJECT\\KaizenLang\\KaizenLang.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\esteb\\OneDrive\\Escritorio\\KAIZEN_PROJECT\\KaizenLang\\KaizenLang.csproj",
+        "projectUniqueName": "c:\\Users\\esteb\\OneDrive\\Escritorio\\KAIZEN_PROJECT\\KaizenLang\\KaizenLang.csproj",
         "projectName": "KaizenLang",
-        "projectPath": "C:\\Users\\esteb\\OneDrive\\Escritorio\\KAIZEN_PROJECT\\KaizenLang\\KaizenLang.csproj",
+        "projectPath": "c:\\Users\\esteb\\OneDrive\\Escritorio\\KAIZEN_PROJECT\\KaizenLang\\KaizenLang.csproj",
         "packagesPath": "C:\\Users\\esteb\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\esteb\\OneDrive\\Escritorio\\KAIZEN_PROJECT\\KaizenLang\\obj\\",
+        "outputPath": "c:\\Users\\esteb\\OneDrive\\Escritorio\\KAIZEN_PROJECT\\KaizenLang\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\esteb\\AppData\\Roaming\\NuGet\\NuGet.Config"
