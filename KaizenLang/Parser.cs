@@ -17,7 +17,8 @@ namespace ParadigmasLang
                 else pos++;
             }
             return root;
-        }
+        // ...existing code...
+    }
 
         private Node? ParseStatement(List<Token> tokens, ref int pos)
         {
@@ -31,8 +32,59 @@ namespace ParadigmasLang
                 return ParseDoWhile(tokens, ref pos);
             if (IsFunctionDeclaration(tokens, pos))
                 return ParseFunction(tokens, ref pos);
+
+            // Validación de declaración tipo → identificador
+            if (IsVariableDeclaration(tokens, pos))
+            {
+                return ParseVariableDeclaration(tokens, ref pos);
+            }
+
+            // Si la estructura no es válida, marcar como inválida
+            if (tokens.Count > pos && tokens[pos].Type == "TYPE")
+            {
+                var invalidNode = new Node { Type = "InvalidDeclaration" };
+                invalidNode.Children.Add(new Node { Type = "Error", Children = { new Node { Type = "Se esperaba un identificador después del tipo." } } });
+                pos++;
+                return invalidNode;
+            }
+
             // ...otros tipos de sentencias...
             return null;
+
+        }
+
+        // Validación: tipo seguido de identificador
+        private bool IsVariableDeclaration(List<Token> tokens, int pos)
+        {
+            // Solo aceptar tipos válidos
+            var validTypes = new HashSet<string> { "int", "float", "double", "boolean", "char", "string", "array" };
+            return pos + 1 < tokens.Count && tokens[pos].Type == "TYPE" && validTypes.Contains(tokens[pos].Value) && tokens[pos + 1].Type == "IDENTIFIER";
+        }
+
+        private Node ParseVariableDeclaration(List<Token> tokens, ref int pos)
+        {
+            Node node = new Node { Type = "VariableDeclaration" };
+            node.Children.Add(new Node { Type = "Type", Children = { new Node { Type = tokens[pos].Value } } });
+            pos++;
+            node.Children.Add(new Node { Type = "Name", Children = { new Node { Type = tokens[pos].Value } } });
+            pos++;
+            // Opcional: operador y valor
+            if (pos < tokens.Count && tokens[pos].Type == "OPERATOR" && tokens[pos].Value == "=")
+            {
+                pos++;
+                if (pos < tokens.Count && (tokens[pos].Type == "INT" || tokens[pos].Type == "FLOAT" || tokens[pos].Type == "STRING" || tokens[pos].Type == "IDENTIFIER"))
+                {
+                    node.Children.Add(new Node { Type = "Value", Children = { new Node { Type = tokens[pos].Type, Children = { new Node { Type = tokens[pos].Value } } } } });
+                    pos++;
+                }
+            }
+            // Finaliza en delimitador ;
+            if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == ";")
+            {
+                pos++;
+            }
+            return node;
+        // ...existing code...
         }
 
         private bool Match(List<Token> tokens, int pos, string type, string value)
@@ -185,4 +237,5 @@ namespace ParadigmasLang
             Children = new List<Node>();
         }
     }
-}
+    }
+// ...existing code...
