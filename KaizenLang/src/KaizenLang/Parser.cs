@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 
 namespace ParadigmasLang
 {
@@ -17,8 +15,8 @@ namespace ParadigmasLang
                 else pos++;
             }
             return root;
-        // ...existing code...
-    }
+            // ...existing code...
+        }
 
         private Node? ParseStatement(List<Token> tokens, ref int pos)
         {
@@ -84,7 +82,7 @@ namespace ParadigmasLang
                 pos++;
             }
             return node;
-        // ...existing code...
+            // ...existing code...
         }
 
         private bool Match(List<Token> tokens, int pos, string type, string value)
@@ -237,5 +235,5 @@ namespace ParadigmasLang
             Children = new List<Node>();
         }
     }
-    }
+}
 // ...existing code...

@@ -1,6 +1,3 @@
-using System;
-using System.IO;
-using System.Collections.Generic;
 
 namespace ParadigmasLang
 {
@@ -36,7 +33,8 @@ namespace ParadigmasLang
             this.Controls.Add(menuStrip);
 
             // Área de código
-            codeBox = new TextBox {
+            codeBox = new TextBox
+            {
                 Multiline = true,
                 ScrollBars = ScrollBars.Vertical,
                 Width = 850,
@@ -48,7 +46,8 @@ namespace ParadigmasLang
             this.Controls.Add(codeBox);
 
             // Botón Compilar
-            compileButton = new Button {
+            compileButton = new Button
+            {
                 Text = "Compilar",
                 Top = 350,
                 Left = 20,
@@ -58,7 +57,8 @@ namespace ParadigmasLang
             this.Controls.Add(compileButton);
 
             // Botón Ejecutar
-            executeButton = new Button {
+            executeButton = new Button
+            {
                 Text = "Ejecutar",
                 Top = 350,
                 Left = 140,
@@ -68,7 +68,8 @@ namespace ParadigmasLang
             this.Controls.Add(executeButton);
 
             // Output para errores y resultados
-            outputBox = new TextBox {
+            outputBox = new TextBox
+            {
                 Multiline = true,
                 ScrollBars = ScrollBars.Vertical,
                 Width = 850,
@@ -86,7 +87,7 @@ namespace ParadigmasLang
             codeBox.SelectedText = text;
         }
 
-        private void CompileButton_Click(object sender, EventArgs e)
+        private void CompileButton_Click(object? sender, EventArgs? e)
         {
             string source = codeBox.Text;
             var lexer = new Lexer();
@@ -106,7 +107,7 @@ namespace ParadigmasLang
             outputBox.Text = output;
         }
 
-        private void ExecuteButton_Click(object sender, EventArgs e)
+        private void ExecuteButton_Click(object? sender, EventArgs? e)
         {
             // Simulación de ejecución: solo muestra mensaje
             outputBox.Text = "Ejecución simulada: (Aquí se mostraría la salida del programa)";
