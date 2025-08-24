@@ -31,24 +31,64 @@ namespace ParadigmasLang
             if (IsFunctionDeclaration(tokens, pos))
                 return ParseFunction(tokens, ref pos);
 
-            // Validación de declaración tipo → identificador
+            // Declaración de variable
             if (IsVariableDeclaration(tokens, pos))
-            {
                 return ParseVariableDeclaration(tokens, ref pos);
-            }
 
-            // Si la estructura no es válida, marcar como inválida
+            // Asignación de variable
+            if (IsAssignment(tokens, pos))
+                return ParseAssignment(tokens, ref pos);
+
+            // Si empieza con TYPE pero mal estructurado
             if (tokens.Count > pos && tokens[pos].Type == "TYPE")
             {
                 var invalidNode = new Node { Type = "InvalidDeclaration" };
-                invalidNode.Children.Add(new Node { Type = "Error", Children = { new Node { Type = "Se esperaba un identificador después del tipo." } } });
+                invalidNode.Children.Add(new Node
+                {
+                    Type = "Error",
+                    Children = { new Node { Type = "Se esperaba un identificador después del tipo." } }
+                });
                 pos++;
                 return invalidNode;
             }
 
-            // ...otros tipos de sentencias...
-            return null;
+            // Si empieza con un IDENTIFIER pero no es asignación → inválido
+            if (tokens.Count > pos && tokens[pos].Type == "IDENTIFIER")
+            {
+                var invalidNode = new Node { Type = "InvalidStatement" };
+                invalidNode.Children.Add(new Node
+                {
+                    Type = "Error",
+                    Children = { new Node { Type = "Expresión o sentencia inválida iniciada con identificador." } }
+                });
+                pos++;
+                return invalidNode;
+            }
 
+            return null;
+        }
+
+
+        // Nueva validación: asignación
+        private bool IsAssignment(List<Token> tokens, int pos)
+        {
+            return pos + 2 < tokens.Count &&
+                   tokens[pos].Type == "IDENTIFIER" &&
+                   tokens[pos + 1].Type == "OPERATOR" &&
+                   tokens[pos + 1].Value == "=";
+        }
+
+        private Node ParseAssignment(List<Token> tokens, ref int pos)
+        {
+            Node node = new Node { Type = "Assignment" };
+            node.Children.Add(new Node { Type = "Variable", Children = { new Node { Type = tokens[pos].Value } } });
+            pos += 2; // IDENTIFIER =
+            node.Children.Add(ParseExpression(tokens, ref pos));
+
+            if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == ";")
+                pos++;
+
+            return node;
         }
 
         // Validación: tipo seguido de identificador
@@ -62,27 +102,64 @@ namespace ParadigmasLang
         private Node ParseVariableDeclaration(List<Token> tokens, ref int pos)
         {
             Node node = new Node { Type = "VariableDeclaration" };
+
+            // Tipo
             node.Children.Add(new Node { Type = "Type", Children = { new Node { Type = tokens[pos].Value } } });
             pos++;
+
+            // Nombre
             node.Children.Add(new Node { Type = "Name", Children = { new Node { Type = tokens[pos].Value } } });
             pos++;
-            // Opcional: operador y valor
-            if (pos < tokens.Count && tokens[pos].Type == "OPERATOR" && tokens[pos].Value == "=")
+
+            // Validar lo que sigue
+            if (pos < tokens.Count)
             {
-                pos++;
-                if (pos < tokens.Count && (tokens[pos].Type == "INT" || tokens[pos].Type == "FLOAT" || tokens[pos].Type == "STRING" || tokens[pos].Type == "IDENTIFIER"))
+                if (tokens[pos].Type == "OPERATOR" && tokens[pos].Value == "=")
                 {
-                    node.Children.Add(new Node { Type = "Value", Children = { new Node { Type = tokens[pos].Type, Children = { new Node { Type = tokens[pos].Value } } } } });
+                    // inicialización válida
                     pos++;
+                    node.Children.Add(new Node
+                    {
+                        Type = "Value",
+                        Children = { ParseExpression(tokens, ref pos) }
+                    });
                 }
+                else if (tokens[pos].Type == "DELIMITER" && tokens[pos].Value == ";")
+                {
+                    // declaración simple, válido
+                    pos++;
+                    return node;
+                }
+                else
+                {
+                    // ❌ cualquier otra cosa es inválida
+                    var invalidNode = new Node { Type = "InvalidDeclaration" };
+                    invalidNode.Children.Add(new Node
+                    {
+                        Type = "Error",
+                        Children = { new Node { Type = $"Token inesperado '{tokens[pos].Value}' en declaración de variable." } }
+                    });
+                    pos++;
+
+                    return invalidNode;
+                }
+
             }
-            // Finaliza en delimitador ;
+
+            // Después de parsear el valor (si hay)
             if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == ";")
             {
-                pos++;
+                pos++; // consumir ;
             }
+            else
+            {
+                // Error: faltó el ;
+                var errorNode = new Node { Type = "Error" };
+                errorNode.Children.Add(new Node { Type = "Se esperaba ';' al final de la declaración." });
+                node.Children.Add(errorNode);
+            }
+
             return node;
-            // ...existing code...
         }
 
         private bool Match(List<Token> tokens, int pos, string type, string value)
