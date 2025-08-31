@@ -1,9 +1,58 @@
-
 namespace ParadigmasLang
 {
     // Analizador sintáctico: convierte tokens en un árbol de sintaxis
     public class Parser
     {
+        // Utilidad para crear nodos de error con posición
+        private Node ErrorNode(string mensaje, int pos)
+        {
+            return new Node { Type = "Error", Children = { new Node { Type = $"{mensaje} (posición {pos})" } } };
+        }
+
+        // Validación y construcción de parámetros de función
+        private Node ParseParams(List<Token> tokens, ref int pos)
+        {
+            var paramsNode = new Node { Type = "Params" };
+            int paramIndex = 0;
+            while (tokens[pos].Type != "DELIMITER" || tokens[pos].Value != ")")
+            {
+                if (tokens[pos].Type == "TYPE")
+                {
+                    var paramType = tokens[pos].Value;
+                    pos++;
+                    if (tokens[pos].Type == "IDENTIFIER")
+                    {
+                        var paramName = tokens[pos].Value;
+                        pos++;
+                        paramsNode.Children.Add(new Node { Type = "Param", Children = { new Node { Type = paramType }, new Node { Type = paramName } } });
+                        paramIndex++;
+                        if (tokens[pos].Type == "DELIMITER" && tokens[pos].Value == ",") pos++;
+                    }
+                    else
+                    {
+                        paramsNode.Children.Add(ErrorNode("Falta nombre de parámetro", pos));
+                        break;
+                    }
+                }
+                else if (tokens[pos].Type == "IDENTIFIER")
+                {
+                    paramsNode.Children.Add(ErrorNode("Falta tipo de parámetro", pos));
+                    pos++;
+                    break;
+                }
+                else if (tokens[pos].Type == "DELIMITER" && tokens[pos].Value == ",")
+                {
+                    pos++;
+                }
+                else
+                {
+                    paramsNode.Children.Add(ErrorNode($"Token inesperado '{tokens[pos].Value}' en parámetros", pos));
+                    pos++;
+                    break;
+                }
+            }
+            return paramsNode;
+        }
         public Node Parse(List<Token> tokens)
         {
             int pos = 0;
@@ -15,7 +64,6 @@ namespace ParadigmasLang
                 else pos++;
             }
             return root;
-            // ...existing code...
         }
 
         private Node? ParseStatement(List<Token> tokens, ref int pos)
@@ -265,22 +313,7 @@ namespace ParadigmasLang
             node.Children.Add(new Node { Type = "Name", Children = { new Node { Type = tokens[pos].Value } } });
             pos++;
             if (tokens[pos].Type == "DELIMITER" && tokens[pos].Value == "(") pos++;
-            // parámetros
-            var paramsNode = new Node { Type = "Params" };
-            while (tokens[pos].Type != "DELIMITER" || tokens[pos].Value != ")")
-            {
-                if (tokens[pos].Type == "TYPE")
-                {
-                    var paramType = tokens[pos].Value;
-                    pos++;
-                    var paramName = tokens[pos].Value;
-                    pos++;
-                    paramsNode.Children.Add(new Node { Type = "Param", Children = { new Node { Type = paramType }, new Node { Type = paramName } } });
-                    if (tokens[pos].Type == "DELIMITER" && tokens[pos].Value == ",") pos++;
-                }
-                else pos++;
-            }
-            node.Children.Add(paramsNode);
+            node.Children.Add(ParseParams(tokens, ref pos));
             if (tokens[pos].Type == "DELIMITER" && tokens[pos].Value == ")") pos++;
             if (tokens[pos].Type == "DELIMITER" && tokens[pos].Value == "{")
                 node.Children.Add(ParseBlock(tokens, ref pos));
@@ -304,12 +337,41 @@ namespace ParadigmasLang
 
         private Node ParseExpression(List<Token> tokens, ref int pos)
         {
-            // Simplificado: solo toma el siguiente token como expresión
+            // Expresiones anidadas y operaciones compuestas (máximo 2 niveles)
             Node node = new Node { Type = "Expression" };
-            if (pos < tokens.Count)
+            int startPos = pos;
+            int level = 0;
+            while (pos < tokens.Count && level < 2)
             {
-                node.Children.Add(new Node { Type = tokens[pos].Type, Children = { new Node { Type = tokens[pos].Value } } });
-                pos++;
+                if (tokens[pos].Type == "DELIMITER" && (tokens[pos].Value == ";" || tokens[pos].Value == ")" || tokens[pos].Value == ","))
+                    break;
+                if (tokens[pos].Type == "OPERATOR" && level == 0)
+                {
+                    // Operación compuesta: operador y siguiente expresión
+                    var opNode = new Node { Type = "Operator", Children = { new Node { Type = tokens[pos].Value } } };
+                    pos++;
+                    opNode.Children.Add(ParseExpression(tokens, ref pos));
+                    node.Children.Add(opNode);
+                    level++;
+                }
+                else if (tokens[pos].Type == "DELIMITER" && tokens[pos].Value == "(")
+                {
+                    // Expresión anidada
+                    pos++;
+                    var nested = ParseExpression(tokens, ref pos);
+                    node.Children.Add(nested);
+                    if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == ")") pos++;
+                    level++;
+                }
+                else
+                {
+                    node.Children.Add(new Node { Type = tokens[pos].Type, Children = { new Node { Type = tokens[pos].Value } } });
+                    pos++;
+                }
+            }
+            if (node.Children.Count == 0)
+            {
+                node.Children.Add(ErrorNode("Expresión inválida", startPos));
             }
             return node;
         }
@@ -327,4 +389,3 @@ namespace ParadigmasLang
         }
     }
 }
-// ...existing code...
