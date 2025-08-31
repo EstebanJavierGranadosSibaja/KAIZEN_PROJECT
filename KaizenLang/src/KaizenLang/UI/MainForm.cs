@@ -15,17 +15,17 @@ namespace KaizenLang.UI
 		public MainForm()
 		{
 			this.Text = "KaizenLang IDE";
-			this.Width = 1000;
-			this.Height = 700;
-			this.BackColor = Color.FromArgb(245, 247, 250);
+			this.Width = 1400;
+			this.Height = 900;
+			this.BackColor = Color.FromArgb(240, 243, 250);
 			this.FormBorderStyle = FormBorderStyle.FixedSingle;
 			this.MaximizeBox = false;
 
-			// Menú principal moderno
+			// Menú principal moderno y destacado
 			menuStrip = new MenuStrip
 			{
-				BackColor = Color.White,
-				Font = new Font("Segoe UI", 11, FontStyle.Bold),
+				BackColor = Color.FromArgb(255, 255, 255),
+				Font = new Font("Segoe UI", 13, FontStyle.Bold),
 				Renderer = new ToolStripProfessionalRenderer()
 			};
 			var estructurasMenu = new ToolStripMenuItem("☰ Estructuras del Lenguaje") { ForeColor = Color.FromArgb(44, 62, 80) };
@@ -41,87 +41,112 @@ namespace KaizenLang.UI
 			estructurasMenu.DropDownItems.Add(semanticaMenu);
 			estructurasMenu.DropDownItems.Add(tiposDatosMenu);
 			menuStrip.Items.Add(estructurasMenu);
+			menuStrip.Height = 40;
 			this.Controls.Add(menuStrip);
 
-			// Área de código con panel y borde
+			// Panel de código con sombra y bordes redondeados simulados
 			var codePanel = new Panel
 			{
 				BackColor = Color.White,
 				BorderStyle = BorderStyle.FixedSingle,
-				Width = 920,
-				Height = 320,
-				Top = 50,
-				Left = 40
+				Width = 1200,
+				Height = 400,
+				Top = 60,
+				Left = 80,
+				Padding = new Padding(20)
+			};
+			codePanel.Paint += (s, e) => {
+				var g = e.Graphics;
+				var rect = new Rectangle(0, 0, codePanel.Width - 1, codePanel.Height - 1);
+				using (var pen = new Pen(Color.FromArgb(200, 200, 220), 2))
+					g.DrawRectangle(pen, rect);
+				// Sombra inferior
+				using (var brush = new SolidBrush(Color.FromArgb(30, 44, 62, 80)))
+					g.FillRectangle(brush, 0, codePanel.Height - 10, codePanel.Width, 10);
 			};
 			codeBox = new TextBox
 			{
 				Multiline = true,
 				ScrollBars = ScrollBars.Vertical,
-				Width = codePanel.Width - 20,
-				Height = codePanel.Height - 20,
+				Width = codePanel.Width - 40,
+				Height = codePanel.Height - 40,
 				Top = 10,
 				Left = 10,
-				Font = new Font("Fira Code", 13),
-				BackColor = Color.FromArgb(250, 250, 250),
+				Font = new Font("Fira Code", 16),
+				BackColor = Color.FromArgb(250, 250, 255),
 				ForeColor = Color.FromArgb(44, 62, 80),
 				BorderStyle = BorderStyle.None
 			};
 			codePanel.Controls.Add(codeBox);
 			this.Controls.Add(codePanel);
 
-			// Botones modernos
+			// Botones con efecto hover y aspecto profesional
 			compileButton = new Button
 			{
 				Text = "🛠 Compilar",
-				Top = codePanel.Bottom + 20,
+				Top = codePanel.Bottom + 30,
 				Left = codePanel.Left,
-				Width = 140,
-				Height = 40,
+				Width = 180,
+				Height = 50,
 				BackColor = Color.FromArgb(52, 152, 219),
 				ForeColor = Color.White,
 				FlatStyle = FlatStyle.Flat,
-				Font = new Font("Segoe UI", 12, FontStyle.Bold)
+				Font = new Font("Segoe UI", 14, FontStyle.Bold)
 			};
 			compileButton.FlatAppearance.BorderSize = 0;
+			compileButton.MouseEnter += (s, e) => compileButton.BackColor = Color.FromArgb(25, 90, 160); // Azul más oscuro y saturado
+			compileButton.MouseLeave += (s, e) => compileButton.BackColor = Color.FromArgb(52, 152, 219); // Azul original
 			compileButton.Click += CompileButton_Click;
 			this.Controls.Add(compileButton);
 
 			executeButton = new Button
 			{
 				Text = "▶ Ejecutar",
-				Top = codePanel.Bottom + 20,
-				Left = compileButton.Right + 20,
-				Width = 140,
-				Height = 40,
+				Top = codePanel.Bottom + 30,
+				Left = compileButton.Right + 40,
+				Width = 180,
+				Height = 50,
 				BackColor = Color.FromArgb(39, 174, 96),
 				ForeColor = Color.White,
 				FlatStyle = FlatStyle.Flat,
-				Font = new Font("Segoe UI", 12, FontStyle.Bold)
+				Font = new Font("Segoe UI", 14, FontStyle.Bold)
 			};
 			executeButton.FlatAppearance.BorderSize = 0;
+			executeButton.MouseEnter += (s, e) => executeButton.BackColor = Color.FromArgb(30, 132, 73);
+			executeButton.MouseLeave += (s, e) => executeButton.BackColor = Color.FromArgb(39, 174, 96);
 			executeButton.Click += ExecuteButton_Click;
 			this.Controls.Add(executeButton);
 
-			// Output con fondo oscuro y borde
+			// Output con fondo oscuro, sombra y bordes redondeados simulados
 			var outputPanel = new Panel
 			{
 				BackColor = Color.FromArgb(44, 62, 80),
 				BorderStyle = BorderStyle.FixedSingle,
-				Width = 920,
-				Height = 200,
-				Top = compileButton.Bottom + 30,
-				Left = 40
+				Width = 1200,
+				Height = 250,
+				Top = compileButton.Bottom + 40,
+				Left = 80,
+				Padding = new Padding(20)
+			};
+			outputPanel.Paint += (s, e) => {
+				var g = e.Graphics;
+				var rect = new Rectangle(0, 0, outputPanel.Width - 1, outputPanel.Height - 1);
+				using (var pen = new Pen(Color.FromArgb(200, 200, 220), 2))
+					g.DrawRectangle(pen, rect);
+				// Sombra inferior
+				using (var brush = new SolidBrush(Color.FromArgb(60, 44, 62, 80)))
+					g.FillRectangle(brush, 0, outputPanel.Height - 10, outputPanel.Width, 10);
 			};
 			outputBox = new TextBox
 			{
 				Multiline = true,
 				ScrollBars = ScrollBars.Vertical,
-				Width = outputPanel.Width - 20,
-				Height = outputPanel.Height - 20,
+				Width = outputPanel.Width - 40,
+				Height = outputPanel.Height - 40,
 				Top = 10,
 				Left = 10,
 				ReadOnly = true,
-				Font = new Font("Fira Code", 11),
+				Font = new Font("Fira Code", 14),
 				BackColor = Color.FromArgb(44, 62, 80),
 				ForeColor = Color.White,
 				BorderStyle = BorderStyle.None
