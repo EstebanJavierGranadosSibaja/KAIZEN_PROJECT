@@ -1,3 +1,4 @@
+// Archivo duplicado eliminado. Mantener solo una definición de Lexer y Token en el proyecto.
 namespace ParadigmasLang
 {
     public class Lexer
@@ -5,20 +6,11 @@ namespace ParadigmasLang
         public List<Token> Tokenize(string source)
         {
             var tokens = new List<Token>();
-            var reserved = new HashSet<string> {
-                "output", "input", "void", "do", "while", "for", "if", "else", "return"
-            };
-            var literals = new HashSet<string> { "true", "false", "null" };
-            var types = new HashSet<string> {
-                "int", "float", "double", "boolean", "char", "string", "array", "list", "matrix"
-            };
-            var operators = new HashSet<string> {
-                "+", "-", "*", "/", "%", "==", "!=", "<", ">", "<=", ">=", "&&", "||", "!",
-                "=", "+=", "-=", "*=", "/=", "++", "--"
-            };
-            var delimiters = new HashSet<string> { "(", ")", "{", "}", ";", ",", "[", "]" };
 
             int i = 0;
+            // Tipos válidos extendidos
+            var validTypes = new HashSet<string>(TypeWords.Words.Concat(new[] { "array", "string" }));
+
             while (i < source.Length)
             {
                 if (char.IsWhiteSpace(source[i])) { i++; continue; }
@@ -30,11 +22,11 @@ namespace ParadigmasLang
                     while (i < source.Length && (char.IsLetterOrDigit(source[i]) || source[i] == '_')) i++;
                     string word = source.Substring(start, i - start);
 
-                    if (types.Contains(word))
+                    if (validTypes.Contains(word))
                         tokens.Add(new Token("TYPE", word));
-                    else if (reserved.Contains(word))
+                    else if (ReservedWords.Words.Contains(word))
                         tokens.Add(new Token("RESERVED", word));
-                    else if (literals.Contains(word))
+                    else if (LiteralWords.Words.Contains(word))
                         tokens.Add(new Token("LITERAL", word));
                     else
                         tokens.Add(new Token("IDENTIFIER", word));
@@ -63,10 +55,18 @@ namespace ParadigmasLang
                 if (source[i] == '"')
                 {
                     int start = ++i;
+                    int strStart = start - 1;
                     while (i < source.Length && source[i] != '"') i++;
-                    string str = source.Substring(start, i - start);
-                    tokens.Add(new Token("STRING", str));
-                    i++; // skip closing quote
+                    if (i < source.Length)
+                    {
+                        string str = source.Substring(start, i - start);
+                        tokens.Add(new Token("STRING", str));
+                        i++; // skip closing quote
+                    }
+                    else
+                    {
+                        tokens.Add(new Token("INVALID", $"Cadena sin cierre: {source.Substring(strStart)}"));
+                    }
                     continue;
                 }
 
@@ -81,7 +81,7 @@ namespace ParadigmasLang
                     }
                     else
                     {
-                        tokens.Add(new Token("INVALID", "Invalid char literal"));
+                        tokens.Add(new Token("INVALID", $"Literal de char inválido en posición {start - 1}"));
                         i++;
                     }
                     continue;
@@ -97,16 +97,24 @@ namespace ParadigmasLang
                     }
                     else if (source[i + 1] == '*')
                     {
+                        int commentStart = i;
                         i += 2;
                         while (i + 1 < source.Length && !(source[i] == '*' && source[i + 1] == '/')) i++;
-                        i += 2; // skip */
+                        if (i + 1 < source.Length)
+                        {
+                            i += 2; // skip */
+                        }
+                        else
+                        {
+                            tokens.Add(new Token("INVALID", $"Comentario de bloque sin cierre desde posición {commentStart}"));
+                        }
                         continue;
                     }
                 }
 
                 // Operadores multi-char
                 bool matched = false;
-                foreach (var op in operators.OrderByDescending(x => x.Length))
+                foreach (var op in OperatorWords.Words.OrderByDescending(x => x.Length))
                 {
                     if (source.Substring(i).StartsWith(op))
                     {
@@ -119,7 +127,7 @@ namespace ParadigmasLang
                 if (matched) continue;
 
                 // Delimitadores
-                if (delimiters.Contains(source[i].ToString()))
+                if (DelimiterWords.Words.Contains(source[i].ToString()))
                 {
                     tokens.Add(new Token("DELIMITER", source[i].ToString()));
                     i++;
@@ -127,22 +135,12 @@ namespace ParadigmasLang
                 }
 
                 // Si no se reconoce
-                tokens.Add(new Token("INVALID", source[i].ToString()));
+                tokens.Add(new Token("INVALID", $"Carácter no reconocido '{source[i]}' en posición {i}"));
                 i++;
             }
             return tokens;
         }
     }
 
-    public class Token
-    {
-        public string Type { get; set; }
-        public string Value { get; set; }
-
-        public Token(string type, string value)
-        {
-            Type = type;
-            Value = value;
-        }
-    }
+    // Token se encuentra ahora en src/KaizenLang/Tokens/Token.cs
 }

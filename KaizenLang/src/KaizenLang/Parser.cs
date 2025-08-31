@@ -35,9 +35,23 @@ namespace ParadigmasLang
             if (IsVariableDeclaration(tokens, pos))
                 return ParseVariableDeclaration(tokens, ref pos);
 
-            // Asignación de variable
+            // Asignación de variable: solo si la variable fue declarada con tipo
             if (IsAssignment(tokens, pos))
-                return ParseAssignment(tokens, ref pos);
+            {
+                // Si la asignación no está precedida por una declaración de tipo, es inválida
+                // Ejemplo: numero = 100; (sin tipo)
+                var invalidNode = new Node { Type = "InvalidAssignment" };
+                invalidNode.Children.Add(new Node
+                {
+                    Type = "Error",
+                    Children = { new Node { Type = "Asignación sin declaración de tipo. El lenguaje requiere tipado estricto." } }
+                });
+                pos += 3; // Saltar IDENTIFIER = valor
+                // Saltar hasta el siguiente delimitador
+                while (pos < tokens.Count && tokens[pos].Type != "DELIMITER") pos++;
+                if (pos < tokens.Count) pos++;
+                return invalidNode;
+            }
 
             // Si empieza con TYPE pero mal estructurado
             if (tokens.Count > pos && tokens[pos].Type == "TYPE")
@@ -52,14 +66,14 @@ namespace ParadigmasLang
                 return invalidNode;
             }
 
-            // Si empieza con un IDENTIFIER pero no es asignación → inválido
+            // Si empieza con un IDENTIFIER → inválido
             if (tokens.Count > pos && tokens[pos].Type == "IDENTIFIER")
             {
                 var invalidNode = new Node { Type = "InvalidStatement" };
                 invalidNode.Children.Add(new Node
                 {
                     Type = "Error",
-                    Children = { new Node { Type = "Expresión o sentencia inválida iniciada con identificador." } }
+                    Children = { new Node { Type = "Expresión o sentencia inválida iniciada con identificador. El lenguaje requiere tipado estricto." } }
                 });
                 pos++;
                 return invalidNode;
@@ -80,6 +94,7 @@ namespace ParadigmasLang
 
         private Node ParseAssignment(List<Token> tokens, ref int pos)
         {
+            // Esta función solo se usará si el tipado estricto se cumple (declaración con tipo)
             Node node = new Node { Type = "Assignment" };
             node.Children.Add(new Node { Type = "Variable", Children = { new Node { Type = tokens[pos].Value } } });
             pos += 2; // IDENTIFIER =
@@ -106,7 +121,6 @@ namespace ParadigmasLang
             // Tipo
             node.Children.Add(new Node { Type = "Type", Children = { new Node { Type = tokens[pos].Value } } });
             pos++;
-
             // Nombre
             node.Children.Add(new Node { Type = "Name", Children = { new Node { Type = tokens[pos].Value } } });
             pos++;
