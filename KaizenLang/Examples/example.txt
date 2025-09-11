@@ -1,26 +1,74 @@
-int x = 5;
-floattt y = 3.14;
-string mensaje = "Hola mundo";
+// ============================================
+// EJEMPLOS DE CÓDIGO EN KAIZENLANG
+// ============================================
 
-int = 5;           // Falta identificador
-float 3.14;        // Falta identificador
-string "Hola";     // Falta identificador
-double;            // Falta identificador
+// EJEMPLO 1: Declaraciones básicas de variables
+int numero = 42;
+string mensaje = "Hola KaizenLang";
+boolean activo = true;
+float precio = 19.99;
 
-int correcto = 10;
-boolean = true;    // Incorrecto
-char;              // Incorrecto
-float valor;       // Correcto
-
-if  { (x > 3)
-    y = y 
-    + x;
+// EJEMPLO 2: Estructuras de control
+if (numero > 0) {
+    // código cuando es positivo
+} else {
+    // código cuando es negativo o cero
 }
 
-for (int i = 0; i < 5; i = i + 1) {
-    print(i);
+// EJEMPLO 3: Bucle while
+int contador = 0;
+while (contador < 5) {
+    contador = contador + 1;
 }
 
+// EJEMPLO 4: Bucle for
+for (int i = 0; i < 10; i++) {
+    // código del bucle
+}
+
+// EJEMPLO 5: Función simple
 int suma(int a, int b) {
     return a + b;
 }
+
+// EJEMPLO 6: Función void
+void saludar(string nombre) {
+    // lógica de saludo
+}
+
+// ============================================
+// EJEMPLOS DE ERRORES PARA PROBAR VALIDACIONES
+// ============================================
+
+// ERROR LÉXICO: Comilla sin cerrar
+// string error = "texto sin cerrar
+
+// ERROR SINTÁCTICO: Falta punto y coma
+// int x = 5
+
+// ERROR SEMÁNTICO: Variable no declarada
+// y = 10;
+
+// ERROR SEMÁNTICO: Tipos incompatibles
+// int numero = "texto";
+
+// ============================================
+// EJEMPLOS COMPLEJOS
+// ============================================
+
+// EJEMPLO 7: Operaciones complejas
+int resultado = (10 + 5) * 2;
+boolean comparacion = (resultado > 25) && (numero < 100);
+
+// EJEMPLO 8: Función con lógica
+int factorial(int n) {
+    if (n <= 1) {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+
+// EJEMPLO 9: Múltiples declaraciones
+int x = 1;
+int y = 2;
+int z = x + y;

@@ -76,6 +76,8 @@ namespace ParadigmasLang
                 return ParseWhile(tokens, ref pos);
             if (Match(tokens, pos, "RESERVED", "do"))
                 return ParseDoWhile(tokens, ref pos);
+            if (Match(tokens, pos, "RESERVED", "return"))
+                return ParseReturn(tokens, ref pos);
             if (IsFunctionDeclaration(tokens, pos))
                 return ParseFunction(tokens, ref pos);
 
@@ -83,23 +85,13 @@ namespace ParadigmasLang
             if (IsVariableDeclaration(tokens, pos))
                 return ParseVariableDeclaration(tokens, ref pos);
 
-            // Asignación de variable: solo si la variable fue declarada con tipo
+            // Asignación de variable existente: IDENTIFIER = valor
             if (IsAssignment(tokens, pos))
-            {
-                // Si la asignación no está precedida por una declaración de tipo, es inválida
-                // Ejemplo: numero = 100; (sin tipo)
-                var invalidNode = new Node { Type = "InvalidAssignment" };
-                invalidNode.Children.Add(new Node
-                {
-                    Type = "Error",
-                    Children = { new Node { Type = "Asignación sin declaración de tipo. El lenguaje requiere tipado estricto." } }
-                });
-                pos += 3; // Saltar IDENTIFIER = valor
-                // Saltar hasta el siguiente delimitador
-                while (pos < tokens.Count && tokens[pos].Type != "DELIMITER") pos++;
-                if (pos < tokens.Count) pos++;
-                return invalidNode;
-            }
+                return ParseAssignment(tokens, ref pos);
+
+            // Expresión o llamada a función que termina en ;
+            if (IsExpressionStatement(tokens, pos))
+                return ParseExpressionStatement(tokens, ref pos);
 
             // Si empieza con TYPE pero mal estructurado
             if (tokens.Count > pos && tokens[pos].Type == "TYPE")
@@ -114,20 +106,62 @@ namespace ParadigmasLang
                 return invalidNode;
             }
 
-            // Si empieza con un IDENTIFIER → inválido
-            if (tokens.Count > pos && tokens[pos].Type == "IDENTIFIER")
-            {
-                var invalidNode = new Node { Type = "InvalidStatement" };
-                invalidNode.Children.Add(new Node
-                {
-                    Type = "Error",
-                    Children = { new Node { Type = "Expresión o sentencia inválida iniciada con identificador. El lenguaje requiere tipado estricto." } }
-                });
-                pos++;
-                return invalidNode;
-            }
-
             return null;
+        }
+
+        // Nueva función para manejar return
+        private Node ParseReturn(List<Token> tokens, ref int pos)
+        {
+            Node node = new Node { Type = "Return" };
+            pos++; // consumir 'return'
+            
+            // Si hay una expresión después de return
+            if (pos < tokens.Count && !(tokens[pos].Type == "DELIMITER" && tokens[pos].Value == ";"))
+            {
+                node.Children.Add(ParseExpression(tokens, ref pos));
+            }
+            
+            // Consumir el ;
+            if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == ";")
+                pos++;
+                
+            return node;
+        }
+
+        // Nueva función para verificar si es una expresión que termina en ;
+        private bool IsExpressionStatement(List<Token> tokens, int pos)
+        {
+            if (pos >= tokens.Count) return false;
+            
+            // Buscar si hay un ; en los próximos tokens (expresión válida)
+            int tempPos = pos;
+            int parenLevel = 0;
+            
+            while (tempPos < tokens.Count)
+            {
+                if (tokens[tempPos].Type == "DELIMITER")
+                {
+                    if (tokens[tempPos].Value == "(") parenLevel++;
+                    else if (tokens[tempPos].Value == ")") parenLevel--;
+                    else if (tokens[tempPos].Value == ";" && parenLevel == 0) return true;
+                    else if (tokens[tempPos].Value == "{" && parenLevel == 0) return false;
+                }
+                tempPos++;
+            }
+            return false;
+        }
+
+        // Nueva función para parsear expresiones que son sentencias
+        private Node ParseExpressionStatement(List<Token> tokens, ref int pos)
+        {
+            Node node = new Node { Type = "ExpressionStatement" };
+            node.Children.Add(ParseExpression(tokens, ref pos));
+            
+            // Consumir el ;
+            if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == ";")
+                pos++;
+                
+            return node;
         }
 
 
@@ -142,7 +176,6 @@ namespace ParadigmasLang
 
         private Node ParseAssignment(List<Token> tokens, ref int pos)
         {
-            // Esta función solo se usará si el tipado estricto se cumple (declaración con tipo)
             Node node = new Node { Type = "Assignment" };
             node.Children.Add(new Node { Type = "Variable", Children = { new Node { Type = tokens[pos].Value } } });
             pos += 2; // IDENTIFIER =
@@ -337,55 +370,88 @@ namespace ParadigmasLang
 
         private Node ParseExpression(List<Token> tokens, ref int pos)
         {
-            // Expresiones anidadas y operaciones compuestas (máximo 2 niveles)
             Node node = new Node { Type = "Expression" };
             int startPos = pos;
-            int level = 0;
-            while (pos < tokens.Count && level < 2)
+            
+            while (pos < tokens.Count)
             {
-                if (tokens[pos].Type == "DELIMITER" && (tokens[pos].Value == ";" || tokens[pos].Value == ")" || tokens[pos].Value == ","))
+                // Terminar en delimitadores que indican fin de expresión
+                if (tokens[pos].Type == "DELIMITER" && 
+                    (tokens[pos].Value == ";" || tokens[pos].Value == ")" || 
+                     tokens[pos].Value == "," || tokens[pos].Value == "}"))
                     break;
-                if (tokens[pos].Type == "OPERATOR" && level == 0)
+
+                // Manejar llamadas a función: IDENTIFIER (
+                if (pos + 1 < tokens.Count && 
+                    tokens[pos].Type == "IDENTIFIER" && 
+                    tokens[pos + 1].Type == "DELIMITER" && 
+                    tokens[pos + 1].Value == "(")
                 {
-                    // Operación compuesta: operador y siguiente expresión
-                    var opNode = new Node { Type = "Operator", Children = { new Node { Type = tokens[pos].Value } } };
-                    pos++;
-                    opNode.Children.Add(ParseExpression(tokens, ref pos));
-                    node.Children.Add(opNode);
-                    level++;
+                    var funcCall = ParseFunctionCall(tokens, ref pos);
+                    node.Children.Add(funcCall);
+                    continue;
                 }
-                else if (tokens[pos].Type == "DELIMITER" && tokens[pos].Value == "(")
+
+                // Manejar expresiones entre paréntesis
+                if (tokens[pos].Type == "DELIMITER" && tokens[pos].Value == "(")
                 {
-                    // Expresión anidada
-                    pos++;
+                    pos++; // consumir (
                     var nested = ParseExpression(tokens, ref pos);
-                    node.Children.Add(nested);
-                    if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == ")") pos++;
-                    level++;
+                    node.Children.Add(new Node { Type = "Parentheses", Children = { nested } });
+                    if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == ")")
+                        pos++; // consumir )
+                    continue;
                 }
-                else
+
+                // Manejar operadores
+                if (tokens[pos].Type == "OPERATOR")
                 {
-                    node.Children.Add(new Node { Type = tokens[pos].Type, Children = { new Node { Type = tokens[pos].Value } } });
+                    node.Children.Add(new Node { Type = "Operator", Children = { new Node { Type = tokens[pos].Value } } });
                     pos++;
+                    continue;
                 }
+
+                // Otros tokens (literales, identificadores, etc.)
+                node.Children.Add(new Node { Type = tokens[pos].Type, Children = { new Node { Type = tokens[pos].Value } } });
+                pos++;
             }
+
             if (node.Children.Count == 0)
             {
-                node.Children.Add(ErrorNode("Expresión inválida", startPos));
+                node.Children.Add(ErrorNode("Expresión vacía", startPos));
             }
+
             return node;
         }
-    }
 
-    public class Node
-    {
-        public string Type { get; set; }
-        public List<Node> Children { get; set; }
-
-        public Node()
+        // Nueva función para parsear llamadas a función
+        private Node ParseFunctionCall(List<Token> tokens, ref int pos)
         {
-            Type = string.Empty;
-            Children = new List<Node>();
+            Node node = new Node { Type = "FunctionCall" };
+            
+            // Nombre de la función
+            node.Children.Add(new Node { Type = "FunctionName", Children = { new Node { Type = tokens[pos].Value } } });
+            pos++; // IDENTIFIER
+            pos++; // (
+            
+            // Argumentos
+            var argsNode = new Node { Type = "Arguments" };
+            while (pos < tokens.Count && !(tokens[pos].Type == "DELIMITER" && tokens[pos].Value == ")"))
+            {
+                if (tokens[pos].Type == "DELIMITER" && tokens[pos].Value == ",")
+                {
+                    pos++; // consumir ,
+                    continue;
+                }
+                argsNode.Children.Add(ParseExpression(tokens, ref pos));
+            }
+            
+            node.Children.Add(argsNode);
+            
+            if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == ")")
+                pos++; // consumir )
+                
+            return node;
         }
     }
 }

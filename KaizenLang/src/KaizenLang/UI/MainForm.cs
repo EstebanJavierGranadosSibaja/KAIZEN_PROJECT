@@ -29,13 +29,13 @@ namespace KaizenLang.UI
 				Renderer = new ToolStripProfessionalRenderer()
 			};
 			var estructurasMenu = new ToolStripMenuItem("☰ Estructuras del Lenguaje") { ForeColor = Color.FromArgb(44, 62, 80) };
-			var palabrasReservadas = new ToolStripMenuItem("Palabras reservadas", null, (s, e) => InsertText("output\ninput\nvoid\ndo\nwhile\nfor\nif\nelse\nreturn\ntrue\nfalse\n"));
+			var palabrasReservadas = new ToolStripMenuItem("Palabras reservadas", null, (s, e) => InsertText("// Palabras reservadas de KaizenLang:\noutput\ninput\nvoid\ndo\nwhile\nfor\nif\nelse\nreturn\ntrue\nfalse\nnull\n"));
 			var sintaxisMenu = new ToolStripMenuItem("Sintaxis");
-			sintaxisMenu.DropDownItems.Add(new ToolStripMenuItem("Control", null, (s, e) => InsertText("if (condicion) {\n    // ...\n}\n")));
-			sintaxisMenu.DropDownItems.Add(new ToolStripMenuItem("Funciones", null, (s, e) => InsertText("int suma(int a, int b) {\n    return a + b;\n}\n")));
-			sintaxisMenu.DropDownItems.Add(new ToolStripMenuItem("Operaciones", null, (s, e) => InsertText("x = a + b;\n")));
-			var semanticaMenu = new ToolStripMenuItem("Semántica", null, (s, e) => InsertText("// Semántica: significado de las instrucciones\n"));
-			var tiposDatosMenu = new ToolStripMenuItem("Tipos de datos", null, (s, e) => InsertText("int, float, double, boolean, char, string, array\n"));
+			sintaxisMenu.DropDownItems.Add(new ToolStripMenuItem("Control", null, (s, e) => InsertText("// Estructuras de control:\nif (condicion) {\n    // código si verdadero\n} else {\n    // código si falso\n}\n\nwhile (condicion) {\n    // código del bucle\n}\n\nfor (int i = 0; i < 10; i++) {\n    // código del bucle\n}\n")));
+			sintaxisMenu.DropDownItems.Add(new ToolStripMenuItem("Funciones", null, (s, e) => InsertText("// Declaración de funciones:\nint suma(int a, int b) {\n    return a + b;\n}\n\nvoid saludar(string nombre) {\n    output(\"Hola \" + nombre);\n}\n")));
+			sintaxisMenu.DropDownItems.Add(new ToolStripMenuItem("Operaciones", null, (s, e) => InsertText("// Operaciones aritméticas:\nint x = 10 + 5;\nint y = x * 2;\nint z = y / 3;\n\n// Operaciones lógicas:\nboolean resultado = (x > y) && (z < 10);\n")));
+			var semanticaMenu = new ToolStripMenuItem("Semántica", null, (s, e) => InsertText("// Semántica de KaizenLang:\n// - Tipado estricto obligatorio\n// - Variables deben declararse antes de usarse\n// - No conversiones implícitas peligrosas\n// - Validación de compatibilidad de tipos\n\nint numero = 42;  // ✓ Correcto\n// numero = \"texto\";  // ❌ Error: tipos incompatibles\n"));
+			var tiposDatosMenu = new ToolStripMenuItem("Tipos de datos", null, (s, e) => InsertText("// Tipos de datos simples:\nint entero = 42;\nfloat decimal = 3.14;\ndouble precision = 3.141592653589793;\nboolean logico = true;\nchar caracter = 'A';\nstring texto = \"Hola mundo\";\n\n// Tipos de datos compuestos:\narray numeros = [1, 2, 3, 4, 5];\nstring lista = \"elemento1,elemento2,elemento3\";\n"));
 			estructurasMenu.DropDownItems.Add(palabrasReservadas);
 			estructurasMenu.DropDownItems.Add(sintaxisMenu);
 			estructurasMenu.DropDownItems.Add(semanticaMenu);
@@ -163,27 +163,188 @@ namespace KaizenLang.UI
 		private void CompileButton_Click(object? sender, EventArgs? e)
 		{
 			string source = codeBox.Text;
-			var lexer = new Lexer();
-			var tokens = lexer.Tokenize(source);
-			var parser = new Parser();
-			var root = parser.Parse(tokens);
+			if (string.IsNullOrWhiteSpace(source))
+			{
+				outputBox.Text = "❌ ERROR: No hay código para compilar";
+				return;
+			}
 
-			// Mostrar tokens
-			var output = "TOKENS:\r\n";
-			foreach (var token in tokens)
-				output += $"{token.Type}: {token.Value}\r\n";
+			var output = "🔧 PROCESO DE COMPILACIÓN INICIADO\r\n";
+			output += "═════════════════════════════════════\r\n\r\n";
 
-			// Mostrar árbol de sintaxis
-			output += "\r\nÁRBOL DE SINTAXIS:\r\n";
-			output += PrintNode(root, 0);
+			try
+			{
+				// FASE 1: ANÁLISIS LÉXICO
+				output += "📍 FASE 1: ANÁLISIS LÉXICO\r\n";
+				output += "─────────────────────────────\r\n";
+				var lexer = new Lexer();
+				var tokens = lexer.Tokenize(source);
+				
+				// Verificar tokens inválidos
+				var invalidTokens = tokens.Where(t => t.Type == "INVALID").ToList();
+				if (invalidTokens.Any())
+				{
+					output += "❌ ERRORES LÉXICOS ENCONTRADOS:\r\n";
+					foreach (var invalidToken in invalidTokens)
+					{
+						output += $"   • {invalidToken.Value}\r\n";
+					}
+					output += "\r\n❌ COMPILACIÓN DETENIDA\r\n";
+					outputBox.Text = output;
+					return;
+				}
 
-			outputBox.Text = output;
+				output += "✅ Análisis léxico completado exitosamente\r\n";
+				output += $"📊 Tokens encontrados: {tokens.Count}\r\n\r\n";
+
+				// Mostrar algunos tokens importantes
+				output += "🔍 TOKENS PRINCIPALES:\r\n";
+				var importantTokens = tokens.Take(10).ToList();
+				foreach (var token in importantTokens)
+				{
+					output += $"   {token.Type}: '{token.Value}'\r\n";
+				}
+				if (tokens.Count > 10)
+					output += $"   ... y {tokens.Count - 10} tokens más\r\n";
+				output += "\r\n";
+
+				// FASE 2: ANÁLISIS SINTÁCTICO
+				output += "📍 FASE 2: ANÁLISIS SINTÁCTICO\r\n";
+				output += "──────────────────────────────\r\n";
+				var parser = new Parser();
+				var ast = parser.Parse(tokens);
+
+				// Verificar errores sintácticos
+				var syntaxErrors = ast.GetAllErrors();
+				if (syntaxErrors.Any())
+				{
+					output += "❌ ERRORES SINTÁCTICOS ENCONTRADOS:\r\n";
+					foreach (var error in syntaxErrors)
+					{
+						output += $"   • {error}\r\n";
+					}
+					output += "\r\n❌ COMPILACIÓN DETENIDA\r\n";
+					outputBox.Text = output;
+					return;
+				}
+
+				output += "✅ Análisis sintáctico completado exitosamente\r\n";
+				output += "🌳 Árbol de Sintaxis Abstracta (AST) generado\r\n\r\n";
+
+				// FASE 3: ANÁLISIS SEMÁNTICO
+				output += "📍 FASE 3: ANÁLISIS SEMÁNTICO\r\n";
+				output += "─────────────────────────────\r\n";
+				var semanticAnalyzer = new SemanticAnalyzer();
+				var semanticErrors = semanticAnalyzer.AnalyzeProgram(ast);
+
+				if (semanticErrors.Any())
+				{
+					output += "❌ ERRORES SEMÁNTICOS ENCONTRADOS:\r\n";
+					foreach (var error in semanticErrors)
+					{
+						output += $"   • {error}\r\n";
+					}
+					output += "\r\n❌ COMPILACIÓN DETENIDA\r\n";
+					outputBox.Text = output;
+					return;
+				}
+
+				output += "✅ Análisis semántico completado exitosamente\r\n";
+				output += "✅ Todas las validaciones de tipos y scope pasaron\r\n\r\n";
+
+				// MOSTRAR AST COMPACTO
+				output += "🌳 ESTRUCTURA DEL AST:\r\n";
+				output += "────────────────────────\r\n";
+				output += ast.ToTreeString();
+				output += "\r\n";
+
+				// RESULTADO FINAL
+				output += "🎉 COMPILACIÓN EXITOSA\r\n";
+				output += "═══════════════════════\r\n";
+				output += "✓ Análisis léxico: CORRECTO\r\n";
+				output += "✓ Análisis sintáctico: CORRECTO\r\n";
+				output += "✓ Análisis semántico: CORRECTO\r\n";
+				output += "\r\n💡 El código está listo para ejecutarse\r\n";
+
+				outputBox.Text = output;
+			}
+			catch (Exception ex)
+			{
+				output += $"\r\n💥 ERROR INTERNO DEL COMPILADOR:\r\n{ex.Message}\r\n";
+				outputBox.Text = output;
+			}
 		}
 
 		private void ExecuteButton_Click(object? sender, EventArgs? e)
 		{
-			// Simulación de ejecución: solo muestra mensaje
-			outputBox.Text = "Ejecución simulada: (Aquí se mostraría la salida del programa)";
+			string source = codeBox.Text;
+			if (string.IsNullOrWhiteSpace(source))
+			{
+				outputBox.Text = "❌ ERROR: No hay código para ejecutar";
+				return;
+			}
+
+			var output = "🚀 INICIANDO EJECUCIÓN\r\n";
+			output += "═════════════════════\r\n\r\n";
+
+			try
+			{
+				// Primero compilar
+				var lexer = new Lexer();
+				var tokens = lexer.Tokenize(source);
+				var parser = new Parser();
+				var ast = parser.Parse(tokens);
+				var semanticAnalyzer = new SemanticAnalyzer();
+				var semanticErrors = semanticAnalyzer.AnalyzeProgram(ast);
+
+				// Verificar que no hay errores antes de ejecutar
+				var lexicalErrors = tokens.Where(t => t.Type == "INVALID").ToList();
+				var syntaxErrors = ast.GetAllErrors();
+
+				if (lexicalErrors.Any() || syntaxErrors.Any() || semanticErrors.Any())
+				{
+					output += "❌ EJECUCIÓN DETENIDA\r\n";
+					output += "El código contiene errores. Use 'Compilar' para ver los detalles.\r\n\r\n";
+					
+					if (lexicalErrors.Any())
+						output += $"• {lexicalErrors.Count} errores léxicos\r\n";
+					if (syntaxErrors.Any())
+						output += $"• {syntaxErrors.Count} errores sintácticos\r\n";
+					if (semanticErrors.Any())
+						output += $"• {semanticErrors.Count} errores semánticos\r\n";
+					
+					outputBox.Text = output;
+					return;
+				}
+
+				// Ejecutar código
+				output += "💻 EJECUTANDO CÓDIGO...\r\n";
+				output += "─────────────────────────\r\n";
+				
+				var interpreter = new Interpreter();
+				var executionOutput = interpreter.Execute(ast);
+
+				if (executionOutput.Any())
+				{
+					output += "📤 SALIDA DEL PROGRAMA:\r\n";
+					foreach (var line in executionOutput)
+					{
+						output += $"   {line}\r\n";
+					}
+				}
+				else
+				{
+					output += "✅ El programa se ejecutó sin salida\r\n";
+				}
+
+				output += "\r\n🎯 EJECUCIÓN COMPLETADA EXITOSAMENTE\r\n";
+				outputBox.Text = output;
+			}
+			catch (Exception ex)
+			{
+				output += $"\r\n💥 ERROR DE EJECUCIÓN:\r\n{ex.Message}\r\n";
+				outputBox.Text = output;
+			}
 		}
 
 		private string PrintNode(Node node, int indent)
