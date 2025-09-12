@@ -3,7 +3,7 @@ using System;
 using System.Windows.Forms;
 using KaizenLang.UI;
 
-namespace ParadigmasLang
+namespace KaizenLang
 {
     public static class Program
     {
