@@ -193,6 +193,13 @@ namespace ParadigmasLang
                     var type = typeNode.Children[0].Type;
                     var name = nameNode.Children[0].Type;
 
+                    // Verificar si se está intentando usar una palabra reservada como nombre de variable
+                    if (IsReservedWord(name))
+                    {
+                        errors.Add($"Error: '{name}' es una palabra reservada y no puede usarse como nombre de variable");
+                        return;
+                    }
+
                     if (!currentScope.DeclareVariable(name, type, 0))
                     {
                         errors.Add($"Variable '{name}' ya está declarada en este scope");
@@ -210,7 +217,13 @@ namespace ParadigmasLang
                     {
                         var valueNode = node.Children[2];
                         AnalyzeNode(valueNode);
-                        // Aquí podrías validar compatibilidad de tipos
+                        
+                        // Validar compatibilidad de tipos
+                        var valueType = GetExpressionType(valueNode);
+                        if (!IsTypeCompatible(type, valueType))
+                        {
+                            errors.Add($"Error de tipo: No se puede asignar valor de tipo '{valueType}' a variable de tipo '{type}'");
+                        }
                     }
                 }
             }
@@ -226,6 +239,14 @@ namespace ParadigmasLang
                 if (varNode.Children.Count > 0)
                 {
                     var varName = varNode.Children[0].Type;
+                    
+                    // Verificar si se está intentando usar una palabra reservada como variable
+                    if (IsReservedWord(varName))
+                    {
+                        errors.Add($"Error: '{varName}' es una palabra reservada y no puede usarse como nombre de variable");
+                        return;
+                    }
+                    
                     var symbol = currentScope.LookupVariable(varName);
                     
                     if (symbol == null)
@@ -235,7 +256,12 @@ namespace ParadigmasLang
                     else
                     {
                         AnalyzeNode(valueNode);
-                        // Validar compatibilidad de tipos aquí
+                        // Validar compatibilidad de tipos
+                        var valueType = GetExpressionType(valueNode);
+                        if (!IsTypeCompatible(symbol.Type, valueType))
+                        {
+                            errors.Add($"Error de tipo: No se puede asignar valor de tipo '{valueType}' a variable '{varName}' de tipo '{symbol.Type}'");
+                        }
                     }
                 }
             }
@@ -321,9 +347,26 @@ namespace ParadigmasLang
         {
             foreach (var child in node.Children)
             {
-                if (child.Type == "IDENTIFIER")
+                if (child.Type == "TYPE")
+                {
+                    // Un tipo no puede aparecer en una expresión como variable
+                    if (child.Children.Count > 0)
+                    {
+                        var typeName = child.Children[0].Type;
+                        errors.Add($"Error: '{typeName}' es un tipo de dato y no puede usarse como variable en una expresión");
+                    }
+                }
+                else if (child.Type == "IDENTIFIER")
                 {
                     var varName = child.Children[0].Type;
+                    
+                    // Verificar si se está usando una palabra reservada como identificador
+                    if (IsReservedWord(varName))
+                    {
+                        errors.Add($"Error: '{varName}' es una palabra reservada y no puede usarse como identificador");
+                        return;
+                    }
+                    
                     var symbol = currentScope.LookupVariable(varName);
                     if (symbol == null)
                     {
@@ -335,6 +378,93 @@ namespace ParadigmasLang
                     AnalyzeNode(child);
                 }
             }
+        }
+
+        private string GetExpressionType(Node node)
+        {
+            if (node.Type == "Expression" && node.Children.Count > 0)
+            {
+                var firstChild = node.Children[0];
+                return GetNodeType(firstChild);
+            }
+            return GetNodeType(node);
+        }
+
+        private string GetNodeType(Node node)
+        {
+            switch (node.Type)
+            {
+                case "STRING":
+                    return "string";
+                case "NUMBER":
+                    // Determinar si es int, float o double basado en el valor
+                    if (node.Children.Count > 0)
+                    {
+                        var value = node.Children[0].Type;
+                        if (value.Contains('.'))
+                        {
+                            return "float";
+                        }
+                        return "int";
+                    }
+                    return "int";
+                case "BOOLEAN":
+                    return "boolean";
+                case "CHARACTER":
+                    return "char";
+                case "IDENTIFIER":
+                    // Buscar el tipo de la variable en la tabla de símbolos
+                    if (node.Children.Count > 0)
+                    {
+                        var varName = node.Children[0].Type;
+                        var symbol = currentScope.LookupVariable(varName);
+                        return symbol?.Type ?? "unknown";
+                    }
+                    return "unknown";
+                case "Expression":
+                    if (node.Children.Count > 0)
+                        return GetNodeType(node.Children[0]);
+                    return "unknown";
+                default:
+                    return "unknown";
+            }
+        }
+
+        private bool IsTypeCompatible(string expectedType, string actualType)
+        {
+            // Compatibilidad exacta
+            if (expectedType == actualType)
+                return true;
+
+            // Compatibilidades específicas
+            switch (expectedType)
+            {
+                case "double":
+                    return actualType == "int" || actualType == "float";
+                case "float":
+                    return actualType == "int";
+                case "string":
+                    return actualType == "char"; // char puede convertirse a string
+                default:
+                    return false;
+            }
+        }
+
+        private bool IsReservedWord(string word)
+        {
+            var reservedWords = new HashSet<string>
+            {
+                // Tipos de datos
+                "int", "float", "double", "boolean", "char", "string", "array",
+                // Palabras clave de control
+                "if", "else", "while", "for", "do", "return", "void",
+                // Valores literales
+                "true", "false", "null",
+                // Entrada/Salida
+                "input", "output"
+            };
+            
+            return reservedWords.Contains(word);
         }
     }
 }
