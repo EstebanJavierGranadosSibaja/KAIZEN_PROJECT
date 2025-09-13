@@ -1,5 +1,6 @@
 using System.Windows.Forms;
 using System.Drawing;
+using System.Threading.Tasks;
 using ParadigmasLang;
 
 namespace KaizenLang.UI
@@ -66,47 +67,85 @@ namespace KaizenLang.UI
 			this.Controls.Add(outputPanel);
 		}
 
-		private void CompileButton_Click(object? sender, EventArgs? e)
+		private async void CompileButton_Click(object? sender, EventArgs? e)
 		{
-			if (codeBox == null || outputBox == null || compilationService == null) return;
+			if (codeBox == null || outputBox == null || compilationService == null || compileButton == null) return;
 			
-			string source = codeBox.Text;
-			var result = compilationService.CompileCode(source);
-			outputBox.Text = result.Output;
+			// Deshabilitar botón durante procesamiento
+			compileButton.Enabled = false;
 			
-			// Cambiar color del botón según el resultado
-			if (compileButton != null)
+			// Mostrar estado de procesamiento
+			ControlFactory.SetButtonState(compileButton, ControlFactory.ButtonState.Processing);
+			
+			try
 			{
-				compileButton.BackColor = result.IsSuccessful 
-					? UIConstants.Colors.ExecuteButton 
-					: Color.FromArgb(231, 76, 60); // Rojo para errores
+				// Simular procesamiento asíncrono
+				await Task.Run(() =>
+				{
+					string source = codeBox.Text;
+					var result = compilationService.CompileCode(source);
+					
+					// Actualizar UI en el hilo principal
+					this.Invoke(() =>
+					{
+						outputBox.Text = result.Output;
+						
+						// Cambiar estado del botón según el resultado
+						ControlFactory.SetButtonState(compileButton, 
+							result.IsSuccessful ? ControlFactory.ButtonState.Success : ControlFactory.ButtonState.Error);
+					});
+				});
+			}
+			finally
+			{
+				// Rehabilitar botón
+				compileButton.Enabled = true;
 			}
 		}
 
-		private void ExecuteButton_Click(object? sender, EventArgs? e)
+		private async void ExecuteButton_Click(object? sender, EventArgs? e)
 		{
-			if (codeBox == null || outputBox == null || executionService == null) return;
+			if (codeBox == null || outputBox == null || executionService == null || executeButton == null) return;
 			
-			string source = codeBox.Text;
-			var result = executionService.ExecuteCode(source);
-			outputBox.Text = result.Output;
+			// Deshabilitar botón durante procesamiento
+			executeButton.Enabled = false;
 			
-			// Cambiar color del botón según el resultado
-			if (executeButton != null)
+			// Mostrar estado de procesamiento
+			ControlFactory.SetButtonState(executeButton, ControlFactory.ButtonState.Processing);
+			
+			try
 			{
-				executeButton.BackColor = result.IsSuccessful 
-					? UIConstants.Colors.ExecuteButton 
-					: Color.FromArgb(231, 76, 60); // Rojo para errores
+				// Simular procesamiento asíncrono
+				await Task.Run(() =>
+				{
+					string source = codeBox.Text;
+					var result = executionService.ExecuteCode(source);
+					
+					// Actualizar UI en el hilo principal
+					this.Invoke(() =>
+					{
+						outputBox.Text = result.Output;
+						
+						// Cambiar estado del botón según el resultado
+						ControlFactory.SetButtonState(executeButton, 
+							result.IsSuccessful ? ControlFactory.ButtonState.Success : ControlFactory.ButtonState.Error);
+					});
+				});
+			}
+			finally
+			{
+				// Rehabilitar botón
+				executeButton.Enabled = true;
 			}
 		}
 
 		private void CodeBox_TextChanged(object? sender, EventArgs? e)
 		{
-			// Resetear colores de botones cuando se modifica el código
+			// Resetear estados de botones cuando se modifica el código
 			if (compileButton != null)
-				compileButton.BackColor = UIConstants.Colors.CompileButton;
+				ControlFactory.SetButtonState(compileButton, ControlFactory.ButtonState.Normal);
 			if (executeButton != null)
-				executeButton.BackColor = UIConstants.Colors.ExecuteButton;
+				ControlFactory.SetButtonState(executeButton, ControlFactory.ButtonState.Normal);
 		}
 	}
 }

@@ -55,8 +55,8 @@ namespace KaizenLang.UI
         public static class Fonts
         {
             public static readonly Font MenuFont = new Font("Segoe UI", 13, FontStyle.Bold);
-            public static readonly Font CodeFont = new Font("Fira Code", 16);
-            public static readonly Font OutputFont = new Font("Fira Code", 14);
+            public static readonly Font CodeFont = new Font("Consolas", 12); // Fuente monospace más segura
+            public static readonly Font OutputFont = new Font("Consolas", 11); // Fuente monospace más segura
             public static readonly Font ButtonFont = new Font("Segoe UI", 14, FontStyle.Bold);
         }
 
