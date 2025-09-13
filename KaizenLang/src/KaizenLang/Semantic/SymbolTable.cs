@@ -200,11 +200,6 @@ namespace ParadigmasLang
                         return;
                     }
 
-                    if (!currentScope.DeclareVariable(name, type, 0))
-                    {
-                        errors.Add($"Variable '{name}' ya está declarada en este scope");
-                    }
-
                     // Validar tipo
                     var validTypes = new HashSet<string> { "int", "float", "double", "boolean", "char", "string", "array" };
                     if (!validTypes.Contains(type))
@@ -212,18 +207,25 @@ namespace ParadigmasLang
                         errors.Add($"Tipo '{type}' no es válido");
                     }
 
-                    // Si tiene inicialización, verificar compatibilidad
+                    // Si tiene inicialización, verificar compatibilidad ANTES de declarar la variable
+                    string? valueType = null;
                     if (node.Children.Count > 2)
                     {
                         var valueNode = node.Children[2];
                         AnalyzeNode(valueNode);
                         
                         // Validar compatibilidad de tipos
-                        var valueType = GetExpressionType(valueNode);
+                        valueType = GetExpressionType(valueNode);
                         if (!IsTypeCompatible(type, valueType))
                         {
                             errors.Add($"Error de tipo: No se puede asignar valor de tipo '{valueType}' a variable de tipo '{type}'");
                         }
+                    }
+
+                    // AHORA declarar la variable (después de analizar la inicialización)
+                    if (!currentScope.DeclareVariable(name, type, 0))
+                    {
+                        errors.Add($"Variable '{name}' ya está declarada en este scope");
                     }
                 }
             }
@@ -396,6 +398,10 @@ namespace ParadigmasLang
             {
                 case "STRING":
                     return "string";
+                case "INT":
+                    return "int";
+                case "FLOAT":
+                    return "float";
                 case "NUMBER":
                     // Determinar si es int, float o double basado en el valor
                     if (node.Children.Count > 0)
@@ -409,7 +415,18 @@ namespace ParadigmasLang
                     }
                     return "int";
                 case "BOOLEAN":
+                case "LITERAL":
+                    // Verificar si es un literal booleano
+                    if (node.Children.Count > 0)
+                    {
+                        var value = node.Children[0].Type;
+                        if (value == "true" || value == "false")
+                            return "boolean";
+                        if (value == "null")
+                            return "null";
+                    }
                     return "boolean";
+                case "CHAR":
                 case "CHARACTER":
                     return "char";
                 case "IDENTIFIER":
@@ -422,6 +439,11 @@ namespace ParadigmasLang
                     }
                     return "unknown";
                 case "Expression":
+                    if (node.Children.Count > 0)
+                        return GetNodeType(node.Children[0]);
+                    return "unknown";
+                case "Value":
+                    // Manejar nodos Value que contienen expresiones
                     if (node.Children.Count > 0)
                         return GetNodeType(node.Children[0]);
                     return "unknown";
