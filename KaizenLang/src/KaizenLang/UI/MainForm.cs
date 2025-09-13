@@ -42,6 +42,7 @@ namespace KaizenLang.UI
 			// Crear panel de código primero
 			var codePanel = ControlFactory.CreateCodePanel();
 			codeBox = ControlFactory.CreateCodeTextBox(codePanel);
+			codeBox.TextChanged += CodeBox_TextChanged; // Agregar evento para resetear colores
 			codePanel.Controls.Add(codeBox);
 			this.Controls.Add(codePanel);
 
@@ -70,8 +71,16 @@ namespace KaizenLang.UI
 			if (codeBox == null || outputBox == null || compilationService == null) return;
 			
 			string source = codeBox.Text;
-			string result = compilationService.CompileCode(source);
-			outputBox.Text = result;
+			var result = compilationService.CompileCode(source);
+			outputBox.Text = result.Output;
+			
+			// Cambiar color del botón según el resultado
+			if (compileButton != null)
+			{
+				compileButton.BackColor = result.IsSuccessful 
+					? UIConstants.Colors.ExecuteButton 
+					: Color.FromArgb(231, 76, 60); // Rojo para errores
+			}
 		}
 
 		private void ExecuteButton_Click(object? sender, EventArgs? e)
@@ -79,8 +88,25 @@ namespace KaizenLang.UI
 			if (codeBox == null || outputBox == null || executionService == null) return;
 			
 			string source = codeBox.Text;
-			string result = executionService.ExecuteCode(source);
-			outputBox.Text = result;
+			var result = executionService.ExecuteCode(source);
+			outputBox.Text = result.Output;
+			
+			// Cambiar color del botón según el resultado
+			if (executeButton != null)
+			{
+				executeButton.BackColor = result.IsSuccessful 
+					? UIConstants.Colors.ExecuteButton 
+					: Color.FromArgb(231, 76, 60); // Rojo para errores
+			}
+		}
+
+		private void CodeBox_TextChanged(object? sender, EventArgs? e)
+		{
+			// Resetear colores de botones cuando se modifica el código
+			if (compileButton != null)
+				compileButton.BackColor = UIConstants.Colors.CompileButton;
+			if (executeButton != null)
+				executeButton.BackColor = UIConstants.Colors.ExecuteButton;
 		}
 	}
 }

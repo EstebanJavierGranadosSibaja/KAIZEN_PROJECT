@@ -1,119 +1,145 @@
 using System;
 using System.Linq;
+using System.Text;
+using System.Collections.Generic;
+using System.Diagnostics;
 using ParadigmasLang;
 
 namespace KaizenLang.UI
 {
     public class ExecutionService
     {
-        public string ExecuteCode(string source)
+        private readonly CompilationService compilationService;
+        private readonly Stopwatch executionTimer;
+
+        public ExecutionService()
+        {
+            compilationService = new CompilationService();
+            executionTimer = new Stopwatch();
+        }
+
+        public ExecutionResult ExecuteCode(string source)
         {
             if (string.IsNullOrWhiteSpace(source))
             {
-                return "❌ ERROR: No hay código para ejecutar";
+                return new ExecutionResult
+                {
+                    IsSuccessful = false,
+                    Output = "❌ ERROR: No hay código para ejecutar",
+                    ExecutionTime = TimeSpan.Zero
+                };
             }
 
-            var output = "🚀 INICIANDO EJECUCIÓN\r\n";
-            output += "═════════════════════\r\n\r\n";
+            var outputBuilder = new StringBuilder();
+            outputBuilder.AppendLine("🚀 INICIANDO EJECUCIÓN");
+            outputBuilder.AppendLine("═════════════════════");
+            outputBuilder.AppendLine();
 
             try
             {
                 // Validar compilación antes de ejecutar
-                var validationResult = ValidateCode(source);
-                if (!validationResult.IsValid || validationResult.Ast == null)
+                var compilationResult = compilationService.CompileCode(source);
+                if (!compilationResult.IsSuccessful || compilationResult.AST == null)
                 {
-                    output += GetValidationErrorMessage(validationResult);
-                    return output;
+                    outputBuilder.AppendLine(GetValidationErrorMessage(compilationResult));
+                    return new ExecutionResult
+                    {
+                        IsSuccessful = false,
+                        Output = outputBuilder.ToString(),
+                        CompilationResult = compilationResult
+                    };
                 }
 
                 // Ejecutar código
-                output += ExecuteValidatedCode(validationResult.Ast);
+                executionTimer.Restart();
+                outputBuilder.AppendLine("� EJECUTANDO CÓDIGO...");
+                outputBuilder.AppendLine("─────────────────────────");
+                
+                var interpreter = new Interpreter();
+                var executionOutput = interpreter.Execute(compilationResult.AST);
+                
+                executionTimer.Stop();
 
-                return output;
+                // Mostrar resultados
+                if (executionOutput.Any())
+                {
+                    outputBuilder.AppendLine("📤 SALIDA DEL PROGRAMA:");
+                    foreach (var line in executionOutput)
+                    {
+                        outputBuilder.AppendLine($"   {line}");
+                    }
+                }
+                else
+                {
+                    outputBuilder.AppendLine("✅ El programa se ejecutó sin salida");
+                }
+
+                outputBuilder.AppendLine();
+                outputBuilder.AppendLine("🎯 EJECUCIÓN COMPLETADA EXITOSAMENTE");
+                outputBuilder.AppendLine($"⏱️ Tiempo de ejecución: {executionTimer.ElapsedMilliseconds}ms");
+                outputBuilder.AppendLine($"🔧 Tiempo de compilación: {compilationResult.CompilationTime.TotalMilliseconds}ms");
+
+                return new ExecutionResult
+                {
+                    IsSuccessful = true,
+                    Output = outputBuilder.ToString(),
+                    ExecutionTime = executionTimer.Elapsed,
+                    CompilationResult = compilationResult,
+                    ProgramOutput = executionOutput
+                };
             }
             catch (Exception ex)
             {
-                output += $"\r\n💥 ERROR DE EJECUCIÓN:\r\n{ex.Message}\r\n";
-                return output;
-            }
-        }
-
-        private ValidationResult ValidateCode(string source)
-        {
-            try
-            {
-                var lexer = new Lexer();
-                var tokens = lexer.Tokenize(source);
-                var parser = new Parser();
-                var ast = parser.Parse(tokens);
-                var semanticAnalyzer = new SemanticAnalyzer();
-                var semanticErrors = semanticAnalyzer.AnalyzeProgram(ast);
-
-                var lexicalErrors = tokens.Where(t => t.Type == "INVALID").ToList();
-                var syntaxErrors = ast.GetAllErrors();
-
-                return new ValidationResult
+                executionTimer.Stop();
+                outputBuilder.AppendLine($"\r\n💥 ERROR DE EJECUCIÓN:");
+                outputBuilder.AppendLine($"Mensaje: {ex.Message}");
+                if (ex.InnerException != null)
                 {
-                    IsValid = !lexicalErrors.Any() && !syntaxErrors.Any() && !semanticErrors.Any(),
-                    LexicalErrors = lexicalErrors,
-                    SyntaxErrors = syntaxErrors,
-                    SemanticErrors = semanticErrors,
-                    Ast = ast
+                    outputBuilder.AppendLine($"Error interno: {ex.InnerException.Message}");
+                }
+                
+                return new ExecutionResult
+                {
+                    IsSuccessful = false,
+                    Output = outputBuilder.ToString(),
+                    ExecutionTime = executionTimer.Elapsed,
+                    RuntimeError = ex
                 };
             }
-            catch (Exception)
-            {
-                return new ValidationResult { IsValid = false };
-            }
         }
 
-        private string GetValidationErrorMessage(ValidationResult validationResult)
+        private string GetValidationErrorMessage(CompilationResult compilationResult)
         {
-            var output = "❌ EJECUCIÓN DETENIDA\r\n";
-            output += "El código contiene errores. Use 'Compilar' para ver los detalles.\r\n\r\n";
+            var output = new StringBuilder();
+            output.AppendLine("❌ EJECUCIÓN DETENIDA");
+            output.AppendLine("El código contiene errores. Use 'Compilar' para ver los detalles.");
+            output.AppendLine();
             
-            if (validationResult.LexicalErrors.Any())
-                output += $"• {validationResult.LexicalErrors.Count} errores léxicos\r\n";
-            if (validationResult.SyntaxErrors.Any())
-                output += $"• {validationResult.SyntaxErrors.Count} errores sintácticos\r\n";
-            if (validationResult.SemanticErrors.Any())
-                output += $"• {validationResult.SemanticErrors.Count} errores semánticos\r\n";
+            if (compilationResult.LexicalErrors?.Any() == true)
+                output.AppendLine($"• {compilationResult.LexicalErrors.Count} errores léxicos");
+            if (compilationResult.SyntaxErrors?.Any() == true)
+                output.AppendLine($"• {compilationResult.SyntaxErrors.Count} errores sintácticos");
+            if (compilationResult.SemanticErrors?.Any() == true)
+                output.AppendLine($"• {compilationResult.SemanticErrors.Count} errores semánticos");
+            if (compilationResult.InternalError != null)
+                output.AppendLine("• Error interno del compilador");
             
-            return output;
+            return output.ToString();
         }
+    }
 
-        private string ExecuteValidatedCode(Node ast)
-        {
-            var output = "💻 EJECUTANDO CÓDIGO...\r\n";
-            output += "─────────────────────────\r\n";
-            
-            var interpreter = new Interpreter();
-            var executionOutput = interpreter.Execute(ast);
+    // Clase para encapsular el resultado de la ejecución
+    public class ExecutionResult
+    {
+        public bool IsSuccessful { get; set; }
+        public string Output { get; set; } = string.Empty;
+        public TimeSpan ExecutionTime { get; set; }
+        public CompilationResult? CompilationResult { get; set; }
+        public List<string>? ProgramOutput { get; set; }
+        public Exception? RuntimeError { get; set; }
 
-            if (executionOutput.Any())
-            {
-                output += "📤 SALIDA DEL PROGRAMA:\r\n";
-                foreach (var line in executionOutput)
-                {
-                    output += $"   {line}\r\n";
-                }
-            }
-            else
-            {
-                output += "✅ El programa se ejecutó sin salida\r\n";
-            }
-
-            output += "\r\n🎯 EJECUCIÓN COMPLETADA EXITOSAMENTE\r\n";
-            return output;
-        }
-
-        private class ValidationResult
-        {
-            public bool IsValid { get; set; }
-            public List<Token> LexicalErrors { get; set; } = new List<Token>();
-            public List<string> SyntaxErrors { get; set; } = new List<string>();
-            public List<string> SemanticErrors { get; set; } = new List<string>();
-            public Node? Ast { get; set; }
-        }
+        public bool HasErrors => !IsSuccessful || 
+                                CompilationResult?.HasErrors == true || 
+                                RuntimeError != null;
     }
 }
