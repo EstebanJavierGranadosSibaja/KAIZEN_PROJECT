@@ -62,12 +62,12 @@ KAIZEN_PROJECT/
             │   └── LiteralWords.cs      # Literales y constantes
             │
             └── 🖥️ UI/                   # Interfaz de usuario
-                ├── MainForm.cs          # Formulario principal
-                ├── CompilationService.cs # Servicio de compilación
-                ├── ExecutionService.cs  # Servicio de ejecución
-                ├── ControlFactory.cs    # Factory para controles UI
-                ├── MenuBuilder.cs       # Constructor de menús
-                └── UIConstants.cs       # Constantes de la interfaz
+                ├── CompilationService.cs   # Servicio de compilación
+                ├── ControlFactory.cs       # Factory para controles UI
+                ├── ExecutionService.cs     # Servicio de ejecución
+                ├── MainForm.cs             # Formulario principal
+                ├── MenuBuilder.cs          # Constructor de menús
+                └── UIConstants.cs          # Constantes de la interfaz
 ```
 
 ---
