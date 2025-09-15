@@ -1,7 +1,4 @@
-using System.Windows.Forms;
-using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Linq;
 
 namespace KaizenLang.UI
 {
@@ -35,7 +32,7 @@ namespace KaizenLang.UI
 
             // Efectos visuales mejorados
             codePanel.Paint += (s, e) => PaintCodePanelWithEnhancedEffects(e.Graphics, codePanel);
-            
+
             // Agregar etiqueta de título
             var titleLabel = CreatePanelTitle("📝 Editor de Código", codePanel);
             codePanel.Controls.Add(titleLabel);
@@ -64,7 +61,7 @@ namespace KaizenLang.UI
 
             // Agregar numeración de líneas visual
             AddLineNumbering(codeBox);
-            
+
             // Agregar auto-completado básico
             AddBasicAutoComplete(codeBox);
 
@@ -114,7 +111,7 @@ namespace KaizenLang.UI
 
             // Efectos visuales mejorados
             outputPanel.Paint += (s, e) => PaintOutputPanelWithEnhancedEffects(e.Graphics, outputPanel);
-            
+
             // Agregar etiqueta de título
             var titleLabel = CreatePanelTitle("📤 Salida de Compilación", outputPanel);
             titleLabel.ForeColor = UIConstants.Colors.OutputForeground;
@@ -147,7 +144,7 @@ namespace KaizenLang.UI
 
             // Agregar capacidad de selección y copia
             outputBox.Enter += (s, e) => outputBox.SelectAll();
-            
+
             return outputBox;
         }
 
@@ -173,7 +170,7 @@ namespace KaizenLang.UI
 
             // Efectos de hover mejorados con animación
             SetupEnhancedButtonEffects(button, normalColor, hoverColor);
-            
+
             // Efectos de pintura personalizados con texto incluido
             button.Paint += (s, e) => PaintButtonWithGradient(e.Graphics, button);
 
@@ -211,7 +208,7 @@ namespace KaizenLang.UI
             };
 
             clearButton.FlatAppearance.BorderSize = 0;
-            clearButton.Click += (s, e) => 
+            clearButton.Click += (s, e) =>
             {
                 var outputBox = parent.Controls.OfType<TextBox>().FirstOrDefault();
                 if (outputBox != null) outputBox.Clear();
@@ -258,7 +255,7 @@ namespace KaizenLang.UI
                 {
                     currentColor = InterpolateColor(currentColor, targetColor, animationStep);
                     button.BackColor = currentColor;
-                    
+
                     if (ColorsAreClose(currentColor, targetColor))
                     {
                         button.BackColor = targetColor;
@@ -327,7 +324,7 @@ namespace KaizenLang.UI
             {
                 graphics.FillRectangle(brush, lineNumberArea);
             }
-            
+
             using (var pen = new Pen(Color.FromArgb(220, 223, 230), 1))
             {
                 graphics.DrawLine(pen, 45, 30, 45, panel.Height - 5);
@@ -368,7 +365,7 @@ namespace KaizenLang.UI
             graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
             var rect = new Rectangle(0, 0, button.Width, button.Height);
-            
+
             // Gradiente en el botón
             using (var brush = new LinearGradientBrush(
                 rect,
@@ -424,8 +421,8 @@ namespace KaizenLang.UI
         public static void SetButtonState(Button button, ButtonState state)
         {
             var isCompileButton = button.Tag?.ToString() == "compile";
-            var normalColor = isCompileButton 
-                ? UIConstants.Colors.CompileButton 
+            var normalColor = isCompileButton
+                ? UIConstants.Colors.CompileButton
                 : UIConstants.Colors.ExecuteButton;
 
             switch (state)
@@ -443,7 +440,7 @@ namespace KaizenLang.UI
                     };
                     successTimer.Start();
                     break;
-                    
+
                 case ButtonState.Error:
                     button.BackColor = Color.FromArgb(231, 76, 60);
                     button.Text = isCompileButton ? "❌ Error" : "❌ Error";
@@ -457,16 +454,16 @@ namespace KaizenLang.UI
                     };
                     errorTimer.Start();
                     break;
-                    
+
                 case ButtonState.Processing:
                     button.BackColor = Color.FromArgb(243, 156, 18);
                     button.Text = isCompileButton ? "🔄 Compilando..." : "🔄 Ejecutando...";
                     break;
-                    
+
                 case ButtonState.Normal:
                     button.BackColor = normalColor;
-                    button.Text = isCompileButton 
-                        ? UIConstants.Text.COMPILE_BUTTON 
+                    button.Text = isCompileButton
+                        ? UIConstants.Text.COMPILE_BUTTON
                         : UIConstants.Text.EXECUTE_BUTTON;
                     break;
             }

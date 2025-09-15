@@ -1,7 +1,4 @@
-using System;
-using System.Linq;
 using System.Text;
-using System.Collections.Generic;
 using System.Diagnostics;
 using ParadigmasLang;
 
@@ -32,24 +29,24 @@ namespace KaizenLang.UI
 
             compilationTimer.Restart();
             outputBuilder.Clear();
-            
+
             AppendHeader();
 
             try
             {
                 var result = PerformCompilationStages(source);
                 compilationTimer.Stop();
-                
+
                 result.CompilationTime = compilationTimer.Elapsed;
                 result.Output = outputBuilder.ToString();
-                
+
                 return result;
             }
             catch (Exception ex)
             {
                 compilationTimer.Stop();
                 AppendError($"� ERROR INTERNO DEL COMPILADOR:\r\n{ex.Message}\r\n{ex.StackTrace}");
-                
+
                 return new CompilationResult
                 {
                     IsSuccessful = false,
@@ -91,10 +88,10 @@ namespace KaizenLang.UI
         private bool PerformLexicalAnalysis(string source, out List<Token>? tokens, CompilationResult result)
         {
             AppendPhaseHeader("FASE 1: ANÁLISIS LÉXICO");
-            
+
             var lexer = new Lexer();
             tokens = lexer.Tokenize(source);
-            
+
             // Categorizar tokens
             var invalidTokens = tokens.Where(t => t.Type == "INVALID").ToList();
             var reservedTokens = tokens.Where(t => t.Type == "RESERVED_WORD").ToList();
@@ -109,7 +106,7 @@ namespace KaizenLang.UI
                     AppendError($"   • Token inválido: '{invalidToken.Value}'");
                 }
                 AppendError("\r\n❌ COMPILACIÓN DETENIDA");
-                
+
                 result.LexicalErrors = invalidTokens;
                 tokens = null;
                 return false;
@@ -121,7 +118,7 @@ namespace KaizenLang.UI
             AppendInfo($"   • Palabras reservadas: {reservedTokens.Count}");
             AppendInfo($"   • Identificadores: {identifierTokens.Count}");
             AppendInfo($"   • Literales: {literalTokens.Count}");
-            
+
             ShowTokenSample(tokens);
             AppendNewLine();
 
@@ -131,7 +128,7 @@ namespace KaizenLang.UI
         private bool PerformSyntacticAnalysis(List<Token> tokens, out Node? ast, CompilationResult result)
         {
             AppendPhaseHeader("FASE 2: ANÁLISIS SINTÁCTICO");
-            
+
             var parser = new Parser();
             ast = parser.Parse(tokens);
 
@@ -144,7 +141,7 @@ namespace KaizenLang.UI
                     AppendError($"   • {error}");
                 }
                 AppendError("\r\n❌ COMPILACIÓN DETENIDA");
-                
+
                 result.SyntaxErrors = syntaxErrors;
                 ast = null;
                 return false;
@@ -152,7 +149,7 @@ namespace KaizenLang.UI
 
             AppendSuccess("✅ Análisis sintáctico completado exitosamente");
             AppendSuccess("🌳 Árbol de Sintaxis Abstracta (AST) generado");
-            
+
             // Mostrar estadísticas del AST
             var nodeCount = CountNodes(ast);
             var depth = CalculateDepth(ast);
@@ -167,7 +164,7 @@ namespace KaizenLang.UI
         private bool PerformSemanticAnalysis(Node ast, CompilationResult result)
         {
             AppendPhaseHeader("FASE 3: ANÁLISIS SEMÁNTICO");
-            
+
             var semanticAnalyzer = new SemanticAnalyzer();
             var semanticErrors = semanticAnalyzer.AnalyzeProgram(ast);
 
@@ -179,7 +176,7 @@ namespace KaizenLang.UI
                     AppendError($"   • {error}");
                 }
                 AppendError("\r\n❌ COMPILACIÓN DETENIDA");
-                
+
                 result.SemanticErrors = semanticErrors;
                 return false;
             }
@@ -194,7 +191,7 @@ namespace KaizenLang.UI
         private void ShowCompilationDetails(List<Token> tokens, Node ast, CompilationResult result)
         {
             AppendSectionHeader("DETALLES DE COMPILACIÓN");
-            
+
             // Mostrar AST compacto
             AppendInfo("🌳 ESTRUCTURA DEL AST:");
             AppendInfo("────────────────────────");
@@ -217,11 +214,11 @@ namespace KaizenLang.UI
         {
             AppendInfo("� MÉTRICAS DE COMPLEJIDAD:");
             AppendInfo("──────────────────────────");
-            
+
             var functions = CountNodesByType(ast, "FUNCTION");
             var conditionals = CountNodesByType(ast, "IF") + CountNodesByType(ast, "WHILE") + CountNodesByType(ast, "FOR");
             var variables = CountNodesByType(ast, "VARIABLE_DECLARATION");
-            
+
             AppendInfo($"   • Funciones definidas: {functions}");
             AppendInfo($"   • Estructuras de control: {conditionals}");
             AppendInfo($"   • Variables declaradas: {variables}");
@@ -328,9 +325,9 @@ namespace KaizenLang.UI
         public List<string>? SemanticErrors { get; set; }
         public Exception? InternalError { get; set; }
 
-        public bool HasErrors => LexicalErrors?.Any() == true || 
-                                SyntaxErrors?.Any() == true || 
-                                SemanticErrors?.Any() == true || 
+        public bool HasErrors => LexicalErrors?.Any() == true ||
+                                SyntaxErrors?.Any() == true ||
+                                SemanticErrors?.Any() == true ||
                                 InternalError != null;
     }
 }

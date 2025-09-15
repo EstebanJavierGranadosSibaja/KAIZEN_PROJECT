@@ -1,7 +1,4 @@
-using System;
-using System.Linq;
 using System.Text;
-using System.Collections.Generic;
 using System.Diagnostics;
 using ParadigmasLang;
 
@@ -54,10 +51,10 @@ namespace KaizenLang.UI
                 executionTimer.Restart();
                 outputBuilder.AppendLine("� EJECUTANDO CÓDIGO...");
                 outputBuilder.AppendLine("─────────────────────────");
-                
+
                 var interpreter = new Interpreter();
                 var executionOutput = interpreter.Execute(compilationResult.AST);
-                
+
                 executionTimer.Stop();
 
                 // Mostrar resultados
@@ -97,7 +94,7 @@ namespace KaizenLang.UI
                 {
                     outputBuilder.AppendLine($"Error interno: {ex.InnerException.Message}");
                 }
-                
+
                 return new ExecutionResult
                 {
                     IsSuccessful = false,
@@ -114,7 +111,7 @@ namespace KaizenLang.UI
             output.AppendLine("❌ EJECUCIÓN DETENIDA");
             output.AppendLine("El código contiene errores. Use 'Compilar' para ver los detalles.");
             output.AppendLine();
-            
+
             if (compilationResult.LexicalErrors?.Any() == true)
                 output.AppendLine($"• {compilationResult.LexicalErrors.Count} errores léxicos");
             if (compilationResult.SyntaxErrors?.Any() == true)
@@ -123,7 +120,7 @@ namespace KaizenLang.UI
                 output.AppendLine($"• {compilationResult.SemanticErrors.Count} errores semánticos");
             if (compilationResult.InternalError != null)
                 output.AppendLine("• Error interno del compilador");
-            
+
             return output.ToString();
         }
     }
@@ -138,8 +135,8 @@ namespace KaizenLang.UI
         public List<string>? ProgramOutput { get; set; }
         public Exception? RuntimeError { get; set; }
 
-        public bool HasErrors => !IsSuccessful || 
-                                CompilationResult?.HasErrors == true || 
+        public bool HasErrors => !IsSuccessful ||
+                                CompilationResult?.HasErrors == true ||
                                 RuntimeError != null;
     }
 }

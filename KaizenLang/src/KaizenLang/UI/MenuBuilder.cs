@@ -1,6 +1,3 @@
-using System.Windows.Forms;
-using System.Drawing;
-
 namespace KaizenLang.UI
 {
     public static class MenuBuilder
@@ -23,15 +20,15 @@ namespace KaizenLang.UI
 
         private static ToolStripMenuItem CreateStructuresMenu(TextBox codeBox)
         {
-            var estructurasMenu = new ToolStripMenuItem(UIConstants.Text.MENU_STRUCTURES) 
-            { 
-                ForeColor = UIConstants.Colors.MenuForeground 
+            var estructurasMenu = new ToolStripMenuItem(UIConstants.Text.MENU_STRUCTURES)
+            {
+                ForeColor = UIConstants.Colors.MenuForeground
             };
 
             // Palabras reservadas
             var palabrasReservadas = new ToolStripMenuItem(
-                UIConstants.Text.MENU_RESERVED_WORDS, 
-                null, 
+                UIConstants.Text.MENU_RESERVED_WORDS,
+                null,
                 (s, e) => InsertText(codeBox, MenuTexts.RESERVED_WORDS_TEXT)
             );
 
@@ -40,15 +37,15 @@ namespace KaizenLang.UI
 
             // Semántica
             var semanticaMenu = new ToolStripMenuItem(
-                UIConstants.Text.MENU_SEMANTICS, 
-                null, 
+                UIConstants.Text.MENU_SEMANTICS,
+                null,
                 (s, e) => InsertText(codeBox, MenuTexts.SEMANTICS_TEXT)
             );
 
             // Tipos de datos
             var tiposDatosMenu = new ToolStripMenuItem(
-                UIConstants.Text.MENU_DATA_TYPES, 
-                null, 
+                UIConstants.Text.MENU_DATA_TYPES,
+                null,
                 (s, e) => InsertText(codeBox, MenuTexts.DATA_TYPES_TEXT)
             );
 
@@ -65,20 +62,20 @@ namespace KaizenLang.UI
             var sintaxisMenu = new ToolStripMenuItem(UIConstants.Text.MENU_SYNTAX);
 
             sintaxisMenu.DropDownItems.Add(new ToolStripMenuItem(
-                UIConstants.Text.MENU_CONTROL, 
-                null, 
+                UIConstants.Text.MENU_CONTROL,
+                null,
                 (s, e) => InsertText(codeBox, MenuTexts.CONTROL_STRUCTURES_TEXT)
             ));
 
             sintaxisMenu.DropDownItems.Add(new ToolStripMenuItem(
-                UIConstants.Text.MENU_FUNCTIONS, 
-                null, 
+                UIConstants.Text.MENU_FUNCTIONS,
+                null,
                 (s, e) => InsertText(codeBox, MenuTexts.FUNCTIONS_TEXT)
             ));
 
             sintaxisMenu.DropDownItems.Add(new ToolStripMenuItem(
-                UIConstants.Text.MENU_OPERATIONS, 
-                null, 
+                UIConstants.Text.MENU_OPERATIONS,
+                null,
                 (s, e) => InsertText(codeBox, MenuTexts.OPERATIONS_TEXT)
             ));
 
@@ -93,7 +90,7 @@ namespace KaizenLang.UI
 
     public static class MenuTexts
     {
-        public const string RESERVED_WORDS_TEXT = 
+        public const string RESERVED_WORDS_TEXT =
             @"// Palabras reservadas de KaizenLang:
             output
             input
@@ -109,7 +106,7 @@ namespace KaizenLang.UI
             null
             ";
 
-        public const string CONTROL_STRUCTURES_TEXT = 
+        public const string CONTROL_STRUCTURES_TEXT =
             @"// Estructuras de control:
             if (condicion) {
                 // código si verdadero
@@ -126,7 +123,7 @@ namespace KaizenLang.UI
             }
             ";
 
-        public const string FUNCTIONS_TEXT = 
+        public const string FUNCTIONS_TEXT =
             @"// Declaración de funciones:
             int suma(int a, int b) {
                 return a + b;
@@ -137,7 +134,7 @@ namespace KaizenLang.UI
             }
             ";
 
-        public const string OPERATIONS_TEXT = 
+        public const string OPERATIONS_TEXT =
             @"// Operaciones aritméticas:
             int x = 10 + 5;
             int y = x * 2;
@@ -147,7 +144,7 @@ namespace KaizenLang.UI
             boolean resultado = (x > y) && (z < 10);
             ";
 
-        public const string SEMANTICS_TEXT = 
+        public const string SEMANTICS_TEXT =
             @"// Semántica de KaizenLang:
             // - Tipado estricto obligatorio
             // - Variables deben declararse antes de usarse
@@ -158,7 +155,7 @@ namespace KaizenLang.UI
             // numero = ""texto"";  // ❌ Error: tipos incompatibles
             ";
 
-        public const string DATA_TYPES_TEXT = 
+        public const string DATA_TYPES_TEXT =
             @"// Tipos de datos simples:
             int entero = 42;
             float decimal = 3.14;
