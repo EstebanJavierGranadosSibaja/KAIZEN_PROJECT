@@ -1,8 +1,3 @@
-using System.Windows.Forms;
-using System.Drawing;
-using System.Threading.Tasks;
-using ParadigmasLang;
-
 namespace KaizenLang.UI
 {
 	public class MainForm : Form
@@ -70,13 +65,13 @@ namespace KaizenLang.UI
 		private async void CompileButton_Click(object? sender, EventArgs? e)
 		{
 			if (codeBox == null || outputBox == null || compilationService == null || compileButton == null) return;
-			
+
 			// Deshabilitar botón durante procesamiento
 			compileButton.Enabled = false;
-			
+
 			// Mostrar estado de procesamiento
 			ControlFactory.SetButtonState(compileButton, ControlFactory.ButtonState.Processing);
-			
+
 			try
 			{
 				// Simular procesamiento asíncrono
@@ -84,14 +79,14 @@ namespace KaizenLang.UI
 				{
 					string source = codeBox.Text;
 					var result = compilationService.CompileCode(source);
-					
+
 					// Actualizar UI en el hilo principal
 					this.Invoke(() =>
 					{
 						outputBox.Text = result.Output;
-						
+
 						// Cambiar estado del botón según el resultado
-						ControlFactory.SetButtonState(compileButton, 
+						ControlFactory.SetButtonState(compileButton,
 							result.IsSuccessful ? ControlFactory.ButtonState.Success : ControlFactory.ButtonState.Error);
 					});
 				});
@@ -106,13 +101,13 @@ namespace KaizenLang.UI
 		private async void ExecuteButton_Click(object? sender, EventArgs? e)
 		{
 			if (codeBox == null || outputBox == null || executionService == null || executeButton == null) return;
-			
+
 			// Deshabilitar botón durante procesamiento
 			executeButton.Enabled = false;
-			
+
 			// Mostrar estado de procesamiento
 			ControlFactory.SetButtonState(executeButton, ControlFactory.ButtonState.Processing);
-			
+
 			try
 			{
 				// Simular procesamiento asíncrono
@@ -120,14 +115,14 @@ namespace KaizenLang.UI
 				{
 					string source = codeBox.Text;
 					var result = executionService.ExecuteCode(source);
-					
+
 					// Actualizar UI en el hilo principal
 					this.Invoke(() =>
 					{
 						outputBox.Text = result.Output;
-						
+
 						// Cambiar estado del botón según el resultado
-						ControlFactory.SetButtonState(executeButton, 
+						ControlFactory.SetButtonState(executeButton,
 							result.IsSuccessful ? ControlFactory.ButtonState.Success : ControlFactory.ButtonState.Error);
 					});
 				});
