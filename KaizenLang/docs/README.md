@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD033 -->
+
 # 📚 DOCUMENTACIÓN KAIZENLANG
 
 > **Compilador e Intérprete Educativo - Paradigmas de Programación**  
@@ -11,6 +13,7 @@
 **KaizenLang** es un lenguaje de programación educativo desarrollado como proyecto académico. Implementa un compilador completo con análisis léxico, sintáctico y semántico, junto con un intérprete y una interfaz gráfica moderna.
 
 ### 🌟 **Filosofía del Nombre**
+
 **"Kaizen"** (改善) es una palabra japonesa que significa "mejora continua". Refleja nuestro enfoque de aprendizaje iterativo en el desarrollo de compiladores.
 
 ---
@@ -18,6 +21,7 @@
 ## 📖 **Índice de Documentación**
 
 ### 🏗️ **Arquitectura y Estructura**
+
 - **[📁 Estructura de Directorios](estructura-directorios.md)**  
   Árbol completo de carpetas y archivos del proyecto
 
@@ -28,6 +32,7 @@
   Proceso paso a paso desde código fuente hasta ejecución
 
 ### 🖥️ **Interfaz y Usuario**
+
 - **[🎨 Interfaz de Usuario](interfaz-usuario.md)**  
   Descripción completa de la UI y sus componentes
 
@@ -35,6 +40,7 @@
   Especificaciones, dependencias y configuración del proyecto
 
 ### 📋 **Aspectos Académicos**
+
 - **[🎓 Cumplimiento Académico](cumplimiento-academico.md)**  
   Requerimientos del curso y cómo se implementaron
 
@@ -46,11 +52,13 @@
 ## 🚀 **Inicio Rápido**
 
 ### **Prerrequisitos**
+
 - .NET 9.0 SDK
 - Windows 10/11
 - Visual Studio Code (recomendado)
 
 ### **Comandos Básicos**
+
 ```bash
 # Clonar el proyecto
 git clone [repository-url]
@@ -64,6 +72,7 @@ dotnet run
 ```
 
 ### **Primer Uso**
+
 1. Ejecuta la aplicación
 2. Usa el menú "Estructuras del Lenguaje" para ver ejemplos
 3. Escribe código en el editor principal
@@ -88,18 +97,21 @@ dotnet run
 ## 🎯 **Características Principales**
 
 ### ✨ **Compilador Completo**
+
 - ✅ Análisis léxico con tokenización
 - ✅ Análisis sintáctico con construcción de AST
 - ✅ Análisis semántico con validación de tipos y scope
 - ✅ Manejo robusto de errores en todas las fases
 
 ### 🎨 **Interfaz Moderna**
+
 - ✅ Editor de código integrado
 - ✅ Menús automáticos con ejemplos
 - ✅ Output formateado con colores y emojis
 - ✅ Botones de compilación y ejecución
 
 ### 🔧 **Lenguaje Rico**
+
 - ✅ Tipado estricto similar a C++
 - ✅ Estructuras de control (if, for, while)
 - ✅ Funciones con parámetros y retorno
@@ -156,6 +168,7 @@ for (int i = 0; i < 5; i++) {
 ## 📞 **Soporte**
 
 Si tienes preguntas sobre el proyecto:
+
 - 📧 Email: [tu-email@universidad.ac.cr]
 - 👨‍🏫 Profesor: MSc. Josías Ariel Chaves Murillo
 

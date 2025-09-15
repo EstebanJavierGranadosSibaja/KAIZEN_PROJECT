@@ -1,3 +1,6 @@
+<!-- markdownlint-disable MD056 -->
+<!-- markdownlint-disable MD033 -->
+
 # 📁 ESTRUCTURA DEL PROYECTO KAIZENLANG
 
 > **Compilador e Intérprete Educativo - Paradigmas de Programación**  
@@ -74,6 +77,7 @@ KAIZEN_PROJECT/
 ### 📁 **Carpetas del Sistema**
 
 #### `/bin/` - Archivos Binarios Compilados
+
 ```
 bin/Debug/net9.0-windows/
 ├── KaizenLang.exe          # Ejecutable principal de la aplicación
@@ -88,6 +92,7 @@ bin/Debug/net9.0-windows/
 **Nota**: Esta carpeta se puede eliminar y regenerar sin problemas.
 
 #### `/obj/` - Archivos Temporales de Compilación
+
 ```
 obj/
 ├── project.assets.json           # Cache de dependencias NuGet
@@ -105,6 +110,7 @@ obj/
 ### 📁 **Carpetas de Documentación**
 
 #### `/docs/` - Documentación del Proyecto
+
 ```
 docs/
 ├── descripción-proyecto.md     # Especificaciones académicas del curso
@@ -114,11 +120,13 @@ docs/
 
 **Propósito**: Toda la documentación técnica y académica del proyecto.  
 **Contenido**:
+
 - Requerimientos del proyecto universitario
 - Configuración del entorno de desarrollo
 - Explicación de la arquitectura del código
 
 #### `/Examples/` - Ejemplos de Código
+
 ```
 Examples/
 └── example.txt    # Ejemplos del lenguaje KaizenLang
@@ -134,6 +142,7 @@ Examples/
 ### 🔧 **Archivos Principales**
 
 #### `Program.cs` - Punto de Entrada
+
 ```csharp
 // Funcionalidad principal:
 - Configuración de la aplicación Windows Forms
@@ -142,11 +151,13 @@ Examples/
 ```
 
 **Responsabilidades**:
+
 - Configurar el estilo visual de la aplicación
 - Crear y mostrar el formulario principal
 - Establecer el punto de entrada único
 
 #### `Lexer.cs` - Analizador Léxico
+
 ```csharp
 // Funcionalidad principal:
 - Tokenización del código fuente
@@ -156,12 +167,14 @@ Examples/
 ```
 
 **Responsabilidades**:
+
 - Leer caracteres del código fuente uno por uno
 - Clasificar secuencias de caracteres en tokens específicos
 - Validar sintaxis básica de literales (strings, números)
 - Reportar errores como caracteres inválidos
 
 #### `Parser.cs` - Analizador Sintáctico
+
 ```csharp
 // Funcionalidad principal:
 - Construcción del Árbol de Sintaxis Abstracta (AST)
@@ -171,12 +184,14 @@ Examples/
 ```
 
 **Responsabilidades**:
+
 - Analizar la secuencia de tokens del Lexer
 - Verificar que la estructura siga las reglas gramaticales
 - Construir un árbol que represente la estructura del programa
 - Detectar errores como paréntesis no balanceados, expresiones incompletas
 
 #### `Interpreter.cs` - Intérprete del Lenguaje
+
 ```csharp
 // Funcionalidad principal:
 - Ejecución del código compilado
@@ -186,6 +201,7 @@ Examples/
 ```
 
 **Responsabilidades**:
+
 - Recorrer el AST y ejecutar las instrucciones
 - Mantener el estado de las variables durante la ejecución
 - Implementar la semántica de cada operación
@@ -194,6 +210,7 @@ Examples/
 ### 🏗️ **Módulo ATS (Abstract Syntax Tree)**
 
 #### `ATS/Node.cs` - Nodos del Árbol Sintáctico
+
 ```csharp
 // Estructura de datos principal:
 public class Node {
@@ -205,6 +222,7 @@ public class Node {
 
 **Propósito**: Representa cada elemento del código como un nodo en un árbol jerárquico.  
 **Ejemplos de nodos**:
+
 - `VariableDeclaration`: `int x = 5;`
 - `Expression`: `x + y * 2`
 - `IfStatement`: `if (condition) { ... }`
@@ -212,6 +230,7 @@ public class Node {
 ### 🧠 **Módulo Semantic**
 
 #### `Semantic/SymbolTable.cs` - Análisis Semántico
+
 ```csharp
 // Funcionalidades principales:
 - Validación de tipos de datos
@@ -222,12 +241,14 @@ public class Node {
 ```
 
 **Responsabilidades**:
+
 - Recorrer el AST y validar la coherencia semántica
 - Mantener registro de variables declaradas en cada scope
 - Verificar que las operaciones sean válidas entre tipos
 - Detectar errores como variables no inicializadas, tipos incompatibles
 
 **Validaciones implementadas**:
+
 - ✅ Tipado estricto: `int x = "texto"` → Error
 - ✅ Variables declaradas: `y = x + 1` → Error si `x` no existe
 - ✅ Scope correcto: Variables locales no accesibles fuera de su bloque
@@ -236,6 +257,7 @@ public class Node {
 ### 🎯 **Módulo Tokens**
 
 #### `Tokens/Token.cs` - Clase Base de Tokens
+
 ```csharp
 // Estructura básica:
 public class Token {
@@ -246,6 +268,7 @@ public class Token {
 ```
 
 #### `Tokens/ReservedWords.cs` - Palabras Reservadas
+
 ```csharp
 // Palabras reservadas del lenguaje:
 "output", "input", "void", "do", "while", "for", 
@@ -253,6 +276,7 @@ public class Token {
 ```
 
 #### `Tokens/TypeWords.cs` - Tipos de Datos
+
 ```csharp
 // Tipos simples (5):
 "int", "float", "double", "boolean", "char"
@@ -262,6 +286,7 @@ public class Token {
 ```
 
 #### `Tokens/OperatorWords.cs` - Operadores
+
 ```csharp
 // Aritméticos: +, -, *, /, %
 // Comparación: ==, !=, <, >, <=, >=
@@ -270,12 +295,14 @@ public class Token {
 ```
 
 #### `Tokens/DelimiterWords.cs` - Delimitadores
+
 ```csharp
 // Puntuación y delimitadores:
 ";", "{", "}", "(", ")", "[", "]", ",", "."
 ```
 
 #### `Tokens/LiteralWords.cs` - Literales
+
 ```csharp
 // Patrones para reconocer:
 - Números enteros: 123, -45
@@ -288,6 +315,7 @@ public class Token {
 ### 🖥️ **Módulo UI (Interfaz de Usuario)**
 
 #### `UI/MainForm.cs` - Formulario Principal
+
 ```csharp
 // Componentes principales:
 - TextBox para escribir código
@@ -298,12 +326,14 @@ public class Token {
 ```
 
 **Responsabilidades**:
+
 - Manejar la interacción del usuario
 - Coordinar entre los servicios de compilación y ejecución
 - Mostrar resultados y errores de forma visual
 - Proporcionar ejemplos automáticos del lenguaje
 
 #### `UI/CompilationService.cs` - Servicio de Compilación
+
 ```csharp
 // Funcionalidades:
 - Coordinar las tres fases: Léxico → Sintáctico → Semántico
@@ -313,12 +343,14 @@ public class Token {
 ```
 
 **Proceso de compilación**:
+
 1. **Fase 1**: Análisis léxico → Lista de tokens
 2. **Fase 2**: Análisis sintáctico → AST
 3. **Fase 3**: Análisis semántico → Validaciones
 4. **Resultado**: Código listo para ejecutar o lista de errores
 
 #### `UI/ExecutionService.cs` - Servicio de Ejecución
+
 ```csharp
 // Funcionalidades:
 - Ejecutar código previamente compilado
@@ -328,6 +360,7 @@ public class Token {
 ```
 
 #### `UI/ControlFactory.cs` - Factory de Controles
+
 ```csharp
 // Funcionalidades:
 - Crear botones con estilos consistentes
@@ -337,6 +370,7 @@ public class Token {
 ```
 
 #### `UI/MenuBuilder.cs` - Constructor de Menús
+
 ```csharp
 // Funcionalidades:
 - Crear menús dinámicos con ejemplos
@@ -346,6 +380,7 @@ public class Token {
 ```
 
 **Estructura del menú**:
+
 ```
 📋 Estructuras del Lenguaje
 ├── 🔤 Palabras Reservadas
@@ -360,6 +395,7 @@ public class Token {
 ```
 
 #### `UI/UIConstants.cs` - Constantes de la Interfaz
+
 ```csharp
 // Definiciones:
 - Colores del tema (primario, secundario, errores, éxito)
@@ -374,16 +410,19 @@ public class Token {
 ## 🔄 FLUJO DE DATOS DEL SISTEMA
 
 ### 1. **Entrada del Usuario**
+
 ```
 Usuario escribe código → MainForm.TextBox → CompilationService
 ```
 
 ### 2. **Proceso de Compilación**
+
 ```
 CompilationService → Lexer → Parser → SymbolTable → Resultados
 ```
 
 ### 3. **Análisis Detallado**
+
 ```
 📝 Código fuente
     ↓
@@ -397,11 +436,13 @@ CompilationService → Lexer → Parser → SymbolTable → Resultados
 ```
 
 ### 4. **Ejecución (si la compilación fue exitosa)**
+
 ```
 AST válido → ExecutionService → Interpreter → Resultados
 ```
 
 ### 5. **Presentación de Resultados**
+
 ```
 Resultados → MainForm → UI formateada → Usuario
 ```
@@ -426,6 +467,7 @@ Resultados → MainForm → UI formateada → Usuario
 ```
 
 ### **Dependencias**
+
 - **.NET 9.0**: Framework base
 - **Windows Forms**: Interfaz gráfica
 - **System.Collections.Generic**: Estructuras de datos
@@ -483,6 +525,7 @@ Resultados → MainForm → UI formateada → Usuario
 ## 📊 MÉTRICAS DEL PROYECTO
 
 ### **Estadísticas de Código**
+
 - **Archivos fuente**: 16 archivos `.cs`
 - **Líneas de código**: ~2,000 líneas (estimado)
 - **Clases principales**: 15+ clases
@@ -490,6 +533,7 @@ Resultados → MainForm → UI formateada → Usuario
 - **Fases de compilación**: 3 (Léxico, Sintáctico, Semántico)
 
 ### **Capacidades del Lenguaje**
+
 - **Palabras reservadas**: 12
 - **Tipos de datos**: 7 (5 simples + 2 compuestos)
 - **Operadores**: 20+ operadores
@@ -501,6 +545,7 @@ Resultados → MainForm → UI formateada → Usuario
 ## 🚀 INSTRUCCIONES DE COMPILACIÓN
 
 ### **Compilar el Proyecto**
+
 ```bash
 # Navegar al directorio del proyecto
 cd KaizenLang
@@ -516,6 +561,7 @@ dotnet run
 ```
 
 ### **Limpiar Archivos Temporales**
+
 ```bash
 # Limpiar archivos compilados
 dotnet clean
@@ -537,7 +583,7 @@ rm -rf bin obj
 | Sintaxis de control | ✅ | if/else, for, while, do-while |
 | Funciones | ✅ | Con parámetros y retorno |
 | Operaciones aritméticas | ✅ | +, -, *, /, % |
-| Operaciones lógicas | ✅ | &&, ||, ! |
+| Operaciones lógicas | ✅ | &&, '||', ! |
 | Entrada/salida | ✅ | input, output |
 | Semántica explicada | ✅ | Documentación completa |
 | 5 tipos simples | ✅ | int, float, double, boolean, char |
