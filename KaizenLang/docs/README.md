@@ -44,7 +44,10 @@
 - **[🎓 Cumplimiento Académico](cumplimiento-academico.md)**  
   Requerimientos del curso y cómo se implementaron
 
-- **[📄 Especificaciones del Curso](descripción-proyecto.md)**  
+- **[� Cambios en la Sintaxis](cambios-sintaxis.md)**  
+  Evolución del lenguaje: ying/yang y nuevos tipos
+
+- **[�📄 Especificaciones del Curso](descripción-proyecto.md)**  
   Documento original con los requerimientos del profesor
 
 ---
@@ -88,7 +91,7 @@ dotnet run
 | **Archivos de código** | 16 archivos .cs |
 | **Líneas de código** | ~2,000 líneas |
 | **Fases de compilación** | 3 (Léxico, Sintáctico, Semántico) |
-| **Tipos de datos** | 7 (5 simples + 2 compuestos) |
+| **Tipos de datos** | 7 (integer, float, double, bool, string, array, matrix) |
 | **Palabras reservadas** | 12 |
 | **Operadores** | 20+ |
 
@@ -123,26 +126,26 @@ dotnet run
 
 ```kaizen
 // Declaración de variables
-int numero = 42;
+integer numero = 42;
 string mensaje = "Hola KaizenLang";
-boolean activo = true;
+bool activo = true;
 
 // Función con retorno
-int suma(int a, int b) {
+integer suma(integer a, integer b) ying
     return a + b;
-}
+yang
 
 // Estructura de control
-if (numero > 0) {
+if (numero > 0) ying
     output("Número positivo");
-} else {
+yang else ying
     output("Número no positivo");
-}
+yang
 
 // Bucle
-for (int i = 0; i < 5; i++) {
+for (integer i = 0; i < 5; i++) ying
     output(i);
-}
+yang
 ```
 
 ---

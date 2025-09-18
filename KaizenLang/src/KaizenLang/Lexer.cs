@@ -8,8 +8,8 @@ namespace ParadigmasLang
             var tokens = new List<Token>();
 
             int i = 0;
-            // Tipos válidos extendidos
-            var validTypes = new HashSet<string>(TypeWords.Words.Concat(new[] { "array", "string" }));
+            // Usar solo los tipos definidos en TypeWords
+            var validTypes = new HashSet<string>(TypeWords.Words);
 
             while (i < source.Length)
             {
@@ -22,7 +22,12 @@ namespace ParadigmasLang
                     while (i < source.Length && (char.IsLetterOrDigit(source[i]) || source[i] == '_')) i++;
                     string word = source.Substring(start, i - start);
 
-                    if (validTypes.Contains(word))
+                    // Verificar primero si es un delimitador multi-carácter
+                    if (DelimiterWords.MultiCharDelimiters.Contains(word))
+                    {
+                        tokens.Add(new Token("DELIMITER", word));
+                    }
+                    else if (validTypes.Contains(word))
                         tokens.Add(new Token("TYPE", word));
                     else if (ReservedWords.Words.Contains(word))
                         tokens.Add(new Token("RESERVED", word));
@@ -116,7 +121,7 @@ namespace ParadigmasLang
                 bool matched = false;
                 foreach (var op in OperatorWords.Words.OrderByDescending(x => x.Length))
                 {
-                    if (source.Substring(i).StartsWith(op))
+                    if (i + op.Length <= source.Length && source.Substring(i, op.Length) == op)
                     {
                         tokens.Add(new Token("OPERATOR", op));
                         i += op.Length;
@@ -126,8 +131,8 @@ namespace ParadigmasLang
                 }
                 if (matched) continue;
 
-                // Delimitadores
-                if (DelimiterWords.Words.Contains(source[i].ToString()))
+                // Delimitadores de un solo carácter
+                if (DelimiterWords.SingleCharDelimiters.Contains(source[i].ToString()))
                 {
                     tokens.Add(new Token("DELIMITER", source[i].ToString()));
                     i++;

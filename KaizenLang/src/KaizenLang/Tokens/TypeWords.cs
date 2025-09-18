@@ -4,7 +4,9 @@ namespace ParadigmasLang
     {
         public static readonly HashSet<string> Words = new HashSet<string>
         {
-            "int", "float", "double", "boolean", "char", "string", "array", "list", "matrix"
+            "integer", "float", "double", "bool", "string", 
+            "array_integer", "array_float", "array_string", "array_bool",
+            "matrix_integer", "matrix_float", "matrix_string", "matrix_bool"
         };
     }
 }

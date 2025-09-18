@@ -1,4 +1,3 @@
-
 namespace ParadigmasLang
 {
     public class Interpreter
@@ -75,24 +74,32 @@ namespace ParadigmasLang
 
                 case "LITERAL":
                     var literal = node.Children[0].Type;
-                    return literal switch
-                    {
-                        "true" => true,
-                        "false" => false,
-                        "null" => null,
-                        _ => literal
-                    };
+                    if (literal == "true") return true;
+                    if (literal == "false") return false;
+                    if (literal == "null") return null;
+                    return literal;
 
                 case "IDENTIFIER":
                     var varName = node.Children[0].Type;
                     var symbol = currentScope.LookupVariable(varName);
                     if (symbol == null)
                     {
-                        throw new Exception($"Variable '{varName}' no está declarada");
+                        // Antes de lanzar una excepción, verificar si es una función predefinida
+                        if (varName == "output")
+                        {
+                            return "output"; // Devolver un identificador especial para la función 'output'
+                        }
+                        throw new Exception($"Variable o función '{varName}' no está declarada");
+                    }
+                    if (!symbol.IsInitialized)
+                    {
+                        // Opcional: advertir o lanzar error si se usa una variable no inicializada
+                        // output.Add($"Advertencia: La variable '{varName}' se está usando sin haber sido inicializada.");
                     }
                     return symbol.Value;
 
                 default:
+                    // Para nodos como 'ExpressionStatement', simplemente ejecutamos sus hijos
                     foreach (var child in node.Children)
                         ExecuteNode(child);
                     return null;
@@ -161,6 +168,29 @@ namespace ParadigmasLang
             if (node.Children.Count == 0)
                 return null;
 
+            // Caso especial: llamada a función como 'output("hola")'
+            if (node.Children.Count > 1 && node.Children[0].Type == "IDENTIFIER")
+            {
+                var functionNameNode = node.Children[0];
+                var functionName = ExecuteNode(functionNameNode);
+
+                if (functionName is string name && name == "output")
+                {
+                    if (node.Children[1].Type == "FunctionCall")
+                    {
+                        var argsNode = node.Children[1].Children[0]; // El nodo de argumentos
+                        var outputValues = new List<string>();
+                        foreach (var arg in argsNode.Children)
+                        {
+                            var val = ExecuteNode(arg);
+                            outputValues.Add(val?.ToString() ?? "null");
+                        }
+                        output.Add(string.Join(" ", outputValues));
+                        return null; // La llamada a output no devuelve un valor
+                    }
+                }
+            }
+            
             if (node.Children.Count == 1)
                 return ExecuteNode(node.Children[0]);
 
@@ -175,10 +205,23 @@ namespace ParadigmasLang
                     if (operatorNode.Type == "Operator" && operatorNode.Children.Count > 0)
                     {
                         var op = operatorNode.Children[0].Type;
-                        var right = i + 1 < node.Children.Count ? 
-                                   ExecuteNode(node.Children[i + 1]) : 
-                                   ExecuteNode(operatorNode.Children[1]);
+                        
+                        // El operando derecho puede estar anidado
+                        Node rightOperandNode;
+                        if (i + 1 < node.Children.Count)
+                        {
+                            rightOperandNode = node.Children[i + 1];
+                        }
+                        else if (operatorNode.Children.Count > 1)
+                        {
+                            rightOperandNode = operatorNode.Children[1];
+                        }
+                        else
+                        {
+                            throw new Exception("Falta el operando derecho para el operador " + op);
+                        }
 
+                        var right = ExecuteNode(rightOperandNode);
                         left = EvaluateOperation(left, op, right);
                         i++; // Skip next operand since we processed it
                     }
@@ -194,44 +237,50 @@ namespace ParadigmasLang
             // Convertir valores para operaciones
             if (left is string leftStr && right is string rightStr)
             {
-                return op switch
+                switch (op)
                 {
-                    "+" => leftStr + rightStr,
-                    "==" => leftStr == rightStr,
-                    "!=" => leftStr != rightStr,
-                    _ => throw new Exception($"Operación '{op}' no soportada para strings")
-                };
+                    case "+": return leftStr + rightStr;
+                    case "==": return leftStr == rightStr;
+                    case "!=": return leftStr != rightStr;
+                    default: throw new Exception($"Operación '{op}' no soportada para strings");
+                }
             }
 
             if (TryConvertToDouble(left, out double leftNum) && TryConvertToDouble(right, out double rightNum))
             {
-                return op switch
+                switch (op)
                 {
-                    "+" => leftNum + rightNum,
-                    "-" => leftNum - rightNum,
-                    "*" => leftNum * rightNum,
-                    "/" => rightNum != 0 ? leftNum / rightNum : throw new Exception("División por cero"),
-                    "%" => leftNum % rightNum,
-                    "==" => leftNum == rightNum,
-                    "!=" => leftNum != rightNum,
-                    "<" => leftNum < rightNum,
-                    ">" => leftNum > rightNum,
-                    "<=" => leftNum <= rightNum,
-                    ">=" => leftNum >= rightNum,
-                    _ => throw new Exception($"Operación '{op}' no reconocida")
-                };
+                    case "+": return leftNum + rightNum;
+                    case "-": return leftNum - rightNum;
+                    case "*": return leftNum * rightNum;
+                    case "/": return rightNum != 0 ? leftNum / rightNum : throw new Exception("División por cero");
+                    case "%": return leftNum % rightNum;
+                    case "==": return leftNum == rightNum;
+                    case "!=": return leftNum != rightNum;
+                    case "<": return leftNum < rightNum;
+                    case ">": return leftNum > rightNum;
+                    case "<=": return leftNum <= rightNum;
+                    case ">=": return leftNum >= rightNum;
+                    default: throw new Exception($"Operación '{op}' no reconocida para números");
+                }
             }
 
             if (left is bool leftBool && right is bool rightBool)
             {
-                return op switch
+                switch (op)
                 {
-                    "&&" => leftBool && rightBool,
-                    "||" => leftBool || rightBool,
-                    "==" => leftBool == rightBool,
-                    "!=" => leftBool != rightBool,
-                    _ => throw new Exception($"Operación '{op}' no soportada para booleanos")
-                };
+                    case "&&": return leftBool && rightBool;
+                    case "||": return leftBool || rightBool;
+                    case "==": return leftBool == rightBool;
+                    case "!=": return leftBool != rightBool;
+                    default: throw new Exception($"Operación '{op}' no soportada para booleanos");
+                }
+            }
+
+            // Operaciones unarias (ej. '!')
+            if (op == "!" && right is bool rightBoolUnary)
+            {
+                return !rightBoolUnary;
             }
 
             throw new Exception($"Tipos incompatibles para operación '{op}': {left?.GetType().Name} y {right?.GetType().Name}");

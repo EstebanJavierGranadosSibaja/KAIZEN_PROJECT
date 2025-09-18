@@ -201,8 +201,7 @@ namespace ParadigmasLang
                     }
 
                     // Validar tipo
-                    var validTypes = new HashSet<string> { "int", "float", "double", "boolean", "char", "string", "array" };
-                    if (!validTypes.Contains(type))
+                    if (!TypeWords.Words.Contains(type))
                     {
                         errors.Add($"Tipo '{type}' no es válido");
                     }
@@ -315,18 +314,27 @@ namespace ParadigmasLang
 
         private void AnalyzeConditional(Node node)
         {
-            // Analizar condición
+            // El primer hijo es siempre la condición
             if (node.Children.Count > 0)
             {
-                var condition = node.Children[0];
-                AnalyzeNode(condition);
-                // Verificar que la condición sea booleana
-            }
+                var conditionNode = node.Children[0];
+                AnalyzeNode(conditionNode);
+                string conditionType = GetExpressionType(conditionNode);
 
-            // Analizar bloques
-            for (int i = 1; i < node.Children.Count; i++)
-            {
-                AnalyzeNode(node.Children[i]);
+                if (conditionType == "assignment_error")
+                {
+                    errors.Add($"Error: No se puede usar una asignación ('{OperatorWords.ASSIGN}') como condición en un '{node.Type}'. Use '{OperatorWords.EQUAL}' para comparar.");
+                }
+                else if (conditionType != "bool")
+                {
+                    errors.Add($"La condición de un '{node.Type}' debe ser de tipo 'bool', pero se encontró '{conditionType}'");
+                }
+
+                // Analizar los bloques 'then' y 'else' (si existen)
+                for (int i = 1; i < node.Children.Count; i++)
+                {
+                    AnalyzeNode(node.Children[i]);
+                }
             }
         }
 
@@ -386,8 +394,13 @@ namespace ParadigmasLang
         {
             if (node.Type == "Expression" && node.Children.Count > 0)
             {
-                var firstChild = node.Children[0];
-                return GetNodeType(firstChild);
+                // Si la expresión contiene un operador de asignación, es un error en este contexto.
+                if (node.Children.Any(child => child.Type == "Operator" && child.Children.Any(op => op.Type == OperatorWords.ASSIGN)))
+                {
+                    return "assignment_error"; // Tipo especial para detectar asignaciones en condicionales
+                }
+                // De lo contrario, el tipo de la expresión es el tipo del primer operando (simplificación)
+                return GetNodeType(node.Children[0]);
             }
             return GetNodeType(node);
         }
@@ -399,11 +412,11 @@ namespace ParadigmasLang
                 case "STRING":
                     return "string";
                 case "INT":
-                    return "int";
+                    return "integer";
                 case "FLOAT":
                     return "float";
                 case "NUMBER":
-                    // Determinar si es int, float o double basado en el valor
+                    // Determinar si es integer, float o double basado en el valor
                     if (node.Children.Count > 0)
                     {
                         var value = node.Children[0].Type;
@@ -411,9 +424,9 @@ namespace ParadigmasLang
                         {
                             return "float";
                         }
-                        return "int";
+                        return "integer";
                     }
-                    return "int";
+                    return "integer";
                 case "BOOLEAN":
                 case "LITERAL":
                     // Verificar si es un literal booleano
@@ -421,7 +434,7 @@ namespace ParadigmasLang
                     {
                         var value = node.Children[0].Type;
                         if (value == "true" || value == "false")
-                            return "boolean";
+                            return "bool";
                         if (value == "null")
                             return "null";
                     }
@@ -462,11 +475,12 @@ namespace ParadigmasLang
             switch (expectedType)
             {
                 case "double":
-                    return actualType == "int" || actualType == "float";
+                    return actualType == "integer" || actualType == "float";
                 case "float":
-                    return actualType == "int";
+                    return actualType == "integer";
                 case "string":
-                    return actualType == "char"; // char puede convertirse a string
+                    // string puede aceptar cualquier cosa para concatenación
+                    return true;
                 default:
                     return false;
             }
@@ -474,19 +488,8 @@ namespace ParadigmasLang
 
         private bool IsReservedWord(string word)
         {
-            var reservedWords = new HashSet<string>
-            {
-                // Tipos de datos
-                "int", "float", "double", "boolean", "char", "string", "array",
-                // Palabras clave de control
-                "if", "else", "while", "for", "do", "return", "void",
-                // Valores literales
-                "true", "false", "null",
-                // Entrada/Salida
-                "input", "output"
-            };
-            
-            return reservedWords.Contains(word);
+            // Utiliza las definiciones centralizadas
+            return ReservedWords.Words.Contains(word) || LiteralWords.Words.Contains(word);
         }
     }
 }

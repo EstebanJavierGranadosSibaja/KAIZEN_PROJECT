@@ -223,9 +223,9 @@ public class Node {
 **Propósito**: Representa cada elemento del código como un nodo en un árbol jerárquico.  
 **Ejemplos de nodos**:
 
-- `VariableDeclaration`: `int x = 5;`
+- `VariableDeclaration`: `integer x = 5;`
 - `Expression`: `x + y * 2`
-- `IfStatement`: `if (condition) { ... }`
+- `IfStatement`: `if (condition) ying ... yang`
 
 ### 🧠 **Módulo Semantic**
 
@@ -249,10 +249,10 @@ public class Node {
 
 **Validaciones implementadas**:
 
-- ✅ Tipado estricto: `int x = "texto"` → Error
+- ✅ Tipado estricto: `integer x = "texto"` → Error
 - ✅ Variables declaradas: `y = x + 1` → Error si `x` no existe
 - ✅ Scope correcto: Variables locales no accesibles fuera de su bloque
-- ✅ Compatibilidad de tipos: `int + string` → Error
+- ✅ Compatibilidad de tipos: `integer + string` → Error
 
 ### 🎯 **Módulo Tokens**
 
@@ -279,7 +279,7 @@ public class Token {
 
 ```csharp
 // Tipos simples (5):
-"int", "float", "double", "boolean", "char"
+"integer", "float", "double", "bool", "string", "array", "matrix"
 
 // Tipos compuestos (2):
 "string", "array"
@@ -298,7 +298,7 @@ public class Token {
 
 ```csharp
 // Puntuación y delimitadores:
-";", "{", "}", "(", ")", "[", "]", ",", "."
+";", "ying", "yang", "(", ")", "[", "]", ",", "."
 ```
 
 #### `Tokens/LiteralWords.cs` - Literales
@@ -385,7 +385,8 @@ public class Token {
 📋 Estructuras del Lenguaje
 ├── 🔤 Palabras Reservadas
 ├── 📊 Tipos de Datos
-│   ├── Simples (int, float, double, boolean, char)
+│   ├── Simples (integer, float, double, bool, string)
+│   └── Compuestos (array, matrix)
 │   └── Compuestos (string, array)
 ├── ⚙️ Sintaxis
 │   ├── 🔄 Control de Flujo
@@ -586,7 +587,7 @@ rm -rf bin obj
 | Operaciones lógicas | ✅ | &&, '||', ! |
 | Entrada/salida | ✅ | input, output |
 | Semántica explicada | ✅ | Documentación completa |
-| 5 tipos simples | ✅ | int, float, double, boolean, char |
+| 7 tipos de datos | ✅ | integer, float, double, bool, string, array, matrix |
 | 2 tipos compuestos | ✅ | string, array |
 
 ### ✅ **Reglas Adicionales Cumplidas**
