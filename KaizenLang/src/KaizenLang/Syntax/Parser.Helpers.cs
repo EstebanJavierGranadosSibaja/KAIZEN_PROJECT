@@ -2,10 +2,12 @@ namespace ParadigmasLang
 {
     public partial class Parser
     {
-        // Utilidad para crear nodos de error con posición
+        // Utilidad para crear nodos de error con posición (siempre incluir posición approximation)
         private Node ErrorNode(string mensaje, int pos)
         {
-            return new Node { Type = "Error", Children = { new Node { Type = $"{mensaje} (posición {pos})" } } };
+            var n = new Node { Type = "Error", Line = 0, Column = pos };
+            n.Children.Add(new Node { Type = $"{mensaje} (posición {pos})" });
+            return n;
         }
 
         private bool Match(List<Token> tokens, int pos, string type, string value)
@@ -65,12 +67,15 @@ namespace ParadigmasLang
             {
                 if (tokens[pos].Type == "TYPE")
                 {
-                    var typeNode = new Node(tokens[pos].Value);
+                    var typeToken = tokens[pos];
+                    var typeNode = new Node(typeToken.Value) { Line = typeToken.Line, Column = typeToken.Column };
                     pos++;
                     if (tokens[pos].Type == "IDENTIFIER")
                     {
-                        var nameNode = new Node("Identifier", new List<Node> { new Node(tokens[pos].Type) });
-                        parameters.Children.Add(new Node("Param", new List<Node> { typeNode, nameNode }));
+                        var nameToken = tokens[pos];
+                        var nameNode = new Node("Identifier", new List<Node> { new Node(nameToken.Value) }) { Line = nameToken.Line, Column = nameToken.Column };
+                        var paramNode = new Node("Param", new List<Node> { typeNode, nameNode }) { Line = typeNode.Line, Column = typeNode.Column };
+                        parameters.Children.Add(paramNode);
                         pos++;
                         if (tokens[pos].Type == "DELIMITER" && tokens[pos].Value == DelimiterWords.COMMA)
                             pos++;

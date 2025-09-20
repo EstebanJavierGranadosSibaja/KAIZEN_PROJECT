@@ -17,7 +17,7 @@ namespace ParadigmasLang
                     break;
 
                 if (pos + 1 < tokens.Count && 
-                    tokens[pos].Type == "IDENTIFIER" && 
+                    (tokens[pos].Type == "IDENTIFIER" || tokens[pos].Type == "RESERVED") && 
                     tokens[pos + 1].Type == "DELIMITER" && 
                     tokens[pos + 1].Value == "(")
                 {
@@ -30,7 +30,11 @@ namespace ParadigmasLang
                 {
                     pos++; // consumir (
                     var nested = ParseExpression(tokens, ref pos);
-                    node.Children.Add(new Node { Type = "Parentheses", Children = { nested } });
+                    var par = new Node { Type = "Parentheses", Children = { nested } };
+                    // use token position from the opening '('
+                    par.Line = tokens[Math.Max(0, pos - 1)].Line;
+                    par.Column = tokens[Math.Max(0, pos - 1)].Column;
+                    node.Children.Add(par);
                     if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == ")")
                         pos++; // consumir )
                     continue;
@@ -45,12 +49,20 @@ namespace ParadigmasLang
 
                 if (tokens[pos].Type == "OPERATOR")
                 {
-                    node.Children.Add(new Node { Type = "Operator", Children = { new Node { Type = tokens[pos].Value } } });
+                    // Treat operator tokens as Operator nodes with the operator symbol as a child
+                    var op = new Node { Type = "Operator", Children = { new Node { Type = tokens[pos].Value } } };
+                    op.Line = tokens[pos].Line;
+                    op.Column = tokens[pos].Column;
+                    node.Children.Add(op);
                     pos++;
                     continue;
                 }
 
-                node.Children.Add(new Node { Type = tokens[pos].Type, Children = { new Node { Type = tokens[pos].Value } } });
+                // Literal or identifier token -> create node with position
+                var leaf = new Node { Type = tokens[pos].Type, Children = { new Node { Type = tokens[pos].Value } } };
+                leaf.Line = tokens[pos].Line;
+                leaf.Column = tokens[pos].Column;
+                node.Children.Add(leaf);
                 pos++;
             }
 
@@ -67,8 +79,13 @@ namespace ParadigmasLang
             Node node = new Node { Type = "FunctionCall" };
             
             // Nombre de la función
-            node.Children.Add(new Node { Type = "FunctionName", Children = { new Node { Type = tokens[pos].Value } } });
+            var fn = new Node { Type = "FunctionName", Children = { new Node { Type = tokens[pos].Value } } };
+            fn.Line = tokens[pos].Line;
+            fn.Column = tokens[pos].Column;
+            node.Children.Add(fn);
             pos++; // IDENTIFIER
+            // remember '(' position
+            int openParenPos = pos;
             pos++; // (
             
             // Argumentos
@@ -80,11 +97,16 @@ namespace ParadigmasLang
                     pos++; // consumir ,
                     continue;
                 }
-                argsNode.Children.Add(ParseExpression(tokens, ref pos));
+                var arg = ParseExpression(tokens, ref pos);
+                argsNode.Children.Add(arg);
             }
             
             node.Children.Add(argsNode);
             
+            // set positions for function call using function name or open paren
+            node.Line = fn.Line;
+            node.Column = fn.Column;
+
             if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == ")")
                 pos++; // consumir )
                 
@@ -94,6 +116,8 @@ namespace ParadigmasLang
         private Node ParseArrayLiteral(List<Token> tokens, ref int pos)
         {
             Node arrayNode = new Node { Type = "ArrayLiteral" };
+            // capture '[' position
+            int start = pos;
             pos++; // consumir [
             
             var elementsNode = new Node { Type = "Elements" };
@@ -106,11 +130,16 @@ namespace ParadigmasLang
                     continue;
                 }
                 
-                elementsNode.Children.Add(ParseExpression(tokens, ref pos));
+                var el = ParseExpression(tokens, ref pos);
+                elementsNode.Children.Add(el);
             }
             
             arrayNode.Children.Add(elementsNode);
             
+            // set position for array from opening '[' token
+            arrayNode.Line = tokens[start].Line;
+            arrayNode.Column = tokens[start].Column;
+
             if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == "]")
                 pos++; // consumir ]
             else

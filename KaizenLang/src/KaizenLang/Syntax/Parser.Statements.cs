@@ -83,11 +83,12 @@ namespace ParadigmasLang
 
         private Node ParseAssignment(List<Token> tokens, ref int pos)
         {
-            var varNode = new Node("Identifier", new List<Node> { new Node(tokens[pos].Value) });
+            var varToken = tokens[pos];
+            var varNode = new Node("Identifier", new List<Node> { new Node(varToken.Value) }) { Line = varToken.Line, Column = varToken.Column };
             pos++; // Consumir identificador
             pos++; // Consumir '='
             var valueNode = ParseExpression(tokens, ref pos);
-            var assignmentNode = new Node("Assignment", new List<Node> { varNode, valueNode });
+            var assignmentNode = new Node("Assignment", new List<Node> { varNode, valueNode }) { Line = varNode.Line, Column = varNode.Column };
 
             if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == DelimiterWords.SEMICOLON)
                 pos++;
@@ -99,12 +100,14 @@ namespace ParadigmasLang
 
         private Node ParseVariableDeclaration(List<Token> tokens, ref int pos)
         {
-            var typeNode = new Node(tokens[pos].Value);
+            var typeToken = tokens[pos];
+            var typeNode = new Node(typeToken.Value) { Line = typeToken.Line, Column = typeToken.Column };
             pos++;
-            var nameNode = new Node("Identifier", new List<Node> { new Node(tokens[pos].Value) });
+            var nameToken = tokens[pos];
+            var nameNode = new Node("Identifier", new List<Node> { new Node(nameToken.Value) }) { Line = nameToken.Line, Column = nameToken.Column };
             pos++;
 
-            var declarationNode = new Node("VariableDeclaration", new List<Node> { typeNode, nameNode });
+            var declarationNode = new Node("VariableDeclaration", new List<Node> { typeNode, nameNode }) { Line = typeNode.Line, Column = typeNode.Column };
 
             if (pos < tokens.Count)
             {

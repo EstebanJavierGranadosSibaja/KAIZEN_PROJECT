@@ -21,9 +21,38 @@ namespace ParadigmasLang
             Type = type;
         }
 
+        // Existing constructor for a value payload (kept for compatibility)
         public Node(string type, object? value) : this(type)
         {
             Value = value;
+        }
+
+        // New constructor that accepts a list of children to avoid accidental
+        // setting of Value when parser wants to create a node with child nodes.
+        public Node(string type, List<Node> children) : this(type)
+        {
+            if (children != null)
+                this.Children = children;
+        }
+
+        // Factory helper to create a canonical FunctionCall node.
+        // Contract:
+        // - node.Type == "FunctionCall"
+        // - child[0].Type == "FunctionName" and contains an Identifier child with the function name
+        // - child[1].Type == "Arguments" and contains 0..N expression nodes as children
+        // - Line/Column should be set to the position of the function name token
+        public static Node CreateFunctionCall(string functionName, List<Node>? arguments = null, int line = 0, int column = 0)
+        {
+            var fn = new Node("FunctionName", new List<Node> { new Node("Identifier", new List<Node> { new Node(functionName) }) });
+            fn.Line = line;
+            fn.Column = column;
+
+            var args = new Node("Arguments", arguments ?? new List<Node>());
+
+            var call = new Node("FunctionCall", new List<Node> { fn, args });
+            call.Line = line;
+            call.Column = column;
+            return call;
         }
 
         // Método para agregar un nodo hijo

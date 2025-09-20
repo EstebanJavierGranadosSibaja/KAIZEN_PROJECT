@@ -7,6 +7,11 @@ namespace ParadigmasLang
         {
             int pos = 0;
             Node root = new Node { Type = "Program" };
+            if (tokens == null || tokens.Count == 0)
+                return root;
+
+            root.Line = tokens[0].Line;
+            root.Column = tokens[0].Column;
             while (pos < tokens.Count)
             {
                 var node = ParseStatement(tokens, ref pos);
