@@ -333,7 +333,7 @@ public static class ControlFactory
         using (var brush = new LinearGradientBrush(
             panel.ClientRectangle,
             UIConstants.Colors.PanelBackground,
-            Color.FromArgb(245, 248, 255),
+            UIConstants.Colors.CodeBackground,
             LinearGradientMode.Vertical))
         {
             graphics.FillRectangle(brush, panel.ClientRectangle);
@@ -355,12 +355,12 @@ public static class ControlFactory
 
         // Línea de números de línea (simulada)
         var lineNumberArea = new Rectangle(15, 30, 30, panel.Height - 35);
-        using (var brush = new SolidBrush(Color.FromArgb(240, 243, 250)))
+        using (var brush = new SolidBrush(UIConstants.Colors.PanelBackground))
         {
             graphics.FillRectangle(brush, lineNumberArea);
         }
 
-        using (var pen = new Pen(Color.FromArgb(220, 223, 230), 1))
+        using (var pen = new Pen(UIConstants.Colors.PanelBorder, 1))
         {
             graphics.DrawLine(pen, 45, 30, 45, panel.Height - 5);
         }
@@ -374,7 +374,7 @@ public static class ControlFactory
         using (var brush = new LinearGradientBrush(
             panel.ClientRectangle,
             UIConstants.Colors.OutputBackground,
-            Color.FromArgb(35, 50, 70),
+            UIConstants.Colors.PanelBackground,
             LinearGradientMode.Vertical))
         {
             graphics.FillRectangle(brush, panel.ClientRectangle);
@@ -382,14 +382,14 @@ public static class ControlFactory
 
         // Borde redondeado
         var borderRect = new Rectangle(0, 0, panel.Width - 1, panel.Height - 1);
-        using (var pen = new Pen(Color.FromArgb(60, 80, 100), 2))
+        using (var pen = new Pen(UIConstants.Colors.PanelBorder, 2))
         {
             graphics.DrawRoundedRectangle(pen, borderRect, 8);
         }
 
         // Sombra externa
         var shadowRect = new Rectangle(3, 3, panel.Width - 1, panel.Height - 1);
-        using (var shadowBrush = new SolidBrush(Color.FromArgb(40, 0, 0, 0)))
+        using (var shadowBrush = new SolidBrush(UIConstants.Colors.Shadow))
         {
             graphics.FillRoundedRectangle(shadowBrush, shadowRect, 8);
         }
