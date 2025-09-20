@@ -31,24 +31,24 @@ public static class UIConstants
     // Colores
     public static class Colors
     {
-        // Dark theme inspired by KAIZEN logo (greens + gold accents)
-        public static readonly Color MainBackground = Color.FromArgb(18, 24, 30); // very dark
-        public static readonly Color MenuBackground = Color.FromArgb(20, 28, 36);
-        public static readonly Color MenuForeground = Color.FromArgb(220, 223, 230);
-        public static readonly Color PanelBackground = Color.FromArgb(14, 18, 22);
-        public static readonly Color PanelBorder = Color.FromArgb(36, 44, 52);
-        public static readonly Color CodeBackground = Color.FromArgb(10, 14, 19);
-        public static readonly Color CodeForeground = Color.FromArgb(220, 223, 230);
-        public static readonly Color OutputBackground = Color.FromArgb(8, 12, 16);
-        public static readonly Color OutputForeground = Color.FromArgb(200, 200, 200);
-        // KAIZEN green and gold accents
-        public static readonly Color CompileButton = Color.FromArgb(30, 116, 49); // green
-        public static readonly Color CompileButtonHover = Color.FromArgb(20, 86, 36);
-        public static readonly Color ExecuteButton = Color.FromArgb(201, 141, 40); // gold
-        public static readonly Color ExecuteButtonHover = Color.FromArgb(170, 115, 33);
-        public static readonly Color ButtonText = Color.FromArgb(235, 235, 235);
-        public static readonly Color Shadow = Color.FromArgb(120, 0, 0, 0);
-        public static readonly Color ShadowDark = Color.FromArgb(200, 0, 0, 0);
+    // Dark theme tokens sourced from src/KaizenLang/UI/theme.css
+    public static readonly Color MainBackground = ColorTranslator.FromHtml("#0B0F14"); // --kaizen-bg
+    public static readonly Color PanelBackground = ColorTranslator.FromHtml("#12181E"); // --kaizen-surface
+    public static readonly Color MenuBackground = ColorTranslator.FromHtml("#181E25"); // --kaizen-surface-2
+    public static readonly Color CodeBackground = ColorTranslator.FromHtml("#0E1216"); // --kaizen-surface-3
+    public static readonly Color CodeForeground = ColorTranslator.FromHtml("#E6E9ED"); // --kaizen-text
+    public static readonly Color MenuForeground = ColorTranslator.FromHtml("#AAB0B8"); // --kaizen-muted (used for menu text)
+    public static readonly Color PanelBorder = ColorTranslator.FromHtml("#252C36"); // --kaizen-border
+    public static readonly Color OutputBackground = ColorTranslator.FromHtml("#0E1319");
+    public static readonly Color OutputForeground = ColorTranslator.FromHtml("#AAB0B8"); // muted
+    // KAIZEN accents (green + gold)
+    public static readonly Color CompileButton = ColorTranslator.FromHtml("#1FA044"); // --kaizen-green
+    public static readonly Color CompileButtonHover = ColorTranslator.FromHtml("#166C30"); // --kaizen-green-dark
+    public static readonly Color ExecuteButton = ColorTranslator.FromHtml("#D49B2D"); // --kaizen-gold
+    public static readonly Color ExecuteButtonHover = ColorTranslator.FromHtml("#9E6F1F"); // --kaizen-gold-dark
+    public static readonly Color ButtonText = Color.White;
+    public static readonly Color Shadow = Color.FromArgb(160, 0, 0, 0);
+    public static readonly Color ShadowDark = Color.FromArgb(220, 0, 0, 0);
     }
 
     // Fuentes
