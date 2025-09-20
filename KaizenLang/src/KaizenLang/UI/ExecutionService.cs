@@ -8,6 +8,8 @@ namespace KaizenLang.UI
     {
         private readonly CompilationService compilationService;
         private readonly Stopwatch executionTimer;
+        // Optional input provider: function that given an optional prompt returns the user input
+        public Func<string?, string?>? InputProvider { get; set; }
 
         public ExecutionService()
         {
@@ -52,7 +54,7 @@ namespace KaizenLang.UI
                 outputBuilder.AppendLine("� EJECUTANDO CÓDIGO...");
                 outputBuilder.AppendLine("─────────────────────────");
 
-                var interpreter = new Interpreter();
+                var interpreter = new Interpreter(InputProvider);
                 var executionOutput = interpreter.Execute(compilationResult.AST);
 
                 executionTimer.Stop();

@@ -69,6 +69,9 @@ namespace KaizenLang.UI
             if (!PerformSyntacticAnalysis(tokens!, out var ast, result))
                 return result;
 
+            // Always attach the AST to the result after parsing so tools/debuggers can inspect it even on semantic failures
+            result.AST = ast;
+
             // FASE 3: ANÁLISIS SEMÁNTICO
             if (!PerformSemanticAnalysis(ast!, result))
                 return result;
@@ -103,7 +106,7 @@ namespace KaizenLang.UI
                 AppendError("❌ ERRORES LÉXICOS ENCONTRADOS:");
                 foreach (var invalidToken in invalidTokens)
                 {
-                    AppendError($"   • Token inválido: '{invalidToken.Value}'");
+                    AppendError($"   • Token inválido: '{invalidToken.Value}' (línea {invalidToken.Line}, col {invalidToken.Column})");
                 }
                 AppendError("\r\n❌ COMPILACIÓN DETENIDA");
 
@@ -231,7 +234,7 @@ namespace KaizenLang.UI
             var importantTokens = tokens.Take(15).ToList();
             foreach (var token in importantTokens)
             {
-                AppendInfo($"   {token.Type.PadRight(15)}: '{token.Value}'");
+                AppendInfo($"   {token.Type.PadRight(15)}: '{token.Value}' (l{token.Line}:c{token.Column})");
             }
             if (tokens.Count > 15)
                 AppendInfo($"   ... y {tokens.Count - 15} tokens más");

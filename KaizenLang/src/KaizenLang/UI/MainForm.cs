@@ -21,6 +21,50 @@ namespace KaizenLang.UI
 		{
 			compilationService = new CompilationService();
 			executionService = new ExecutionService();
+
+			// Provide a UI input provider to the execution service so Interpreter can call input(prompt)
+			executionService.InputProvider = (prompt) =>
+			{
+					// If the form does not have a handle yet or is not visible, don't attempt a blocking UI call
+					if (!this.IsHandleCreated || !this.Visible)
+					{
+						return null; // fall back for non-UI contexts (tests, headless runs)
+					}
+
+					try
+					{
+						// If we're on a different thread, marshal to UI thread but don't block indefinitely
+						if (this.InvokeRequired)
+						{
+							var tcs = new System.Threading.Tasks.TaskCompletionSource<string?>();
+							this.BeginInvoke(new MethodInvoker(() =>
+							{
+								try
+								{
+									var r = Prompt.Show("Input", prompt);
+									tcs.TrySetResult(r);
+								}
+								catch
+								{
+									tcs.TrySetResult(null);
+								}
+							}));
+
+							// Wait for a short timeout to avoid deadlocks in test environments
+							if (!tcs.Task.Wait(3000))
+								return null;
+							return tcs.Task.Result;
+						}
+						else
+						{
+							return Prompt.Show("Input", prompt);
+						}
+					}
+					catch
+					{
+						return null;
+					}
+			};
 		}
 
 		private void InitializeForm()
