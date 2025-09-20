@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
+  <!-- Suppress WinForms platform compatibility warnings (CA1416) which are expected for this Windows-only UI project -->
+  <NoWarn>$(NoWarn);CA1416</NoWarn>
     <!-- Prevent SDK from generating assembly attributes that duplicate manual/generated ones -->
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <!-- Prevent SDK from generating target framework attribute if it's already present -->
