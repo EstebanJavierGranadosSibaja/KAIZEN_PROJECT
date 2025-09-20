@@ -34,7 +34,9 @@ Thumbs.db
 # IDEs
 # VS Code settings
 .vscode/
-.vscode/
+# Ignore Visual Studio Code workspace settings and caches
+.vscode/*
+.vscode/**/workspaceStorage/
 
 # Test and tooling outputs
 TestResults/
