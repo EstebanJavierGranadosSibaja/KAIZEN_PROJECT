@@ -4,6 +4,6 @@ dotnet format KaizenLang.sln --verify-no-changes
 
 dotnet format KaizenLang.sln
 
-Note: before pushing or opening a PR, run `dotnet format KaizenLang.sln` locally to apply formatting changes. The CI job in `.github/workflows/format.yml` runs `dotnet format --verify-no-changes` and will fail if your branch contains unformatted files.
+Nota: Antes de enviar o abrir una solicitud de integración (PR), ejecute `dotnet format KaizenLang.sln` localmente para aplicar los cambios de formato. El trabajo de integración continua (CI) en `.github/workflows/format.yml` ejecuta `dotnet format --verify-no-changes` y fallará si su rama contiene archivos sin formato.
 
-Also: the project uses WinForms UI APIs which emit CA1416 platform-compatibility warnings on non-Windows platforms; these are expected for this repository and are suppressed in the project file to keep CI logs focused on actionable issues.
+Además: el proyecto utiliza las API de interfaz de usuario de WinForms que emiten advertencias de compatibilidad de plataforma CA1416 en plataformas distintas de Windows. Estas advertencias son esperadas para este repositorio y se suprimen en el archivo del proyecto para que los registros de integración continua se centren en problemas que requieren acción.
