@@ -33,10 +33,10 @@ Cada grupo de proyecto deberá crear las siguientes estructuras del lenguaje e i
   - 5 simples: enteros, flotantes, caracteres, booleanos y nulos.  
   - 2 compuestos: arreglos, listas, matrices, etc.  
 
-### Reglas adicionales del lenguaje  
+### Reglas adicionales del lenguaje
 
 - El tipado de datos debe ser **estricto**, no se permiten conversiones implícitas peligrosas.  
-- La sintaxis y la semántica deben ser **muy similares a C++**, manteniendo claridad y consistencia.  
+- El lenguaje debe diseñarse con **sintaxis propia** (no debe ser idéntico ni pretender replicar exactamente C, C++ ni otro lenguaje existente). Debe priorizar claridad, consistencia y facilidad de análisis (esto facilita la implementación del compilador/interprete).  
 - El lenguaje debe **validar cualquier tipo de error** en tiempo de compilación y ejecución, mostrando mensajes explicativos al usuario.  
 
 ### Pantalla de programación  
