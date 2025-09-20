@@ -69,25 +69,61 @@ public static class MenuBuilder
             Dock = DockStyle.Top
         };
 
-        // Logo square
-        var logo = new Label
+        // Logo: try to load LOGO_KAIZEN.png and show it; fallback to a colored 'K' label
+        Control logoControl;
+        try
         {
-            Text = "K",
-            Width = 36,
-            Height = 36,
-            Left = 10,
-            Top = 8,
-            TextAlign = ContentAlignment.MiddleCenter,
-            BackColor = UIConstants.Colors.CompileButton,
-            ForeColor = UIConstants.Colors.ButtonText,
-            Font = new Font(UIConstants.Fonts.MenuFont.FontFamily, 12, FontStyle.Bold),
-        };
-        logo.BorderStyle = BorderStyle.None;
-        logo.Padding = new Padding(6);
-        topBar.Controls.Add(logo);
+            var possiblePaths = new[] {
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "LOGO_KAIZEN.png"),
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "src", "KaizenLang", "UI", "LOGO_KAIZEN.png"),
+                Path.Combine(Environment.CurrentDirectory, "src", "KaizenLang", "UI", "LOGO_KAIZEN.png")
+            };
+
+            string? found = possiblePaths.FirstOrDefault(File.Exists);
+            if (found != null)
+            {
+                var pb = new PictureBox
+                {
+                    Width = 36,
+                    Height = 36,
+                    Left = 10,
+                    Top = 8,
+                    SizeMode = PictureBoxSizeMode.Zoom,
+                    BackColor = Color.Transparent
+                };
+                using var img = Image.FromFile(found);
+                // create a copy to avoid locking the file
+                pb.Image = new Bitmap(img);
+                logoControl = pb;
+            }
+            else
+            {
+                throw new FileNotFoundException();
+            }
+        }
+        catch
+        {
+            var lbl = new Label
+            {
+                Text = "K",
+                Width = 36,
+                Height = 36,
+                Left = 10,
+                Top = 8,
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = UIConstants.Colors.CompileButton,
+                ForeColor = UIConstants.Colors.ButtonText,
+                Font = new Font(UIConstants.Fonts.MenuFont.FontFamily, 12, FontStyle.Bold),
+            };
+            lbl.BorderStyle = BorderStyle.None;
+            lbl.Padding = new Padding(6);
+            logoControl = lbl;
+        }
+
+        topBar.Controls.Add(logoControl);
 
     // Estructuras dropdown button (larger, bold, white text)
-    int x = logo.Right + 14;
+    int x = logoControl.Right + 14;
     var estructurasBtn = ControlFactory.CreateTopBarButton(UIConstants.Text.MENU_STRUCTURES, x, 8);
     // Override styling for prominence
     estructurasBtn.Width = 140;
