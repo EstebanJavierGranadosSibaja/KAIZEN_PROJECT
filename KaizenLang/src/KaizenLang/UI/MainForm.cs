@@ -6,7 +6,7 @@ public class MainForm : Form
     private TextBox? outputBox;
     private Button? compileButton;
     private Button? executeButton;
-    private MenuStrip? menuStrip;
+    private Control? topBar;
     private CompilationService? compilationService;
     private ExecutionService? executionService;
 
@@ -86,9 +86,11 @@ public class MainForm : Form
         codePanel.Controls.Add(codeBox);
         this.Controls.Add(codePanel);
 
-        // Ahora crear menú con la referencia válida al codeBox
-        menuStrip = MenuBuilder.CreateMainMenu(codeBox);
-        this.Controls.Add(menuStrip);
+    // Ahora crear topbar (logo + menú) con la referencia válida al codeBox
+    topBar = MenuBuilder.CreateTopBar(codeBox);
+    // dock top to behave like a header
+    topBar.Dock = DockStyle.Top;
+    this.Controls.Add(topBar);
 
         // Crear botones
         compileButton = ControlFactory.CreateCompileButton(codePanel);

@@ -86,14 +86,17 @@ public static class MenuBuilder
         logo.Padding = new Padding(6);
         topBar.Controls.Add(logo);
 
-        // Pill-like menu buttons
+        // Estructuras dropdown button (shows a menu to insert templates into the editor)
         int x = logo.Right + 10;
-        foreach (var text in new[] {"Archivo", "Editar", "Ver", "Ayuda"})
-        {
-            var btn = ControlFactory.CreateTopBarButton(text, x, 10);
-            x += btn.Width + 8;
-            topBar.Controls.Add(btn);
-        }
+        var estructurasBtn = ControlFactory.CreateTopBarButton(UIConstants.Text.MENU_STRUCTURES, x, 10);
+        var estructurasMenu = BuildStructuresContextMenu(codeBox);
+        estructurasBtn.Click += (s, e) => estructurasMenu.Show(estructurasBtn, new System.Drawing.Point(0, estructurasBtn.Height));
+        topBar.Controls.Add(estructurasBtn);
+
+        // Keep only Ayuda button on the right side
+        var ayudaBtn = ControlFactory.CreateTopBarButton("Ayuda", topBar.Width - 110, 10);
+        ayudaBtn.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+        topBar.Controls.Add(ayudaBtn);
 
         // Right side: compile/run buttons placed by MainForm later when needed
 
@@ -132,6 +135,35 @@ public static class MenuBuilder
     private static void InsertText(TextBox textBox, string text)
     {
         textBox.SelectedText = text;
+    }
+
+    // Build a ContextMenuStrip for the topbar 'Estructuras' button
+    private static ContextMenuStrip BuildStructuresContextMenu(TextBox codeBox)
+    {
+        var cms = new ContextMenuStrip
+        {
+            BackColor = UIConstants.Colors.MenuBackground,
+            ForeColor = UIConstants.Colors.MenuForeground,
+            Font = UIConstants.Fonts.MenuFont
+        };
+
+        // Palabras reservadas
+        cms.Items.Add(new ToolStripMenuItem(UIConstants.Text.MENU_RESERVED_WORDS, null, (s, e) => InsertText(codeBox, MenuTexts.RESERVED_WORDS_TEXT)));
+
+        // Sintaxis -> submenu (control, functions, operations)
+        var sintaxis = new ToolStripMenuItem(UIConstants.Text.MENU_SYNTAX);
+        sintaxis.DropDownItems.Add(new ToolStripMenuItem(UIConstants.Text.MENU_CONTROL, null, (s, e) => InsertText(codeBox, MenuTexts.CONTROL_STRUCTURES_TEXT)));
+        sintaxis.DropDownItems.Add(new ToolStripMenuItem(UIConstants.Text.MENU_FUNCTIONS, null, (s, e) => InsertText(codeBox, MenuTexts.FUNCTIONS_TEXT)));
+        sintaxis.DropDownItems.Add(new ToolStripMenuItem(UIConstants.Text.MENU_OPERATIONS, null, (s, e) => InsertText(codeBox, MenuTexts.OPERATIONS_TEXT)));
+        cms.Items.Add(sintaxis);
+
+        // Semántica
+        cms.Items.Add(new ToolStripMenuItem(UIConstants.Text.MENU_SEMANTICS, null, (s, e) => InsertText(codeBox, MenuTexts.SEMANTICS_TEXT)));
+
+        // Tipos de datos
+        cms.Items.Add(new ToolStripMenuItem(UIConstants.Text.MENU_DATA_TYPES, null, (s, e) => InsertText(codeBox, MenuTexts.DATA_TYPES_TEXT)));
+
+        return cms;
     }
 }
 
