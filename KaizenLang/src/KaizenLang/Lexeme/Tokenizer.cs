@@ -34,69 +34,76 @@ namespace ParadigmasLang
                 if (char.IsLetter(ch.Value))
                 {
                     var word = stream.ReadWhile(c => char.IsLetterOrDigit(c) || c == '_');
+                    var tokenLine = stream.Line;
+                    var tokenColumn = stream.Column - word.Length; // approximate start column
                     if (DelimiterWords.MultiCharDelimiters.Contains(word))
                     {
-                        tokens.Add(new Token("DELIMITER", word));
+                        tokens.Add(new Token("DELIMITER", word, tokenLine, tokenColumn));
                     }
                     else if (validTypes.Contains(word))
-                        tokens.Add(new Token("TYPE", word));
+                        tokens.Add(new Token("TYPE", word, tokenLine, tokenColumn));
                     else if (ReservedWords.Words.Contains(word))
-                        tokens.Add(new Token("RESERVED", word));
+                        tokens.Add(new Token("RESERVED", word, tokenLine, tokenColumn));
                     else if (LiteralWords.Words.Contains(word))
-                        tokens.Add(new Token("LITERAL", word));
+                        tokens.Add(new Token("LITERAL", word, tokenLine, tokenColumn));
                     else
-                        tokens.Add(new Token("IDENTIFIER", word));
+                        tokens.Add(new Token("IDENTIFIER", word, tokenLine, tokenColumn));
                     continue;
                 }
 
                 if (char.IsDigit(ch.Value))
                 {
+                    var startLine = stream.Line;
+                    var startCol = stream.Column;
                     var number = stream.ReadWhile(c => char.IsDigit(c));
                     if (stream.Peek() == '.')
                     {
                         stream.Read();
                         number += "." + stream.ReadWhile(c => char.IsDigit(c));
-                        tokens.Add(new Token("FLOAT", number));
+                        tokens.Add(new Token("FLOAT", number, startLine, startCol));
                     }
                     else
                     {
-                        tokens.Add(new Token("INT", number));
+                        tokens.Add(new Token("INT", number, startLine, startCol));
                     }
                     continue;
                 }
 
                 if (ch == '"')
                 {
+                    var startLine = stream.Line;
+                    var startCol = stream.Column;
                     stream.Read(); // skip opening quote
-                    int startPos = stream.Position;
-                    while (!stream.EOF && stream.Peek() != '"') stream.Read();
+                    // Read characters until the next unescaped quote
+                    var str = stream.ReadWhile(c => c != '"');
+                    // If next char is closing quote, consume it and add token
                     if (!stream.EOF && stream.Peek() == '"')
                     {
-                        var len = stream.Position - startPos;
-                        var str = stream.ReadWhile(c => true); // read remaining until before closing quote
-                        // Move past the closing quote
-                        if (stream.Peek() == '"') stream.Read();
-                        tokens.Add(new Token("STRING", str));
+                        stream.Read(); // consume closing quote
+                        tokens.Add(new Token("STRING", str, startLine, startCol));
                     }
                     else
                     {
-                        tokens.Add(new Token("INVALID", $"Cadena sin cierre desde posición {startPos - 1}"));
+                        // Unterminated string
+                        tokens.Add(new Token("INVALID", $"Cadena sin cierre", startLine, startCol));
                     }
                     continue;
                 }
 
                 if (ch == '\'')
                 {
+                    var startLine = stream.Line;
+                    var startCol = stream.Column;
                     stream.Read(); // skip opening '
                     var first = stream.Read();
                     if (first != null && stream.Peek() == '\'')
                     {
                         stream.Read(); // skip closing '
-                        tokens.Add(new Token("CHAR", first?.ToString() ?? string.Empty));
+                        tokens.Add(new Token("CHAR", first?.ToString() ?? string.Empty, startLine, startCol));
                     }
                     else
                     {
-                        tokens.Add(new Token("INVALID", $"Literal de char inválido en posición {stream.Position - 1}"));
+                        tokens.Add(new Token("INVALID", $"Literal de char inválido", startLine, startCol));
                     }
                     continue;
                 }
@@ -111,7 +118,8 @@ namespace ParadigmasLang
                 }
                 if (ch == '/' && stream.Peek(1) == '*')
                 {
-                    int commentStart = stream.Position;
+                    var startLine = stream.Line;
+                    var startCol = stream.Column;
                     stream.Read(); stream.Read();
                     while (!stream.EOF && !(stream.Peek() == '*' && stream.Peek(1) == '/')) stream.Read();
                     if (!stream.EOF)
@@ -120,7 +128,7 @@ namespace ParadigmasLang
                     }
                     else
                     {
-                        tokens.Add(new Token("INVALID", $"Comentario de bloque sin cierre desde posición {commentStart}"));
+                        tokens.Add(new Token("INVALID", $"Comentario de bloque sin cierre", startLine, startCol));
                     }
                     continue;
                 }
@@ -140,7 +148,7 @@ namespace ParadigmasLang
                     {
                         // consume op.Length chars
                         for (int i = 0; i < op.Length; i++) stream.Read();
-                        tokens.Add(new Token("OPERATOR", op));
+                        tokens.Add(new Token("OPERATOR", op, stream.Line, stream.Column - op.Length));
                         matched = true;
                         break;
                     }
@@ -150,14 +158,14 @@ namespace ParadigmasLang
                 var single = stream.Peek()?.ToString();
                 if (single != null && DelimiterWords.SingleCharDelimiters.Contains(single))
                 {
-                    tokens.Add(new Token("DELIMITER", single));
+                    tokens.Add(new Token("DELIMITER", single, stream.Line, stream.Column));
                     stream.Read();
                     continue;
                 }
 
                 // unrecognized
                 var invalidChar = stream.Read();
-                tokens.Add(new Token("INVALID", $"Carácter no reconocido '{invalidChar}' en posición {stream.Position - 1}"));
+                tokens.Add(new Token("INVALID", $"Carácter no reconocido '{invalidChar}'", stream.Line, stream.Column));
             }
 
             return tokens;
