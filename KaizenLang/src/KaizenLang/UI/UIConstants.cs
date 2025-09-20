@@ -31,31 +31,33 @@ public static class UIConstants
     // Colores
     public static class Colors
     {
-        public static readonly Color MainBackground = Color.FromArgb(240, 243, 250);
-        public static readonly Color MenuBackground = Color.FromArgb(255, 255, 255);
-        public static readonly Color MenuForeground = Color.FromArgb(44, 62, 80);
-        public static readonly Color PanelBackground = Color.White;
-        public static readonly Color PanelBorder = Color.FromArgb(200, 200, 220);
-        public static readonly Color CodeBackground = Color.FromArgb(250, 250, 255);
-        public static readonly Color CodeForeground = Color.FromArgb(44, 62, 80);
-        public static readonly Color OutputBackground = Color.FromArgb(44, 62, 80);
-        public static readonly Color OutputForeground = Color.White;
-        public static readonly Color CompileButton = Color.FromArgb(52, 152, 219);
-        public static readonly Color CompileButtonHover = Color.FromArgb(25, 90, 160);
-        public static readonly Color ExecuteButton = Color.FromArgb(39, 174, 96);
-        public static readonly Color ExecuteButtonHover = Color.FromArgb(30, 132, 73);
-        public static readonly Color ButtonText = Color.White;
-        public static readonly Color Shadow = Color.FromArgb(30, 44, 62, 80);
-        public static readonly Color ShadowDark = Color.FromArgb(60, 44, 62, 80);
+        // Dark theme inspired by KAIZEN logo (greens + gold accents)
+        public static readonly Color MainBackground = Color.FromArgb(18, 24, 30); // very dark
+        public static readonly Color MenuBackground = Color.FromArgb(20, 28, 36);
+        public static readonly Color MenuForeground = Color.FromArgb(220, 223, 230);
+        public static readonly Color PanelBackground = Color.FromArgb(14, 18, 22);
+        public static readonly Color PanelBorder = Color.FromArgb(36, 44, 52);
+        public static readonly Color CodeBackground = Color.FromArgb(10, 14, 19);
+        public static readonly Color CodeForeground = Color.FromArgb(220, 223, 230);
+        public static readonly Color OutputBackground = Color.FromArgb(8, 12, 16);
+        public static readonly Color OutputForeground = Color.FromArgb(200, 200, 200);
+        // KAIZEN green and gold accents
+        public static readonly Color CompileButton = Color.FromArgb(30, 116, 49); // green
+        public static readonly Color CompileButtonHover = Color.FromArgb(20, 86, 36);
+        public static readonly Color ExecuteButton = Color.FromArgb(201, 141, 40); // gold
+        public static readonly Color ExecuteButtonHover = Color.FromArgb(170, 115, 33);
+        public static readonly Color ButtonText = Color.FromArgb(235, 235, 235);
+        public static readonly Color Shadow = Color.FromArgb(120, 0, 0, 0);
+        public static readonly Color ShadowDark = Color.FromArgb(200, 0, 0, 0);
     }
 
     // Fuentes
     public static class Fonts
     {
-        public static readonly Font MenuFont = new Font("Segoe UI", 13, FontStyle.Bold);
+        public static readonly Font MenuFont = new Font("Segoe UI", 12, FontStyle.Bold);
         public static readonly Font CodeFont = new Font("Consolas", 12); // Fuente monospace más segura
         public static readonly Font OutputFont = new Font("Consolas", 11); // Fuente monospace más segura
-        public static readonly Font ButtonFont = new Font("Segoe UI", 14, FontStyle.Bold);
+        public static readonly Font ButtonFont = new Font("Segoe UI", 12, FontStyle.Bold);
     }
 
     // Textos de la interfaz

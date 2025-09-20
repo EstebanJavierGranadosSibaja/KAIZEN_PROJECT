@@ -149,6 +149,19 @@ Nota: esta sección documenta cambios recientes hechos al código fuente y herra
 - Fecha: Septiembre 2025
 - Estado actual: desarrollo activo, UI funcional, y herramienta de pruebas automatizada integrada en `tools/CompilationTester`.
 
+### Interfaz: nuevo tema oscuro
+
+Se añadió un tema oscuro inspirado en el logo de KAIZEN (ver assets/logo). La nueva interfaz prioriza contraste suave para largas sesiones de edición y utiliza detalles en verde y dorado del logotipo para acentos (botones y highlights).
+
+Características principales del IDE oscuro:
+- Paleta oscura centralizada: fondos muy oscuros para el editor y paneles, texto claro para legibilidad.
+- Acentos KAIZEN: botón de compilación en verde KAIZEN, botón de ejecución en dorado; pequeños degradados y sombras sutiles para profundidad.
+- Paneles redondeados y separación visual entre editor, salida y menú.
+- Inputs no bloqueantes: la función builtin `input()` se implementa vía `ExecutionService.InputProvider` y se muestra con un diálogo no bloqueante en la UI.
+- Soporte visual para numeración de líneas y autocompletado básico en el editor.
+
+Se agregó `docs/theme.css` con tokens de color para documentación y mockups web, y `src/KaizenLang/UI/UIConstants.cs` contiene los tokens de color y fuentes usados por la aplicación.
+
 Cambios e implementaciones importantes
 - Reorganización del código
   - El compilador/interpretador fue reestructurado en carpetas claras: `Lexeme` (lexer/charstream/tokenizer), `Syntax` (parser), `Semantic` (análisis semántico y tabla de símbolos) y `Interpreter` (ejecutor). Esto mejora la mantenibilidad y la separación de responsabilidades.

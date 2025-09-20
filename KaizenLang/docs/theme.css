@@ -1,0 +1,53 @@
+/* KAIZEN IDE dark theme tokens
+   Usage: this CSS documents the color tokens used by the WinForms IDE and can be used
+   as reference for web previews or documentation. */
+:root {
+  --kaizen-bg: #12181E; /* MainBackground */
+  --kaizen-surface: #0E1216; /* PanelBackground */
+  --kaizen-surface-2: #141A22; /* MenuBackground */
+  --kaizen-text: #E3E7EA; /* CodeForeground / MenuForeground */
+  --kaizen-muted: #C8CAD0; /* OutputForeground */
+
+  /* Accents */
+  --kaizen-green: #1E7431; /* Compile button */
+  --kaizen-green-dark: #155824;
+  --kaizen-gold: #C98D28; /* Execute button */
+  --kaizen-gold-dark: #AA7321;
+
+  /* Borders / shadows */
+  --kaizen-border: #242C34;
+  --kaizen-shadow: rgba(0,0,0,0.6);
+}
+
+/* Example usage for a web-based mockup */
+body.kaizen-ide {
+  background: var(--kaizen-bg);
+  color: var(--kaizen-text);
+  font-family: 'Segoe UI', system-ui, -apple-system, 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+}
+
+.kaizen-ide .panel {
+  background: linear-gradient(180deg, var(--kaizen-surface), var(--kaizen-surface-2));
+  border: 1px solid var(--kaizen-border);
+  box-shadow: 0 6px 18px var(--kaizen-shadow);
+  border-radius: 8px;
+}
+
+.kaizen-ide .code {
+  background: #0A0E13; /* code background */
+  color: var(--kaizen-text);
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 13px;
+}
+
+.button-compile {
+  background: linear-gradient(180deg, var(--kaizen-green), var(--kaizen-green-dark));
+  color: white;
+  border-radius: 6px;
+}
+
+.button-execute {
+  background: linear-gradient(180deg, var(--kaizen-gold), var(--kaizen-gold-dark));
+  color: rgba(0,0,0,0.85);
+  border-radius: 6px;
+}
