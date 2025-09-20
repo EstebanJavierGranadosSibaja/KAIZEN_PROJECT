@@ -86,17 +86,18 @@ public static class MenuBuilder
         logo.Padding = new Padding(6);
         topBar.Controls.Add(logo);
 
-        // Estructuras dropdown button (shows a menu to insert templates into the editor)
-        int x = logo.Right + 10;
-        var estructurasBtn = ControlFactory.CreateTopBarButton(UIConstants.Text.MENU_STRUCTURES, x, 10);
-        var estructurasMenu = BuildStructuresContextMenu(codeBox);
-        estructurasBtn.Click += (s, e) => estructurasMenu.Show(estructurasBtn, new System.Drawing.Point(0, estructurasBtn.Height));
-        topBar.Controls.Add(estructurasBtn);
+    // Estructuras dropdown button (larger, bold, white text)
+    int x = logo.Right + 14;
+    var estructurasBtn = ControlFactory.CreateTopBarButton(UIConstants.Text.MENU_STRUCTURES, x, 8);
+    // Override styling for prominence
+    estructurasBtn.Width = 140;
+    estructurasBtn.Height = 34;
+    estructurasBtn.Font = new Font(UIConstants.Fonts.MenuFont.FontFamily, 10, FontStyle.Bold);
+    estructurasBtn.ForeColor = Color.White;
 
-        // Keep only Ayuda button on the right side
-        var ayudaBtn = ControlFactory.CreateTopBarButton("Ayuda", topBar.Width - 110, 10);
-        ayudaBtn.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-        topBar.Controls.Add(ayudaBtn);
+    var estructurasMenu = BuildStructuresContextMenu(codeBox);
+    estructurasBtn.Click += (s, e) => estructurasMenu.Show(estructurasBtn, new System.Drawing.Point(0, estructurasBtn.Height));
+    topBar.Controls.Add(estructurasBtn);
 
         // Right side: compile/run buttons placed by MainForm later when needed
 
