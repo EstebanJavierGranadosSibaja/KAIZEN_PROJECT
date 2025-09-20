@@ -6,35 +6,78 @@ public static class Prompt
 {
     public static string? Show(string title, string? prompt)
     {
-        using (var form = new Form())
-        {
-            form.Width = 400;
-            form.Height = 150;
-            form.Text = title ?? "Input";
-            form.FormBorderStyle = FormBorderStyle.FixedDialog;
-            form.StartPosition = FormStartPosition.CenterParent;
-            form.MinimizeBox = false;
-            form.MaximizeBox = false;
+            using (var form = new Form())
+            {
+                form.Width = 420;
+                form.Height = 170;
+                form.Text = title ?? "Input";
+                form.FormBorderStyle = FormBorderStyle.FixedDialog;
+                form.StartPosition = FormStartPosition.CenterParent;
+                form.MinimizeBox = false;
+                form.MaximizeBox = false;
+                form.BackColor = UIConstants.Colors.PanelBackground;
 
-            var label = new Label() { Left = 10, Top = 10, Width = 360, Text = prompt ?? "" };
-            var textBox = new TextBox() { Left = 10, Top = 35, Width = 360 };
-            var okButton = new Button() { Text = "OK", Left = 210, Width = 75, Top = 70, DialogResult = DialogResult.OK };
-            var cancelButton = new Button() { Text = "Cancel", Left = 295, Width = 75, Top = 70, DialogResult = DialogResult.Cancel };
+                var label = new Label()
+                {
+                    Left = 12,
+                    Top = 12,
+                    Width = 396,
+                    Text = prompt ?? "",
+                    ForeColor = UIConstants.Colors.CodeForeground,
+                    BackColor = Color.Transparent,
+                    Font = new Font(UIConstants.Fonts.MenuFont.FontFamily, 9, FontStyle.Regular)
+                };
 
-            okButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            cancelButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+                var textBox = new TextBox()
+                {
+                    Left = 12,
+                    Top = 40,
+                    Width = 396,
+                    BackColor = UIConstants.Colors.CodeBackground,
+                    ForeColor = UIConstants.Colors.CodeForeground,
+                    Font = UIConstants.Fonts.CodeFont
+                };
 
-            form.Controls.Add(label);
-            form.Controls.Add(textBox);
-            form.Controls.Add(okButton);
-            form.Controls.Add(cancelButton);
-            form.AcceptButton = okButton;
-            form.CancelButton = cancelButton;
+                var okButton = new Button()
+                {
+                    Text = "OK",
+                    Left = 230,
+                    Width = 80,
+                    Top = 95,
+                    DialogResult = DialogResult.OK,
+                    BackColor = UIConstants.Colors.CompileButton,
+                    ForeColor = UIConstants.Colors.ButtonText,
+                    FlatStyle = FlatStyle.Flat,
+                    Font = UIConstants.Fonts.ButtonFont
+                };
 
-            var result = form.ShowDialog();
-            if (result == DialogResult.OK)
-                return textBox.Text;
-            return null;
-        }
+                var cancelButton = new Button()
+                {
+                    Text = "Cancel",
+                    Left = 315,
+                    Width = 80,
+                    Top = 95,
+                    DialogResult = DialogResult.Cancel,
+                    BackColor = Color.Transparent,
+                    ForeColor = UIConstants.Colors.MenuForeground,
+                    FlatStyle = FlatStyle.Flat,
+                    Font = UIConstants.Fonts.ButtonFont
+                };
+
+                okButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+                cancelButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+
+                form.Controls.Add(label);
+                form.Controls.Add(textBox);
+                form.Controls.Add(okButton);
+                form.Controls.Add(cancelButton);
+                form.AcceptButton = okButton;
+                form.CancelButton = cancelButton;
+
+                var result = form.ShowDialog();
+                if (result == DialogResult.OK)
+                    return textBox.Text;
+                return null;
+            }
     }
 }

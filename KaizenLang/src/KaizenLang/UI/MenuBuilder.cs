@@ -8,7 +8,8 @@ public static class MenuBuilder
         {
             BackColor = UIConstants.Colors.MenuBackground,
             Font = UIConstants.Fonts.MenuFont,
-            Renderer = new ToolStripProfessionalRenderer(),
+            Renderer = new ToolStripProfessionalRenderer(new ThemeRenderer.ThemeColorTable()),
+            ForeColor = UIConstants.Colors.MenuForeground,
             Height = UIConstants.MENU_HEIGHT
         };
 
@@ -22,7 +23,8 @@ public static class MenuBuilder
     {
         var estructurasMenu = new ToolStripMenuItem(UIConstants.Text.MENU_STRUCTURES)
         {
-            ForeColor = UIConstants.Colors.MenuForeground
+            ForeColor = UIConstants.Colors.MenuForeground,
+            Font = UIConstants.Fonts.MenuFont
         };
 
         // Palabras reservadas
@@ -59,7 +61,11 @@ public static class MenuBuilder
 
     private static ToolStripMenuItem CreateSyntaxMenu(TextBox codeBox)
     {
-        var sintaxisMenu = new ToolStripMenuItem(UIConstants.Text.MENU_SYNTAX);
+        var sintaxisMenu = new ToolStripMenuItem(UIConstants.Text.MENU_SYNTAX)
+        {
+            ForeColor = UIConstants.Colors.MenuForeground,
+            Font = UIConstants.Fonts.MenuFont
+        };
 
         sintaxisMenu.DropDownItems.Add(new ToolStripMenuItem(
             UIConstants.Text.MENU_CONTROL,
