@@ -21,6 +21,9 @@
 # Logs
 *.log
 
+# Diagnostic test logs created by local test runs
+test_diag*
+
 # Others
 *.vspscc
 *.vssscc
