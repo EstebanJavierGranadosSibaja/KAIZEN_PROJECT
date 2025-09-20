@@ -23,9 +23,15 @@ namespace ParadigmasLang
                     if (node.Children.Count > 2)
                     {
                         var valueNode = node.Children[2];
-                        var value = ExecuteNode(valueNode.Children[0]);
-                        currentScope.SetVariableValue(name, value!);
-                        output.Add($"Variable '{name}' declarada e inicializada con valor: {value}");
+                        var rawValue = ExecuteNode(valueNode.Children[0]);
+                        object? finalValue = rawValue;
+                        // If initialization came from input (string token) and we know the declared type, try to convert
+                        if (rawValue is string rawStr)
+                        {
+                            finalValue = ConvertTokenToType(rawStr, type);
+                        }
+                        currentScope.SetVariableValue(name, finalValue!);
+                        output.Add($"Variable '{name}' declarada e inicializada con valor: {finalValue}");
                     }
                     else
                     {
@@ -46,14 +52,20 @@ namespace ParadigmasLang
                 if (varNode.Children.Count > 0)
                 {
                     var varName = varNode.Children[0].Type;
-                    var value = ExecuteNode(valueNode);
-
-                    if (!currentScope.SetVariableValue(varName, value!))
+                    var rawValue = ExecuteNode(valueNode);
+                    object? finalValue = rawValue;
+                    // Try to find the declared type of variable
+                    var symbol = currentScope.LookupVariable(varName);
+                    if (rawValue is string rawStr && symbol != null)
+                    {
+                        finalValue = ConvertTokenToType(rawStr, symbol.Type);
+                    }
+                    if (!currentScope.SetVariableValue(varName, finalValue!))
                     {
                         throw new Exception($"Variable '{varName}' no está declarada");
                     }
 
-                    output.Add($"Variable '{varName}' asignada con valor: {value}");
+                    output.Add($"Variable '{varName}' asignada con valor: {finalValue}");
                 }
             }
             return null;

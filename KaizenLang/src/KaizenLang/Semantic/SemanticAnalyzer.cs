@@ -1,512 +1,302 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace ParadigmasLang
 {
+    // Practical SemanticAnalyzer for basic checks required by tests and interpreter.
+    // Responsibilities implemented:
+    // - Maintain symbol tables (scoped): variables and functions
+    // - Detect duplicate declarations in same scope
+    // - Detect uses of undefined variables
+    // - Register function signatures and verify call arity (including builtins)
     public class SemanticAnalyzer
     {
-        private SymbolTable currentScope;
-        private List<string> errors;
+        private readonly Stack<Dictionary<string, SymbolInfo>> scopes = new();
+        private readonly Dictionary<string, FunctionSignature> functions = new(StringComparer.OrdinalIgnoreCase);
+        private readonly List<string> errors = new();
 
-        public SemanticAnalyzer()
+        // Known builtins with expected arity (-1 means variadic / flexible)
+        private readonly Dictionary<string, int> builtins = new(StringComparer.OrdinalIgnoreCase)
         {
-            currentScope = new SymbolTable();
-            errors = new List<string>();
-        }
+            { "input", 0 }, // input() or input(prompt) -> treat as 0..1 but we'll accept 0 or 1
+            { "output", -1 }, // output(...) any number
+        };
 
-        public List<string> AnalyzeProgram(Node root)
+        public List<string> AnalyzeProgram(Node ast)
         {
             errors.Clear();
-            AnalyzeNode(root);
-            return errors;
+            scopes.Clear();
+            functions.Clear();
+
+            // Initialize global scope
+            PushScope();
+
+            // Register builtins as functions
+            foreach (var kv in builtins)
+            {
+                functions[kv.Key] = new FunctionSignature { Name = kv.Key, Arity = kv.Value, IsBuiltin = true };
+            }
+
+            // Walk top-level nodes
+            foreach (var child in ast.Children)
+            {
+                VisitTopLevel(child);
+            }
+
+            return errors.ToList();
         }
 
-        private void AnalyzeNode(Node node)
+        private void VisitTopLevel(Node node)
         {
             switch (node.Type)
             {
-                case "Program":
-                    foreach (var child in node.Children)
-                        AnalyzeNode(child);
-                    break;
-
                 case "VariableDeclaration":
-                    AnalyzeVariableDeclaration(node);
+                    RegisterVariable(node);
                     break;
-
-                case "Assignment":
-                    AnalyzeAssignment(node);
-                    break;
-
                 case "Function":
-                    AnalyzeFunction(node);
+                case "FunctionDeclaration":
+                    RegisterFunction(node);
                     break;
-
-                case "If":
-                case "While":
-                case "DoWhile":
-                    AnalyzeConditional(node);
-                    break;
-
-                case "For":
-                    AnalyzeForLoop(node);
-                    break;
-
-                case "Return":
-                    AnalyzeReturn(node);
-                    break;
-
-                case "FunctionCall":
-                    AnalyzeFunctionCall(node);
-                    break;
-
-                case "ExpressionStatement":
-                    AnalyzeExpressionStatement(node);
-                    break;
-
-                case "Expression":
-                    AnalyzeExpression(node);
-                    break;
-
-                case "ArrayLiteral":
-                    AnalyzeArrayLiteral(node);
-                    break;
-
-                case "Block":
-                    // Crear nuevo scope para el bloque
-                    var oldScope = currentScope;
-                    currentScope = new SymbolTable(currentScope);
-                    foreach (var child in node.Children)
-                        AnalyzeNode(child);
-                    currentScope = oldScope;
-                    break;
-
                 default:
-                    foreach (var child in node.Children)
-                        AnalyzeNode(child);
+                    // Other top-level constructs — analyze recursively to find usages
+                    VisitNode(node);
                     break;
             }
         }
 
-        private void AnalyzeReturn(Node node)
+        private void RegisterVariable(Node node)
         {
-            // Analizar la expresión de retorno si existe
-            foreach (var child in node.Children)
-                AnalyzeNode(child);
-        }
-
-        private void AnalyzeFunctionCall(Node node)
-        {
-            if (node.Children.Count > 0)
+            // Expected structure: VariableDeclaration -> Type, Identifier
+            var nameNode = node.FindChild("Identifier") ?? node.FindChild("IDENTIFIER");
+            if (nameNode == null)
             {
-                var nameNode = node.Children[0];
-                if (nameNode.Children.Count > 0)
-                {
-                    var functionName = nameNode.Children[0].Type;
-                    var symbol = currentScope.LookupVariable(functionName);
-                    if (symbol == null)
-                    {
-                        errors.Add($"Función '{functionName}' no está declarada");
-                    }
-                }
-
-                // Analizar argumentos
-                if (node.Children.Count > 1)
-                {
-                    var argsNode = node.Children[1];
-                    foreach (var arg in argsNode.Children)
-                        AnalyzeNode(arg);
-                }
+                errors.Add(FormattedError(node, "Variable declaration missing identifier"));
+                return;
             }
-        }
 
-        private void AnalyzeExpressionStatement(Node node)
-        {
-            foreach (var child in node.Children)
-                AnalyzeNode(child);
-        }
-
-        private void AnalyzeVariableDeclaration(Node node)
-        {
-            if (node.Children.Count >= 2)
+            var varName = ExtractIdentifierName(nameNode);
+            if (string.IsNullOrEmpty(varName))
             {
-                var typeNode = node.Children[0];
-                var nameNode = node.Children[1];
-                
-                if (typeNode.Children.Count > 0 && nameNode.Children.Count > 0)
-                {
-                    var type = typeNode.Children[0].Type;
-                    var name = nameNode.Children[0].Type;
-
-                    // Verificar si se está intentando usar una palabra reservada como nombre de variable
-                    if (IsReservedWord(name))
-                    {
-                        errors.Add($"Error: '{name}' es una palabra reservada y no puede usarse como nombre de variable");
-                        return;
-                    }
-
-                    // Validar tipo
-                    if (!TypeWords.Words.Contains(type))
-                    {
-                        errors.Add($"Tipo '{type}' no es válido");
-                    }
-
-                    // Si tiene inicialización, verificar compatibilidad ANTES de declarar la variable
-                    string? valueType = null;
-                    if (node.Children.Count > 2)
-                    {
-                        var valueNode = node.Children[2];
-                        AnalyzeNode(valueNode);
-                        
-                        // Validar compatibilidad de tipos
-                        valueType = GetExpressionType(valueNode);
-                        if (!IsTypeCompatible(type, valueType))
-                        {
-                            errors.Add($"Error de tipo: No se puede asignar valor de tipo '{valueType}' a variable de tipo '{type}'");
-                        }
-                    }
-
-                    // AHORA declarar la variable (después de analizar la inicialización)
-                    if (!currentScope.DeclareVariable(name, type, 0))
-                    {
-                        errors.Add($"Variable '{name}' ya está declarada en este scope");
-                    }
-                }
+                errors.Add(FormattedError(node, "Variable declaration has empty name"));
+                return;
             }
+
+            var current = scopes.Peek();
+            if (current.ContainsKey(varName))
+            {
+                errors.Add(FormattedError(node, $"Variable '{varName}' already declared in this scope"));
+                return;
+            }
+
+            current[varName] = new SymbolInfo { Name = varName, Kind = SymbolKind.Variable };
         }
 
-        private void AnalyzeAssignment(Node node)
+        private void RegisterFunction(Node node)
         {
-            if (node.Children.Count >= 2)
+            // Expected types: Function or FunctionDeclaration with children: FunctionName, Parameters, Body
+            var nameNode = node.FindChild("FunctionName") ?? node.FindChild("Identifier") ?? node.FindChild("IDENTIFIER");
+            var fnName = ExtractIdentifierName(nameNode);
+            if (string.IsNullOrEmpty(fnName))
             {
-                var varNode = node.Children[0];
-                var valueNode = node.Children[1];
+                errors.Add(FormattedError(node, "Function declaration missing name"));
+                return;
+            }
 
-                if (varNode.Children.Count > 0)
+            // Count parameters if present
+            int arity = 0;
+            var paramsNode = node.FindChild("Parameters") ?? node.FindChild("Arguments") ?? node.FindChild("PARAMETERS");
+            if (paramsNode != null)
+            {
+                arity = paramsNode.Children.Count;
+            }
+
+            if (functions.ContainsKey(fnName))
+            {
+                errors.Add(FormattedError(node, $"Function '{fnName}' already declared"));
+                return;
+            }
+
+            functions[fnName] = new FunctionSignature { Name = fnName, Arity = arity, IsBuiltin = false };
+
+            // New scope for function body: register parameters as variables
+            PushScope();
+            if (paramsNode != null)
+            {
+                foreach (var p in paramsNode.Children)
                 {
-                    var varName = varNode.Children[0].Type;
-                    
-                    // Verificar si se está intentando usar una palabra reservada como variable
-                    if (IsReservedWord(varName))
+                    // Parameter node shape is usually: Param -> Type, Identifier
+                    var idNode = p.FindChild("Identifier") ?? p.FindChild("IDENTIFIER");
+                    var paramName = ExtractIdentifierName(idNode) ?? p.Value?.ToString();
+                    if (string.IsNullOrEmpty(paramName)) continue;
+                    var cur = scopes.Peek();
+                    if (cur.ContainsKey(paramName))
                     {
-                        errors.Add($"Error: '{varName}' es una palabra reservada y no puede usarse como nombre de variable");
-                        return;
-                    }
-                    
-                    var symbol = currentScope.LookupVariable(varName);
-                    
-                    if (symbol == null)
-                    {
-                        errors.Add($"Variable '{varName}' no está declarada");
+                        errors.Add(FormattedError(p, $"Parameter '{paramName}' duplicated"));
                     }
                     else
                     {
-                        AnalyzeNode(valueNode);
-                        // Validar compatibilidad de tipos
-                        var valueType = GetExpressionType(valueNode);
-                        if (!IsTypeCompatible(symbol.Type, valueType))
-                        {
-                            errors.Add($"Error de tipo: No se puede asignar valor de tipo '{valueType}' a variable '{varName}' de tipo '{symbol.Type}'");
-                        }
-                    }
-                }
-            }
-        }
-
-        private void AnalyzeFunction(Node node)
-        {
-            if (node.Children.Count < 2) return;
-            
-            var typeNode = node.Children[0];
-            var nameNode = node.Children[1];
-            
-            if (typeNode.Children.Count > 0 && nameNode.Children.Count > 0)
-            {
-                var returnType = typeNode.Children[0].Type;
-                var functionName = nameNode.Children[0].Type;
-                
-                // Registrar la función en el scope actual para permitir recursión
-                currentScope.DeclareVariable(functionName, $"function_{returnType}", 0);
-            }
-            
-            // Crear nuevo scope para la función
-            var oldScope = currentScope;
-            currentScope = new SymbolTable(currentScope);
-
-            // Analizar parámetros
-            if (node.Children.Count > 2)
-            {
-                var paramsNode = node.Children[2];
-                foreach (var param in paramsNode.Children)
-                {
-                    if (param.Type == "Param" && param.Children.Count >= 2)
-                    {
-                        var paramType = param.Children[0].Type;
-                        var paramName = param.Children[1].Type;
-                        currentScope.DeclareVariable(paramName, paramType, 0);
+                        cur[paramName] = new SymbolInfo { Name = paramName, Kind = SymbolKind.Variable };
                     }
                 }
             }
 
-            // Analizar cuerpo de la función
-            if (node.Children.Count > 3)
-            {
-                AnalyzeNode(node.Children[3]);
-            }
+            // Visit function body if present
+            var body = node.FindChild("Body") ?? node.FindChild("Block");
+            if (body != null)
+                VisitNode(body);
 
-            currentScope = oldScope;
+            PopScope();
         }
 
-        private void AnalyzeConditional(Node node)
+        private void VisitNode(Node node)
         {
-            // El primer hijo es siempre la condición
-            if (node.Children.Count > 0)
-            {
-                var conditionNode = node.Children[0];
-                AnalyzeNode(conditionNode);
-                string conditionType = GetExpressionType(conditionNode);
+            if (node == null) return;
 
-                if (conditionType == "assignment_error")
-                {
-                    errors.Add($"Error: No se puede usar una asignación ('{OperatorWords.ASSIGN}') como condición en un '{node.Type}'. Use '{OperatorWords.EQUAL}' para comparar.");
-                }
-                else if (conditionType != "bool")
-                {
-                    errors.Add($"La condición de un '{node.Type}' debe ser de tipo 'bool', pero se encontró '{conditionType}'");
-                }
-
-                // Analizar los bloques 'then' y 'else' (si existen)
-                for (int i = 1; i < node.Children.Count; i++)
-                {
-                    AnalyzeNode(node.Children[i]);
-                }
-            }
-        }
-
-        private void AnalyzeForLoop(Node node)
-        {
-            // Crear nuevo scope para el for
-            var oldScope = currentScope;
-            currentScope = new SymbolTable(currentScope);
-
-            // Analizar inicialización, condición e incremento
-            foreach (var child in node.Children)
-            {
-                AnalyzeNode(child);
-            }
-
-            currentScope = oldScope;
-        }
-
-        private void AnalyzeExpression(Node node)
-        {
-            foreach (var child in node.Children)
-            {
-                if (child.Type == "TYPE")
-                {
-                    // Un tipo no puede aparecer en una expresión como variable
-                    if (child.Children.Count > 0)
-                    {
-                        var typeName = child.Children[0].Type;
-                        errors.Add($"Error: '{typeName}' es un tipo de dato y no puede usarse como variable en una expresión");
-                    }
-                }
-                else if (child.Type == "IDENTIFIER")
-                {
-                    var varName = child.Children[0].Type;
-                    
-                    // Verificar si se está usando una palabra reservada como identificador
-                    if (IsReservedWord(varName))
-                    {
-                        errors.Add($"Error: '{varName}' es una palabra reservada y no puede usarse como identificador");
-                        return;
-                    }
-                    
-                    var symbol = currentScope.LookupVariable(varName);
-                    if (symbol == null)
-                    {
-                        errors.Add($"Variable '{varName}' no está declarada");
-                    }
-                }
-                else
-                {
-                    AnalyzeNode(child);
-                }
-            }
-        }
-
-        private void AnalyzeArrayLiteral(Node node)
-        {
-            // Analizar todos los elementos del array para verificar consistencia de tipos
-            if (node.Children.Count > 0)
-            {
-                var elementsNode = node.Children[0]; // Nodo "Elements"
-                if (elementsNode.Children.Count > 0)
-                {
-                    string? firstElementType = null;
-                    
-                    // Obtener el tipo del primer elemento como referencia
-                    foreach (var element in elementsNode.Children)
-                    {
-                        var elementType = GetExpressionType(element);
-                        
-                        if (firstElementType == null)
-                        {
-                            firstElementType = elementType;
-                        }
-                        else if (firstElementType != elementType)
-                        {
-                            // Permitir conversiones implícitas entre tipos numéricos
-                            if (!AreTypesCompatibleForArray(firstElementType, elementType))
-                            {
-                                errors.Add($"Error: Inconsistencia de tipos en array literal. Se esperaba '{firstElementType}' pero se encontró '{elementType}'");
-                            }
-                        }
-                        
-                        // Analizar recursivamente cada elemento
-                        AnalyzeNode(element);
-                    }
-                }
-            }
-        }
-
-        private bool AreTypesCompatibleForArray(string type1, string type2)
-        {
-            if (type1 == type2) return true;
-            
-            // Permitir mezcla de tipos numéricos en arrays (se promoverá al tipo más general)
-            var numericTypes = new HashSet<string> { "integer", "float", "double" };
-            return numericTypes.Contains(type1) && numericTypes.Contains(type2);
-        }
-
-        private string GetExpressionType(Node node)
-        {
-            if (node.Type == "Expression" && node.Children.Count > 0)
-            {
-                // Si la expresión contiene un operador de asignación, es un error en este contexto.
-                if (node.Children.Any(child => child.Type == "Operator" && child.Children.Any(op => op.Type == OperatorWords.ASSIGN)))
-                {
-                    return "assignment_error"; // Tipo especial para detectar asignaciones en condicionales
-                }
-                // De lo contrario, el tipo de la expresión es el tipo del primer operando (simplificación)
-                return GetNodeType(node.Children[0]);
-            }
-            return GetNodeType(node);
-        }
-
-        private string GetNodeType(Node node)
-        {
             switch (node.Type)
             {
-                case "STRING":
-                    return "string";
-                case "INT":
-                    return "integer";
-                case "FLOAT":
-                    return "float";
-                case "NUMBER":
-                    // Determinar si es integer, float o double basado en el valor
-                    if (node.Children.Count > 0)
-                    {
-                        var value = node.Children[0].Type;
-                        if (value.Contains('.'))
-                        {
-                            return "float";
-                        }
-                        return "integer";
-                    }
-                    return "integer";
-                case "BOOLEAN":
-                case "LITERAL":
-                    // Verificar si es un literal booleano
-                    if (node.Children.Count > 0)
-                    {
-                        var value = node.Children[0].Type;
-                        if (value == "true" || value == "false")
-                            return "bool";
-                        if (value == "null")
-                            return "null";
-                    }
-                    return "boolean";
-                case "CHAR":
-                case "CHARACTER":
-                    return "char";
+                case "VariableDeclaration":
+                    RegisterVariable(node);
+                    break;
+                case "Assignment":
+                    // LHS identifier must exist or be declared
+                    var id = node.FindChild("Identifier") ?? node.FindChild("IDENTIFIER");
+                    var name = ExtractIdentifierName(id);
+                    if (!string.IsNullOrEmpty(name) && !IsSymbolDefined(name))
+                        errors.Add(FormattedError(node, $"Variable '{name}' not declared"));
+
+                    // Visit RHS expression
+                    var rhs = node.FindChild("Expression");
+                    if (rhs != null) VisitNode(rhs);
+                    break;
+                case "Identifier":
                 case "IDENTIFIER":
-                    // Buscar el tipo de la variable en la tabla de símbolos
-                    if (node.Children.Count > 0)
-                    {
-                        var varName = node.Children[0].Type;
-                        var symbol = currentScope.LookupVariable(varName);
-                        return symbol?.Type ?? "unknown";
-                    }
-                    return "unknown";
-                case "Expression":
-                    if (node.Children.Count > 0)
-                        return GetNodeType(node.Children[0]);
-                    return "unknown";
-                case "Value":
-                    // Manejar nodos Value que contienen expresiones
-                    if (node.Children.Count > 0)
-                        return GetNodeType(node.Children[0]);
-                    return "unknown";
-                case "ArrayLiteral":
-                    // Determinar el tipo de array basado en sus elementos
-                    return GetArrayType(node);
+                    var sname = ExtractIdentifierName(node);
+                    if (!string.IsNullOrEmpty(sname) && !IsSymbolDefined(sname) && !functions.ContainsKey(sname))
+                        errors.Add(FormattedError(node, $"Variable '{sname}' not declared"));
+                    break;
+                case "FunctionCall":
+                    ValidateFunctionCall(node);
+                    break;
                 default:
-                    return "unknown";
+                    // Recurse into children
+                    foreach (var c in node.Children)
+                        VisitNode(c);
+                    break;
             }
         }
 
-        private string GetArrayType(Node arrayNode)
+        private void ValidateFunctionCall(Node fnCallNode)
         {
-            if (arrayNode.Children.Count > 0)
+            // Expected shape: FunctionCall -> FunctionName, Arguments
+            var fnameNode = fnCallNode.FindChild("FunctionName");
+            var fname = ExtractIdentifierName(fnameNode) ?? fnameNode?.Children.FirstOrDefault()?.Type;
+
+            if (string.IsNullOrEmpty(fname))
             {
-                var elementsNode = arrayNode.Children[0]; // Nodo "Elements"
-                if (elementsNode.Children.Count > 0)
+                errors.Add(FormattedError(fnCallNode, "Function call missing function name"));
+                return;
+            }
+
+            var argsNode = fnCallNode.FindChild("Arguments");
+            int argCount = argsNode?.Children.Count ?? 0;
+
+            // If builtin, apply basic arity rules
+            if (builtins.TryGetValue(fname, out var expected))
+            {
+                if (expected >= 0)
                 {
-                    // Obtener el tipo del primer elemento
-                    var firstElementType = GetNodeType(elementsNode.Children[0]);
-                    
-                    // Determinar el tipo de array correspondiente
-                    return firstElementType switch
-                    {
-                        "integer" => "array_integer",
-                        "float" => "array_float", 
-                        "double" => "array_double",
-                        "string" => "array_string",
-                        "bool" => "array_bool",
-                        _ => "array_unknown"
-                    };
+                    // Accept either expected or expected+1 for input(prompt?) convenience when expected==0
+                    if (expected == 0 && !(argCount == 0 || argCount == 1))
+                        errors.Add(FormattedError(fnCallNode, $"Builtin '{fname}' expects 0 or 1 arguments, got {argCount}"));
+                    else if (expected > 0 && argCount != expected)
+                        errors.Add(FormattedError(fnCallNode, $"Builtin '{fname}' expects {expected} arguments, got {argCount}"));
                 }
             }
-            return "array_unknown";
-        }
-
-        private bool IsTypeCompatible(string expectedType, string actualType)
-        {
-            // Compatibilidad exacta
-            if (expectedType == actualType)
-                return true;
-
-            // Compatibilidades específicas
-            switch (expectedType)
+            else if (functions.TryGetValue(fname, out var sig))
             {
-                case "double":
-                    return actualType == "integer" || actualType == "float";
-                case "float":
-                    return actualType == "integer";
-                case "string":
-                    // string puede aceptar cualquier cosa para concatenación
-                    return true;
-                default:
-                    return false;
+                if (sig.Arity >= 0 && sig.Arity != argCount)
+                    errors.Add(FormattedError(fnCallNode, $"Function '{fname}' expects {sig.Arity} arguments, got {argCount}"));
+            }
+            else
+            {
+                // Unknown function: error
+                errors.Add(FormattedError(fnCallNode, $"Function '{fname}' is not defined"));
+            }
+
+            // Visit arguments expressions
+            if (argsNode != null)
+            {
+                foreach (var a in argsNode.Children)
+                    VisitNode(a);
             }
         }
 
-        private bool IsReservedWord(string word)
+        private string? ExtractIdentifierName(Node? idNode)
         {
-            // Utiliza las definiciones centralizadas
-            return ReservedWords.Words.Contains(word) || LiteralWords.Words.Contains(word);
+            if (idNode == null) return null;
+            // Many identifier nodes in the AST are shaped as: Identifier -> IDENTIFIER (with Value)
+            if (idNode.Type == "Identifier" || idNode.Type == "IDENTIFIER")
+            {
+                if (idNode.Value != null) return idNode.Value.ToString();
+                if (idNode.Children.Count > 0) return idNode.Children[0].Value?.ToString() ?? idNode.Children[0].Type;
+            }
+
+            // FunctionName nodes might have child which is identifier
+            if (idNode.Type == "FunctionName")
+            {
+                if (idNode.Children.Count > 0)
+                {
+                    var c = idNode.Children[0];
+                    if (c.Value != null) return c.Value.ToString();
+                    if (c.Children.Count > 0) return c.Children[0].Value?.ToString() ?? c.Children[0].Type;
+                    return c.Type;
+                }
+            }
+
+            // Fallbacks
+            if (idNode.Value != null) return idNode.Value.ToString();
+            return idNode.Children.FirstOrDefault()?.Value?.ToString() ?? idNode.Children.FirstOrDefault()?.Type;
+        }
+
+        private bool IsSymbolDefined(string name)
+        {
+            foreach (var scope in scopes)
+            {
+                if (scope.ContainsKey(name)) return true;
+            }
+            return false;
+        }
+
+        private void PushScope()
+        {
+            scopes.Push(new Dictionary<string, SymbolInfo>(StringComparer.OrdinalIgnoreCase));
+        }
+
+        private void PopScope()
+        {
+            if (scopes.Count > 0) scopes.Pop();
+        }
+
+        private string FormattedError(Node node, string message)
+        {
+            if (node == null) return message;
+            return $"{message} (l{node.Line}:c{node.Column})";
+        }
+
+        private class SymbolInfo
+        {
+            public string Name { get; set; } = string.Empty;
+            public SymbolKind Kind { get; set; }
+        }
+
+        private enum SymbolKind { Variable, Function }
+
+        private class FunctionSignature
+        {
+            public string Name { get; set; } = string.Empty;
+            public int Arity { get; set; }
+            public bool IsBuiltin { get; set; }
         }
     }
 }

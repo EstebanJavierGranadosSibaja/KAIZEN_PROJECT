@@ -6,13 +6,107 @@ namespace ParadigmasLang
         private SymbolTable currentScope;
         private List<string> output;
         private Dictionary<string, object> functions;
+    private readonly Func<string?, string?>? inputProvider;
+    private readonly Queue<string> inputBuffer = new Queue<string>();
+    private readonly object inputLock = new object();
 
-        public Interpreter()
+        public Interpreter() : this(null) { }
+
+        // Allow passing an input provider callback (used by UI to prompt user)
+        public Interpreter(Func<string?, string?>? inputProvider)
         {
+            this.inputProvider = inputProvider;
             globalScope = new SymbolTable();
             currentScope = globalScope;
             output = new List<string>();
             functions = new Dictionary<string, object>();
+        }
+
+        // Tokenize an input line into whitespace-separated tokens, respecting quoted strings
+        private static List<string> TokenizeInputLine(string? line)
+        {
+            var tokens = new List<string>();
+            if (string.IsNullOrEmpty(line)) return tokens;
+
+            bool inQuote = false;
+            var sb = new System.Text.StringBuilder();
+            for (int i = 0; i < line.Length; i++)
+            {
+                var c = line[i];
+                if (c == '"')
+                {
+                    inQuote = !inQuote;
+                    continue; // drop quote chars
+                }
+                if (!inQuote && char.IsWhiteSpace(c))
+                {
+                    if (sb.Length > 0)
+                    {
+                        tokens.Add(sb.ToString());
+                        sb.Clear();
+                    }
+                }
+                else
+                {
+                    sb.Append(c);
+                }
+            }
+            if (sb.Length > 0) tokens.Add(sb.ToString());
+            return tokens;
+        }
+
+        // Ensure inputBuffer has tokens: if empty, ask inputProvider for a line
+        private string? ReadNextInputToken(string? prompt)
+        {
+            lock (inputLock)
+            {
+                if (inputBuffer.Count == 0)
+                {
+                    try
+                    {
+                        var line = inputProvider?.Invoke(prompt);
+                        if (line == null) return null;
+                        var toks = TokenizeInputLine(line);
+                        foreach (var t in toks) inputBuffer.Enqueue(t);
+                    }
+                    catch
+                    {
+                        return null;
+                    }
+                }
+
+                if (inputBuffer.Count == 0) return null;
+                return inputBuffer.Dequeue();
+            }
+        }
+
+        // Convert a token string to the expected semantic type (e.g., integer, float, bool)
+        private object? ConvertTokenToType(string? token, string expectedType)
+        {
+            if (token == null) return null;
+            if (string.IsNullOrEmpty(expectedType)) return token;
+            switch (expectedType)
+            {
+                case "integer":
+                    if (int.TryParse(token, out var i)) return i;
+                    break;
+                case "float":
+                case "double":
+                    if (double.TryParse(token, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var d))
+                        return d;
+                    break;
+                case "bool":
+                    if (bool.TryParse(token, out var b)) return b;
+                    var low = token.ToLowerInvariant();
+                    if (low == "1" || low == "true") return true;
+                    if (low == "0" || low == "false") return false;
+                    break;
+                case "string":
+                    return token;
+                default:
+                    return token;
+            }
+            return token;
         }
 
         public List<string> Execute(Node root)

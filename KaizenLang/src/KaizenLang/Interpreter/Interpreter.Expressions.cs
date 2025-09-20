@@ -7,28 +7,54 @@ namespace ParadigmasLang
             if (node.Children.Count == 0)
                 return null;
 
-            // Caso especial: llamada a función como 'output("hola")'
-            if (node.Children.Count > 1 && node.Children[0].Type == "IDENTIFIER")
+            // Prefer canonical FunctionCall node shape for builtins
+            if (node.Children.Count > 0 && node.Children[0].Type == "FunctionCall")
             {
-                var functionNameNode = node.Children[0];
-                var functionName = ExecuteNode(functionNameNode);
-
-                if (functionName is string name && name == "output")
+                var fn = node.Children[0];
+                if (fn.Children.Count > 0)
                 {
-                    if (node.Children[1].Type == "FunctionCall")
+                    var nameNode = fn.Children[0];
+                    if (nameNode.Children.Count > 0)
                     {
-                        var argsNode = node.Children[1].Children[0]; // El nodo de argumentos
-                        var outputValues = new List<string>();
-                        foreach (var arg in argsNode.Children)
+                        var fnameObj = nameNode.Children[0].Type;
+                        var fname = fnameObj;
+
+                        // Arguments node is expected as second child
+                        Node? argsNode = null;
+                        if (fn.Children.Count > 1) argsNode = fn.Children[1];
+
+                        if (fname == "output")
                         {
-                            var val = ExecuteNode(arg);
-                            outputValues.Add(val?.ToString() ?? "null");
+                            var outputValues = new List<string>();
+                            if (argsNode != null && argsNode.Children.Count > 0)
+                            {
+                                foreach (var arg in argsNode.Children)
+                                {
+                                    var val = ExecuteNode(arg);
+                                    outputValues.Add(val?.ToString() ?? "null");
+                                }
+                            }
+                            output.Add(string.Join(" ", outputValues));
+                            return null;
                         }
-                        output.Add(string.Join(" ", outputValues));
-                        return null; // La llamada a output no devuelve un valor
+
+                        if (fname == "input")
+                        {
+                            string? prompt = null;
+                            if (argsNode != null && argsNode.Children.Count > 0)
+                            {
+                                var firstArg = ExecuteNode(argsNode.Children[0]);
+                                prompt = firstArg?.ToString();
+                            }
+                            var token = ReadNextInputToken(prompt);
+                            return token;
+                        }
                     }
                 }
             }
+
+            // NOTE: we only support the canonical FunctionCall AST shape now.
+            // Older/fallback AST shapes were removed to simplify runtime behavior.
 
             if (node.Children.Count == 1)
                 return ExecuteNode(node.Children[0]);
