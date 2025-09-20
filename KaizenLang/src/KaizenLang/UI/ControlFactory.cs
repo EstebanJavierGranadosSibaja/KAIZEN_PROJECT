@@ -40,6 +40,40 @@ public static class ControlFactory
         return codePanel;
     }
 
+    public static Button CreateTopBarButton(string text, int left, int top)
+    {
+        var btn = new Button
+        {
+            Text = text,
+            Left = left,
+            Top = top,
+            Width = 100,
+            Height = 28,
+            BackColor = Color.Transparent,
+            FlatStyle = FlatStyle.Flat,
+            ForeColor = UIConstants.Colors.MenuForeground,
+            Font = new Font(UIConstants.Fonts.MenuFont.FontFamily, 9, FontStyle.Regular),
+            Cursor = Cursors.Hand
+        };
+
+        btn.FlatAppearance.BorderSize = 0;
+        btn.Paint += (s, e) =>
+        {
+            // draw pill background only on hover
+            if (btn.ClientRectangle.Contains(btn.PointToClient(Cursor.Position)))
+            {
+                using var b = new SolidBrush(Color.FromArgb(30, UIConstants.Colors.CompileButton.R, UIConstants.Colors.CompileButton.G, UIConstants.Colors.CompileButton.B));
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                e.Graphics.FillRoundedRectangle(b, new Rectangle(0, 0, btn.Width, btn.Height), 6);
+            }
+        };
+
+        btn.MouseEnter += (s, e) => btn.ForeColor = UIConstants.Colors.ButtonText;
+        btn.MouseLeave += (s, e) => btn.ForeColor = UIConstants.Colors.MenuForeground;
+
+        return btn;
+    }
+
     public static TextBox CreateCodeTextBox(Panel parent)
     {
         var codeBox = new TextBox

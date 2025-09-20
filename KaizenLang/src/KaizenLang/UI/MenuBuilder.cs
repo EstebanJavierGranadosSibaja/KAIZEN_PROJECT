@@ -59,6 +59,47 @@ public static class MenuBuilder
         return estructurasMenu;
     }
 
+    // Create a topbar panel (logo + pill-like menu buttons)
+    public static Panel CreateTopBar(TextBox codeBox)
+    {
+        var topBar = new Panel
+        {
+            Height = UIConstants.MENU_HEIGHT + 10,
+            BackColor = UIConstants.Colors.MenuBackground,
+            Dock = DockStyle.Top
+        };
+
+        // Logo square
+        var logo = new Label
+        {
+            Text = "K",
+            Width = 36,
+            Height = 36,
+            Left = 10,
+            Top = 8,
+            TextAlign = ContentAlignment.MiddleCenter,
+            BackColor = UIConstants.Colors.CompileButton,
+            ForeColor = UIConstants.Colors.ButtonText,
+            Font = new Font(UIConstants.Fonts.MenuFont.FontFamily, 12, FontStyle.Bold),
+        };
+        logo.BorderStyle = BorderStyle.None;
+        logo.Padding = new Padding(6);
+        topBar.Controls.Add(logo);
+
+        // Pill-like menu buttons
+        int x = logo.Right + 10;
+        foreach (var text in new[] {"Archivo", "Editar", "Ver", "Ayuda"})
+        {
+            var btn = ControlFactory.CreateTopBarButton(text, x, 10);
+            x += btn.Width + 8;
+            topBar.Controls.Add(btn);
+        }
+
+        // Right side: compile/run buttons placed by MainForm later when needed
+
+        return topBar;
+    }
+
     private static ToolStripMenuItem CreateSyntaxMenu(TextBox codeBox)
     {
         var sintaxisMenu = new ToolStripMenuItem(UIConstants.Text.MENU_SYNTAX)
