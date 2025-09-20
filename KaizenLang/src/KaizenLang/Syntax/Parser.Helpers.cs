@@ -31,12 +31,30 @@ namespace ParadigmasLang
 
         private bool IsVariableDeclaration(List<Token> tokens, int pos)
         {
-            var validTypes = new HashSet<string> {
-                "integer", "float", "double", "bool", "string",
-                "array_integer", "array_float", "array_string", "array_bool",
-                "matrix_integer", "matrix_float", "matrix_string", "matrix_bool"
-            };
-            return pos + 1 < tokens.Count && tokens[pos].Type == "TYPE" && validTypes.Contains(tokens[pos].Value) && tokens[pos + 1].Type == "IDENTIFIER";
+            // Accept declarations of the form:
+            //  TYPE IDENTIFIER
+            //  array < TYPE > IDENTIFIER
+            //  matrix < TYPE > IDENTIFIER
+            if (pos + 1 >= tokens.Count) return false;
+
+            // simple base-type declaration: TYPE name
+            if (tokens[pos].Type == "TYPE" && tokens[pos + 1].Type == "IDENTIFIER") return true;
+
+            // composite types like array<integer> or matrix<integer> are tokenized as:
+            // IDENTIFIER('array'|'matrix') DELIMITER('<') TYPE DELIMITER('>') IDENTIFIER
+            if (tokens[pos].Type == "IDENTIFIER" && (tokens[pos].Value == "array" || tokens[pos].Value == "matrix"))
+            {
+                if (pos + 4 < tokens.Count
+                    && (tokens[pos + 1].Type == "DELIMITER" || tokens[pos + 1].Type == "OPERATOR") && tokens[pos + 1].Value == DelimiterWords.ANGLE_OPEN
+                    && tokens[pos + 2].Type == "TYPE"
+                    && (tokens[pos + 3].Type == "DELIMITER" || tokens[pos + 3].Type == "OPERATOR") && tokens[pos + 3].Value == DelimiterWords.ANGLE_CLOSE
+                    && tokens[pos + 4].Type == "IDENTIFIER")
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         // Buscar si una expresión termina en ; (útil para decidir si es ExpressionStatement)
@@ -65,19 +83,53 @@ namespace ParadigmasLang
             var parameters = new Node("Parameters");
             while (tokens[pos].Type != "DELIMITER" || tokens[pos].Value != DelimiterWords.PAREN_CLOSE)
             {
-                if (tokens[pos].Type == "TYPE")
+                // support either base TYPE or composite 'array<type>' / 'matrix<type>'
+                if (tokens[pos].Type == "TYPE" || (tokens[pos].Type == "IDENTIFIER" && (tokens[pos].Value == "array" || tokens[pos].Value == "matrix")))
                 {
-                    var typeToken = tokens[pos];
-                    var typeNode = new Node(typeToken.Value) { Line = typeToken.Line, Column = typeToken.Column };
-                    pos++;
-                    if (tokens[pos].Type == "IDENTIFIER")
+                    Node typeNode = new Node("Unknown");
+
+                    if (tokens[pos].Type == "TYPE")
+                    {
+                        var typeToken = tokens[pos];
+                        typeNode = new Node(typeToken.Value) { Line = typeToken.Line, Column = typeToken.Column };
+                        pos++;
+                    }
+                    else
+                    {
+                        // composite type starting with 'array' or 'matrix'
+                        var wrapper = tokens[pos];
+                        typeNode = new Node(wrapper.Value) { Line = wrapper.Line, Column = wrapper.Column };
+                        pos++; // consume 'array' or 'matrix'
+                        if (!(pos < tokens.Count && (tokens[pos].Type == "DELIMITER" || tokens[pos].Type == "OPERATOR") && tokens[pos].Value == DelimiterWords.ANGLE_OPEN))
+                        {
+                            parameters.Children.Add(ErrorNode("Se esperaba '<' en tipo compuesto", pos));
+                            break;
+                        }
+                        pos++; // consume '<'
+                        if (!(pos < tokens.Count && tokens[pos].Type == "TYPE"))
+                        {
+                            parameters.Children.Add(ErrorNode("Se esperaba tipo base dentro de '<>'", pos));
+                            break;
+                        }
+                        var inner = new Node(tokens[pos].Value) { Line = tokens[pos].Line, Column = tokens[pos].Column };
+                        typeNode.Children.Add(inner);
+                        pos++; // consume inner TYPE
+                        if (!(pos < tokens.Count && (tokens[pos].Type == "DELIMITER" || tokens[pos].Type == "OPERATOR") && tokens[pos].Value == DelimiterWords.ANGLE_CLOSE))
+                        {
+                            parameters.Children.Add(ErrorNode("Se esperaba '>' en tipo compuesto", pos));
+                            break;
+                        }
+                        pos++; // consume '>'
+                    }
+
+                    if (pos < tokens.Count && tokens[pos].Type == "IDENTIFIER")
                     {
                         var nameToken = tokens[pos];
                         var nameNode = new Node("Identifier", new List<Node> { new Node(nameToken.Value) }) { Line = nameToken.Line, Column = nameToken.Column };
                         var paramNode = new Node("Param", new List<Node> { typeNode, nameNode }) { Line = typeNode.Line, Column = typeNode.Column };
                         parameters.Children.Add(paramNode);
                         pos++;
-                        if (tokens[pos].Type == "DELIMITER" && tokens[pos].Value == DelimiterWords.COMMA)
+                        if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == DelimiterWords.COMMA)
                             pos++;
                     }
                     else

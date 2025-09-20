@@ -81,13 +81,26 @@ namespace ParadigmasLang
             pos++; // Consumir 'for'
             if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == DelimiterWords.PAREN_OPEN) pos++; else return ErrorNode("Se esperaba '(' después de 'for'.", pos);
             
+            // La inicialización puede ser una sentencia que ya consuma el ';'.
             Node? init = ParseStatement(tokens, ref pos); // La inicialización es una sentencia
             if (init == null)
             {
-                init = new Node("Empty"); 
+                init = new Node("Empty");
             }
 
-            if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == DelimiterWords.SEMICOLON) pos++; else return ErrorNode("Se esperaba ';' después de la inicialización del for.", pos);
+            // Consumir ';' si está presente. Si no está, comprobar si el token anterior fue ';' (ParseStatement lo consumió).
+            if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == DelimiterWords.SEMICOLON)
+            {
+                pos++; // Consumir el ';' que separa las partes del for
+            }
+            else
+            {
+                // Si el token anterior fue ';', asumimos que ParseStatement ya lo consumió
+                if (!(pos > 0 && tokens[pos - 1].Type == "DELIMITER" && tokens[pos - 1].Value == DelimiterWords.SEMICOLON))
+                {
+                    return ErrorNode("Se esperaba ';' después de la inicialización del for.", pos);
+                }
+            }
             var condition = ParseExpression(tokens, ref pos);
             if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == DelimiterWords.SEMICOLON) pos++; else return ErrorNode("Se esperaba ';' después de la condición del for.", pos);
             var increment = ParseExpression(tokens, ref pos);

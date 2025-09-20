@@ -141,3 +141,51 @@ Debe mostrar errores de sintaxis detectados y, en caso de éxito, la salida del 
 **Nota:** La defensa es **individual**.  
 
 ---
+
+## Actualización técnica del repositorio (resumen breve)
+
+Nota: esta sección documenta cambios recientes hechos al código fuente y herramientas de desarrollo — útil para entrega, mantenimiento y para el profesor.
+
+- Fecha: Septiembre 2025
+- Estado actual: desarrollo activo, UI funcional, y herramienta de pruebas automatizada integrada en `tools/CompilationTester`.
+
+Cambios e implementaciones importantes
+- Reorganización del código
+  - El compilador/interpretador fue reestructurado en carpetas claras: `Lexeme` (lexer/charstream/tokenizer), `Syntax` (parser), `Semantic` (análisis semántico y tabla de símbolos) y `Interpreter` (ejecutor). Esto mejora la mantenibilidad y la separación de responsabilidades.
+
+- Correcciones en el análisis léxico y sintáctico
+  - Se corrigió la tokenización de cadenas (strings) y se añadió trazabilidad de posición: `CharStream` y `Token` ahora registran `Line` y `Column` para todos los tokens, lo que permite errores y warnings con ubicación exacta.
+  - El parser ahora construye nodos AST con posición (Line/Column) cuando corresponde.
+
+- Mejoras en análisis semántico
+  - El `SemanticAnalyzer` ahora propaga ubicaciones (línea/columna) en mensajes de error y reconoce correctamente llamadas builtin como `input()` y `output()` sin requerir declaraciones previas.
+  - Se mejoró la inferencia de tipos en expresiones y se añadió una excepción controlada para inicializaciones provenientes de `input()` (la conversión se delega al runtime/interpreter).
+
+- Runtime / Interpreter
+  - El `Interpreter` realiza conversiones de token a tipo declarado en tiempo de ejecución (por ejemplo, convertir la cadena leída por `input()` a `integer` si la variable es `integer`).
+  - Se mantiene manejo de buffer de entrada y proveedor de entradas desde UI para compatibilidad con la interfaz gráfica.
+
+- Herramienta de pruebas E2E (console)
+  - Se añadió `tools/CompilationTester` (aplicación de consola) para ejecutar el pipeline (lex → parse → semantic) en snippets y obtener:
+    - Lista de tokens con `Line:Column`
+    - AST completo (`ToTreeString()`)
+    - Mensajes semánticos enriquecidos
+  - Uso rápido (desde PowerShell):
+
+```powershell
+dotnet build "tools/CompilationTester/CompilationTester.csproj"
+dotnet run --project "tools/CompilationTester/CompilationTester.csproj" --no-build
+```
+
+Notas operativas y decisiones temporales
+- Para permitir que la herramienta de pruebas referencie el proyecto principal sin conflicto de puntos de entrada, se aplicó un cambio temporal al `KaizenLang.csproj` (OutputType cambiado a `Library`).
+  - Recomendación: revertir ese cambio antes de publicar la versión final de la aplicación (dejar `WinExe` para la UI) y, en su lugar, hacer que `tools/CompilationTester` use la DLL compilada o un mecanismo de artefacto local (evita tener dos mains en proyectos referenciados).
+
+Próximos pasos recomendados (opciones)
+- Revertir `KaizenLang.csproj` a ejecutable y actualizar `tools/CompilationTester` para usar la DLL de salida o un local package/reference.
+- Normalizar la representación de llamadas a funciones en el parser (usar un solo tipo `FunctionCall`) para simplificar semántica futura.
+- Añadir pruebas automatizadas (xUnit) que verifiquen los snippets problemáticos (por ejemplo, el caso `input()` + asignación + `output()`), y que aseguren que tokens/AST/errores se mantengan estables.
+- Actualizar README y documentación en `docs/` con instrucciones de desarrollo y ejecución (cómo compilar, cómo ejecutar la UI y la tester, y cómo ejecutar las pruebas).
+
+Si quieren, puedo aplicar alguno de los pasos siguientes automáticamente (revertir `OutputType` y actualizar la referencia del tester para usar la DLL, o bien añadir una prueba xUnit para el snippet). Dime cuál prefieres y lo hago.
+

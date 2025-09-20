@@ -324,13 +324,14 @@ namespace KaizenLang.UI
         public List<Token>? Tokens { get; set; }
         public Node? AST { get; set; }
         public List<Token>? LexicalErrors { get; set; }
-        public List<string>? SyntaxErrors { get; set; }
-        public List<string>? SemanticErrors { get; set; }
+        // Ensure these lists are non-null to make downstream checks simpler and tests more robust
+        public List<string> SyntaxErrors { get; set; } = new List<string>();
+        public List<string> SemanticErrors { get; set; } = new List<string>();
         public Exception? InternalError { get; set; }
 
-        public bool HasErrors => LexicalErrors?.Any() == true ||
-                                SyntaxErrors?.Any() == true ||
-                                SemanticErrors?.Any() == true ||
-                                InternalError != null;
+        public bool HasErrors => (LexicalErrors?.Any() == true) ||
+                                 SyntaxErrors.Any() ||
+                                 SemanticErrors.Any() ||
+                                 InternalError != null;
     }
 }

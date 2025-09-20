@@ -1,5 +1,6 @@
 using System.Text;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using ParadigmasLang;
 
 namespace KaizenLang.UI
@@ -49,15 +50,36 @@ namespace KaizenLang.UI
                     };
                 }
 
-                // Ejecutar código
+                // Ejecutar código (con registro de tiempo y timeout corto para diagnóstico)
                 executionTimer.Restart();
+                outputBuilder.AppendLine($"⏱ Inicio ejecución: {DateTime.UtcNow:O}");
                 outputBuilder.AppendLine("� EJECUTANDO CÓDIGO...");
                 outputBuilder.AppendLine("─────────────────────────");
 
                 var interpreter = new Interpreter(InputProvider);
-                var executionOutput = interpreter.Execute(compilationResult.AST);
 
+                // Ejecutar en una tarea y esperar un timeout razonable para evitar bloqueos indefinidos
+                List<string>? executionOutput = null;
+                var execTask = Task.Run(() => interpreter.Execute(compilationResult.AST));
+                var completed = execTask.Wait(TimeSpan.FromSeconds(5));
+                if (!completed)
+                {
+                    // Timeout: report and return a failed execution result (keep background task running for now)
+                    executionTimer.Stop();
+                    outputBuilder.AppendLine($"⚠️ EJECUCIÓN DETENIDA POR TIMEOUT a las {DateTime.UtcNow:O} (5s)");
+                    return new ExecutionResult
+                    {
+                        IsSuccessful = false,
+                        Output = outputBuilder.ToString(),
+                        ExecutionTime = executionTimer.Elapsed,
+                        CompilationResult = compilationResult,
+                        ProgramOutput = new List<string> { "ERROR: ejecución excedió timeout diagnóstico (5s)" }
+                    };
+                }
+
+                executionOutput = execTask.Result;
                 executionTimer.Stop();
+                outputBuilder.AppendLine($"⏱ Fin ejecución: {DateTime.UtcNow:O}");
 
                 // Mostrar resultados
                 if (executionOutput.Any())

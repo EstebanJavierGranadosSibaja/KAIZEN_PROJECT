@@ -1,0 +1,39 @@
+// Nested blocks validation
+
+// Rule: Only one level of block nesting is allowed. Inside an if/while/for block you may have statements
+// (decls, assignments, expressions) but not another nested control block (if/while/for).
+
+// 1) Valid: single-level condition with statements
+if (true) ying
+    integer x = 1;
+    x = x + 1;
+yang
+
+// 2) Invalid: nested if inside an if (should be rejected)
+if (true) ying
+    if (false) ying
+        integer y = 2;
+    yang
+yang
+
+// 3) Invalid: while inside for (should be rejected)
+for (integer i = 0; i < 3; i++) ying
+    while (i < 2) ying
+        integer z = 0;
+    yang
+yang
+
+// 4) Valid: separate blocks sequentially
+if (true) ying
+    integer a = 5;
+yang
+
+while (a < 10) ying
+    a = a + 1;
+yang
+
+// 5) Valid: a block containing function calls and assignments only
+if (a == 10) ying
+    print("ok");
+    a = a / 2;
+yang

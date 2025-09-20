@@ -4,9 +4,10 @@ namespace ParadigmasLang
     {
         public static readonly HashSet<string> Words = new HashSet<string>
         {
-            "integer", "float", "double", "bool", "string", 
-            "array_integer", "array_float", "array_string", "array_bool",
-            "matrix_integer", "matrix_float", "matrix_string", "matrix_bool"
+            // Base (primitive) types. Composite types (arrays/matrices) are parsed
+            // by the parser using the generic-like syntax `array<type>` and
+            // `matrix<type>`; do NOT list composed names like "array_integer" here.
+            "integer", "float", "double", "bool", "string"
         };
     }
 }

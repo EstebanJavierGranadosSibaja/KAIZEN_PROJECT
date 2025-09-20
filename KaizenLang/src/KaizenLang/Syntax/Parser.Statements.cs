@@ -100,12 +100,47 @@ namespace ParadigmasLang
 
         private Node ParseVariableDeclaration(List<Token> tokens, ref int pos)
         {
-            var typeToken = tokens[pos];
-            var typeNode = new Node(typeToken.Value) { Line = typeToken.Line, Column = typeToken.Column };
-            pos++;
-            var nameToken = tokens[pos];
-            var nameNode = new Node("Identifier", new List<Node> { new Node(nameToken.Value) }) { Line = nameToken.Line, Column = nameToken.Column };
-            pos++;
+            // Support both simple and composite types for variable declarations:
+            // - TYPE IDENTIFIER
+            // - array < TYPE > IDENTIFIER
+            // - matrix < TYPE > IDENTIFIER
+
+            Node typeNode;
+            Node nameNode;
+
+            // Composite type (array/matrix)
+            if (tokens[pos].Type == "IDENTIFIER" && (tokens[pos].Value == "array" || tokens[pos].Value == "matrix")
+                && pos + 4 < tokens.Count
+                && (tokens[pos + 1].Type == "DELIMITER" || tokens[pos + 1].Type == "OPERATOR") && tokens[pos + 1].Value == DelimiterWords.ANGLE_OPEN
+                && tokens[pos + 2].Type == "TYPE"
+                && (tokens[pos + 3].Type == "DELIMITER" || tokens[pos + 3].Type == "OPERATOR") && tokens[pos + 3].Value == DelimiterWords.ANGLE_CLOSE
+                && tokens[pos + 4].Type == "IDENTIFIER")
+            {
+                var wrapper = tokens[pos];
+                typeNode = new Node(wrapper.Value) { Line = wrapper.Line, Column = wrapper.Column };
+                var inner = new Node(tokens[pos + 2].Value) { Line = tokens[pos + 2].Line, Column = tokens[pos + 2].Column };
+                typeNode.Children.Add(inner);
+
+                // consume array/matrix, '<', inner type, '>'
+                pos += 4;
+
+                var nameToken = tokens[pos];
+                nameNode = new Node("Identifier", new List<Node> { new Node(nameToken.Value) }) { Line = nameToken.Line, Column = nameToken.Column };
+                pos++; // consume identifier
+            }
+            else if (tokens[pos].Type == "TYPE" && pos + 1 < tokens.Count && tokens[pos + 1].Type == "IDENTIFIER")
+            {
+                var typeToken = tokens[pos];
+                typeNode = new Node(typeToken.Value) { Line = typeToken.Line, Column = typeToken.Column };
+                pos++;
+                var nameToken = tokens[pos];
+                nameNode = new Node("Identifier", new List<Node> { new Node(nameToken.Value) }) { Line = nameToken.Line, Column = nameToken.Column };
+                pos++;
+            }
+            else
+            {
+                return ErrorNode("Declaración de variable inválida", pos);
+            }
 
             var declarationNode = new Node("VariableDeclaration", new List<Node> { typeNode, nameNode }) { Line = typeNode.Line, Column = typeNode.Column };
 

@@ -2,10 +2,34 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-  <TargetFramework>net9.0-windows</TargetFramework>
+    <TargetFramework>net9.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
+    <!-- Prevent SDK from generating assembly attributes that duplicate manual/generated ones -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <!-- Prevent SDK from generating target framework attribute if it's already present -->
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
   </PropertyGroup>
+  <!-- Exclude helper tools (like CompilationTester) from being compiled into the main executable -->
+  <ItemGroup>
+    <Compile Remove="tools\**\*.cs" />
+    <EmbeddedResource Remove="tools\**\*" />
+    <None Remove="tools\**\*" />
+    <!-- Exclude tests from main project compile (tests are a separate project) -->
+    <Compile Remove="tests\**\*.cs" />
+    <EmbeddedResource Remove="tests\**\*" />
+    <None Remove="tests\**\*" />
+  </ItemGroup>
+
+  <!-- Post-build: copy the compiled DLL to the tester's bin folder so the tester can run independently -->
+  <Target Name="CopyDllToTester" AfterTargets="Build">
+    <PropertyGroup>
+      <TesterBin>$(MSBuildProjectDirectory)\tools\CompilationTester\bin\$(Configuration)\$(TargetFramework)</TesterBin>
+      <SourceDll>$(OutputPath)\KaizenLang.dll</SourceDll>
+    </PropertyGroup>
+    <MakeDir Directories="$(TesterBin)" Condition="!Exists('$(TesterBin)')" />
+    <Copy SourceFiles="$(SourceDll)" DestinationFolder="$(TesterBin)" SkipUnchangedFiles="true" Condition="Exists('$(SourceDll)')" />
+  </Target>
 
 </Project>

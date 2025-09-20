@@ -9,34 +9,46 @@ namespace ParadigmasLang
                 var typeNode = node.Children[0];
                 var nameNode = node.Children[1];
 
-                if (typeNode.Children.Count > 0 && nameNode.Children.Count > 0)
+                // Support both parser shapes:
+                // - typeNode.Type == "string" (no children)
+                // - typeNode.Children[0].Type == "string"
+                string type;
+                if (typeNode.Children.Count > 0)
+                    type = typeNode.Children[0].Type;
+                else
+                    type = typeNode.Type;
+
+                string name = string.Empty;
+                if (nameNode.Children.Count > 0)
+                    name = nameNode.Children[0].Type;
+                else
+                    name = nameNode.Type;
+
+                if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(type))
+                    return null;
+
+                if (!currentScope.DeclareVariable(name, type, 0))
                 {
-                    var type = typeNode.Children[0].Type;
-                    var name = nameNode.Children[0].Type;
+                    throw new Exception($"Variable '{name}' ya está declarada");
+                }
 
-                    if (!currentScope.DeclareVariable(name, type, 0))
+                // Si tiene inicialización
+                if (node.Children.Count > 2)
+                {
+                    var valueNode = node.Children[2];
+                    var rawValue = ExecuteNode(valueNode.Children[0]);
+                    object? finalValue = rawValue;
+                    // If initialization came from input (string token) and we know the declared type, try to convert
+                    if (rawValue is string rawStr)
                     {
-                        throw new Exception($"Variable '{name}' ya está declarada");
+                        finalValue = ConvertTokenToType(rawStr, type);
                     }
-
-                    // Si tiene inicialización
-                    if (node.Children.Count > 2)
-                    {
-                        var valueNode = node.Children[2];
-                        var rawValue = ExecuteNode(valueNode.Children[0]);
-                        object? finalValue = rawValue;
-                        // If initialization came from input (string token) and we know the declared type, try to convert
-                        if (rawValue is string rawStr)
-                        {
-                            finalValue = ConvertTokenToType(rawStr, type);
-                        }
-                        currentScope.SetVariableValue(name, finalValue!);
-                        output.Add($"Variable '{name}' declarada e inicializada con valor: {finalValue}");
-                    }
-                    else
-                    {
-                        output.Add($"Variable '{name}' de tipo '{type}' declarada");
-                    }
+                    currentScope.SetVariableValue(name, finalValue!);
+                    output.Add($"Variable '{name}' declarada e inicializada con valor: {finalValue}");
+                }
+                else
+                {
+                    output.Add($"Variable '{name}' de tipo '{type}' declarada");
                 }
             }
             return null;
