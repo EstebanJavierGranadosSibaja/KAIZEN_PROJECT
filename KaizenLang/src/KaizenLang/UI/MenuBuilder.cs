@@ -73,10 +73,15 @@ public static class MenuBuilder
         Control logoControl;
         try
         {
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
             var possiblePaths = new[] {
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "LOGO_KAIZEN.png"),
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "src", "KaizenLang", "UI", "LOGO_KAIZEN.png"),
-                Path.Combine(Environment.CurrentDirectory, "src", "KaizenLang", "UI", "LOGO_KAIZEN.png")
+                Path.Combine(baseDir, "LOGO_KAIZEN.png"),
+                Path.Combine(baseDir, "..", "LOGO_KAIZEN.png"),
+                Path.Combine(baseDir, "..", "..", "LOGO_KAIZEN.png"),
+                Path.Combine(baseDir, "..", "..", "..", "LOGO_KAIZEN.png"),
+                Path.Combine(baseDir, "src", "KaizenLang", "UI", "LOGO_KAIZEN.png"),
+                Path.Combine(Environment.CurrentDirectory, "src", "KaizenLang", "UI", "LOGO_KAIZEN.png"),
+                Path.Combine(Environment.CurrentDirectory, "LOGO_KAIZEN.png")
             };
 
             string? found = possiblePaths.FirstOrDefault(File.Exists);
