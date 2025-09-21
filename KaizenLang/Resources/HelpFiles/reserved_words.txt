@@ -1,0 +1,19 @@
+Palabras reservadas de KaizenLang
+
+Control de flujo:
+    if
+    else
+    do
+    while
+    for
+    return
+
+Entrada/Salida:
+    input
+    output
+
+Tipos y valores especiales:
+    void
+    true
+    false
+    null

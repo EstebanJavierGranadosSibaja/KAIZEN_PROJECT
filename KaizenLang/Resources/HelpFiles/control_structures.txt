@@ -1,0 +1,15 @@
+Estructuras de control
+
+    if (condicion) {
+        // código si verdadero
+    } else {
+        // código si falso
+    }
+
+    while (condicion) {
+        // código del bucle
+    }
+
+    for (int i = 0; i < 10; i++) {
+        // código del bucle
+    }

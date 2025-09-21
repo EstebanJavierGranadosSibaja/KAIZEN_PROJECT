@@ -1,0 +1,9 @@
+Declaración de funciones
+
+    int suma(int a, int b) {
+        return a + b;
+    }
+
+    void saludar(string nombre) {
+        output(""Hola "" + nombre);
+    }

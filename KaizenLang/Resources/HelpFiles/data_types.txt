@@ -1,0 +1,14 @@
+Tipos de datos
+
+Tipos de datos simples:
+
+    int entero = 42;
+    float decimal = 3.14;
+    double precision = 3.141592653589793;
+    boolean logico = true;
+    char caracter = 'A';
+    string texto = ""Hola mundo"";
+
+Tipos de datos compuestos:
+    array numeros = [1, 2, 3, 4, 5];
+    string lista = ""elemento1,elemento2,elemento3"";
