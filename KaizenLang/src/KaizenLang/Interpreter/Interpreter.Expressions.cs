@@ -44,7 +44,38 @@ public partial class Interpreter
                         string? prompt = null;
                         if (argsNode != null && argsNode.Children.Count > 0)
                         {
-                            var firstArg = ExecuteNode(argsNode.Children[0]);
+                            var firstArgNode = argsNode.Children[0];
+                            // If argument is an identifier, treat as input(varName) -> read and assign to variable
+                            if (firstArgNode.Type == "IDENTIFIER")
+                            {
+                                string varName;
+                                if (firstArgNode.Children.Count > 0)
+                                    varName = firstArgNode.Children[0].Type;
+                                else
+                                    varName = firstArgNode.Type;
+
+                                var tokenLine = ReadNextInputToken(null);
+                                if (tokenLine == null)
+                                    return null;
+
+                                var symbol = currentScope.LookupVariable(varName);
+                                object? finalVal = tokenLine;
+                                if (symbol != null)
+                                {
+                                    finalVal = ConvertTokenToType(tokenLine, symbol.Type);
+                                    currentScope.SetVariableValue(varName, finalVal!);
+                                    output.Add($"Variable '{varName}' asignada con valor: {finalVal}");
+                                }
+                                else
+                                {
+                                    // If variable not declared, just return the token string
+                                    return tokenLine;
+                                }
+
+                                return finalVal;
+                            }
+
+                            var firstArg = ExecuteNode(firstArgNode);
                             prompt = firstArg?.ToString();
                         }
                         var token = ReadNextInputToken(prompt);
