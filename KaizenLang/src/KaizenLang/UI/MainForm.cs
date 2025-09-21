@@ -99,42 +99,50 @@ public class MainForm : Form
     topBar.Dock = DockStyle.Top;
     this.Controls.Add(topBar);
 
-        // Crear un panel para botones (colocado entre editor y salida)
-        var buttonsPanel = new Panel
-        {
-            Height = 64,
-            Dock = DockStyle.Top,
-            BackColor = Color.Transparent
-        };
-
-        // Crear botones usando los constructores existentes, luego reubicar dentro del panel
+        // Crear botones y añadirlos al topBar (alineados a la derecha)
         compileButton = ControlFactory.CreateCompileButton(codePanel);
         compileButton.Click += CompileButton_Click;
-        // Override location and anchoring so they stay in place when resizing
-        compileButton.Left = 96;
-        compileButton.Top = 14;
-        compileButton.Anchor = AnchorStyles.Top | AnchorStyles.Left;
-
         executeButton = ControlFactory.CreateExecuteButton(compileButton);
         executeButton.Click += ExecuteButton_Click;
-        executeButton.Left = compileButton.Right + UIConstants.BUTTON_SPACING;
-        executeButton.Top = compileButton.Top;
-        executeButton.Anchor = AnchorStyles.Top | AnchorStyles.Left;
 
-        buttonsPanel.Controls.Add(compileButton);
-        buttonsPanel.Controls.Add(executeButton);
-        this.Controls.Add(buttonsPanel);
+        // Crear panel de salida (usa compileButton para posicionamiento relativo si es necesario)
+        var outputPanel = ControlFactory.CreateOutputPanel(compileButton);
+        // Place output panel at bottom and allow it to keep fixed height while width adapts
+        outputPanel.Height = UIConstants.OUTPUT_PANEL_HEIGHT;
+        outputPanel.Dock = DockStyle.Bottom;
+        outputBox = ControlFactory.CreateOutputTextBox(outputPanel);
+        // Make output box fill the output panel
+        outputBox.Dock = DockStyle.Fill;
+        outputPanel.Controls.Add(outputBox);
+        this.Controls.Add(outputPanel);
 
-        // Crear panel de salida
-    var outputPanel = ControlFactory.CreateOutputPanel(compileButton);
-    // Place output panel at bottom and allow it to keep fixed height while width adapts
-    outputPanel.Height = UIConstants.OUTPUT_PANEL_HEIGHT;
-    outputPanel.Dock = DockStyle.Bottom;
-    outputBox = ControlFactory.CreateOutputTextBox(outputPanel);
-    // Make output box fill the output panel
-    outputBox.Dock = DockStyle.Fill;
-    outputPanel.Controls.Add(outputBox);
-    this.Controls.Add(outputPanel);
+        // Add buttons into topBar and anchor to the right
+        compileButton.Parent = topBar;
+        executeButton.Parent = topBar;
+        compileButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+        executeButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+
+        // Position them initially; will adjust on resize
+        void PositionTopButtons()
+        {
+            var marginRight = 16;
+            var spacing = UIConstants.BUTTON_SPACING;
+            executeButton.Left = topBar.Width - executeButton.Width - marginRight;
+            executeButton.Top = (topBar.Height - executeButton.Height) / 2;
+            compileButton.Left = executeButton.Left - compileButton.Width - spacing;
+            compileButton.Top = executeButton.Top;
+        }
+
+        topBar.Resize += (s, e) => PositionTopButtons();
+        // initial placement
+        PositionTopButtons();
+
+        topBar.Controls.Add(compileButton);
+        topBar.Controls.Add(executeButton);
+
+        // Now add code panel as the filler so it expands between topBar and output
+        codePanel.Dock = DockStyle.Fill;
+        this.Controls.Add(codePanel);
     }
 
     private async void CompileButton_Click(object? sender, EventArgs? e)
