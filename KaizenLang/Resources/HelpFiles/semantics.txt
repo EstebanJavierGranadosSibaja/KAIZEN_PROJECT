@@ -1,0 +1,9 @@
+Semántica de KaizenLang
+
+    - Tipado estricto obligatorio
+    - Variables deben declararse antes de usarse
+    - No conversiones implícitas peligrosas
+    - Validación de compatibilidad de tipos
+
+    int numero = 42;  // ✓ Correcto
+    numero = ""texto"";  // ❌ Error: tipos incompatibles

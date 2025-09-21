@@ -34,4 +34,11 @@
     <Copy SourceFiles="$(SourceDll)" DestinationFolder="$(TesterBin)" SkipUnchangedFiles="true" Condition="Exists('$(SourceDll)')" />
   </Target>
 
+  <!-- Cargar los recursos al la version compilada -->
+  <ItemGroup>
+    <None Update="Resources\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
