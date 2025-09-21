@@ -2,13 +2,22 @@ namespace KaizenLang.UI
 {
     public static class UIConstants
     {
+        // Tamaño de la pantalla de la computadora
+        public static readonly Size ScreenSize = (Screen.PrimaryScreen != null)
+            ? Screen.PrimaryScreen.WorkingArea.Size
+            : new Size(1920, 1080);
+
+        public static readonly int SCREENWIDTH = ScreenSize.Width;
+        public static readonly int SCREENHEIGHT = ScreenSize.Height;
+
         // Dimensiones de la ventana principal
-        public const int MAIN_WINDOW_WIDTH = 1400;
-        public const int MAIN_WINDOW_HEIGHT = 900;
+        public static readonly int MAIN_WINDOW_WIDTH = (int)(SCREENWIDTH * 0.5);
+        public static readonly int MAIN_WINDOW_HEIGHT = (int)(SCREENHEIGHT * 0.5);
 
         // Dimensiones de paneles
         public const int CODE_PANEL_WIDTH = 1200;
         public const int CODE_PANEL_HEIGHT = 400;
+
         public const int OUTPUT_PANEL_WIDTH = 1200;
         public const int OUTPUT_PANEL_HEIGHT = 250;
 
@@ -53,8 +62,8 @@ namespace KaizenLang.UI
         public static class Fonts
         {
             public static readonly Font MenuFont = new Font("Segoe UI", 13, FontStyle.Bold);
-            public static readonly Font CodeFont = new Font("Consolas", 12); // Fuente monospace más segura
-            public static readonly Font OutputFont = new Font("Consolas", 11); // Fuente monospace más segura
+            public static readonly Font CodeFont = new Font("Consolas", 12);
+            public static readonly Font OutputFont = new Font("Consolas", 11);
             public static readonly Font ButtonFont = new Font("Segoe UI", 14, FontStyle.Bold);
         }
 
