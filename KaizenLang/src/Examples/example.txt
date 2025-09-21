@@ -3,38 +3,38 @@
 // ============================================
 
 // EJEMPLO 1: Declaraciones básicas de variables
-int numero = 42;
+integer numero = 42;
 string mensaje = "Hola KaizenLang";
-boolean activo = true;
+bool activo = true;
 float precio = 19.99;
 
 // EJEMPLO 2: Estructuras de control
-if (numero > 0) {
+if (numero > 0) ying
     // código cuando es positivo
-} else {
+yang else ying
     // código cuando es negativo o cero
-}
+yang
 
 // EJEMPLO 3: Bucle while
-int contador = 0;
-while (contador < 5) {
+integer contador = 0;
+while (contador < 5) ying
     contador = contador + 1;
-}
+yang
 
 // EJEMPLO 4: Bucle for
-for (int i = 0; i < 10; i++) {
+for (integer i = 0; i < 10; i++) ying
     // código del bucle
-}
+yang
 
 // EJEMPLO 5: Función simple
-int suma(int a, int b) {
+integer suma(integer a, integer b) ying
     return a + b;
-}
+yang
 
 // EJEMPLO 6: Función void
-void saludar(string nombre) {
+void saludar(string nombre) ying
     // lógica de saludo
-}
+yang
 
 // ============================================
 // EJEMPLOS DE ERRORES PARA PROBAR VALIDACIONES
@@ -44,31 +44,35 @@ void saludar(string nombre) {
 // string error = "texto sin cerrar
 
 // ERROR SINTÁCTICO: Falta punto y coma
-// int x = 5
+// integer x = 5
 
 // ERROR SEMÁNTICO: Variable no declarada
 // y = 10;
 
 // ERROR SEMÁNTICO: Tipos incompatibles
-// int numero = "texto";
+// integer numero = "texto";
 
 // ============================================
 // EJEMPLOS COMPLEJOS
 // ============================================
 
 // EJEMPLO 7: Operaciones complejas
-int resultado = (10 + 5) * 2;
-boolean comparacion = (resultado > 25) && (numero < 100);
+integer resultado = (10 + 5) * 2;
+bool comparacion = (resultado > 25) && (numero < 100);
 
 // EJEMPLO 8: Función con lógica
-int factorial(int n) {
-    if (n <= 1) {
+integer factorial(integer n) ying
+    if (n <= 1) ying
         return 1;
-    }
+    yang
     return n * factorial(n - 1);
-}
+yang
 
 // EJEMPLO 9: Múltiples declaraciones
-int x = 1;
-int y = 2;
-int z = x + y;
+integer x = 1;
+integer y = 2;
+integer z = x + y;
+
+// EJEMPLO 10: Nuevo tipo matrix
+matrix<integer> tabla = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+array<string> nombres = ["Ana", "Luis", "María"];

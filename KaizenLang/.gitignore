@@ -1,6 +1,9 @@
 # Build results
-bin/
-obj/
+## Build artifacts
+# Ignore build outputs at repo and subproject levels
+**/bin/
+**/obj/
+
 
 # User-specific files
 *.user
@@ -11,13 +14,15 @@ obj/
 
 # NuGet packages
 *.nupkg
-# The packages folder can be ignored because of Package Restore
 **/packages/*
 !**/packages/build/
 !**/packages/repositories.config
 
 # Logs
 *.log
+
+# Diagnostic test logs created by local test runs
+test_diag*
 
 # Others
 *.vspscc
@@ -32,3 +37,37 @@ Thumbs.db
 # IDEs
 # VS Code settings
 .vscode/
+# Ignore Visual Studio Code workspace settings and caches
+.vscode/*
+.vscode/**/workspaceStorage/
+
+# Test and tooling outputs
+TestResults/
+**/TestResults/
+**/*.TestResults/**
+
+# Tools build outputs (e.g. tools/CompilationTester)
+tools/**/bin/
+tools/**/obj/
+
+# Visual Studio cache and generated files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Logs
+*.log
+
+# Rider
+.idea/
+
+# Coverage
+*.coverage
+*.coveragexml
+
+# Runtime
+*.pdb
+*.dll
+*.exe

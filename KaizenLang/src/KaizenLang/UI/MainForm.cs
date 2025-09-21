@@ -1,146 +1,230 @@
-namespace KaizenLang.UI
+namespace KaizenLang.UI;
+
+public class MainForm : Form
 {
-	public class MainForm : Form
-	{
-		private TextBox? codeBox;
-		private TextBox? outputBox;
-		private Button? compileButton;
-		private Button? executeButton;
-		private MenuStrip? menuStrip;
-		private CompilationService? compilationService;
-		private ExecutionService? executionService;
+    private TextBox? codeBox;
+    private TextBox? outputBox;
+    private Button? compileButton;
+    private Button? executeButton;
+    private Control? topBar;
+    private CompilationService? compilationService;
+    private ExecutionService? executionService;
 
-		public MainForm()
-		{
-			InitializeServices();
-			InitializeForm();
-			InitializeControls();
-		}
+    public MainForm()
+    {
+        InitializeServices();
+        InitializeForm();
+        InitializeControls();
+    }
 
-		private void InitializeServices()
-		{
-			compilationService = new CompilationService();
-			executionService = new ExecutionService();
-		}
+    private void InitializeServices()
+    {
+        compilationService = new CompilationService();
+        executionService = new ExecutionService();
 
-		private void InitializeForm()
-		{
-			this.Text = UIConstants.Text.WINDOW_TITLE;
-			this.Width = UIConstants.MAIN_WINDOW_WIDTH;
-			this.Height = UIConstants.MAIN_WINDOW_HEIGHT;
-			this.BackColor = UIConstants.Colors.MainBackground;
-			this.FormBorderStyle = FormBorderStyle.FixedSingle;
-			this.MaximizeBox = false;
-		}
+        // Provide a UI input provider to the execution service so Interpreter can call input(prompt)
+        executionService.InputProvider = (prompt) =>
+        {
+            // If the form does not have a handle yet or is not visible, don't attempt a blocking UI call
+            if (!this.IsHandleCreated || !this.Visible)
+            {
+                return null; // fall back for non-UI contexts (tests, headless runs)
+            }
 
-		private void InitializeControls()
-		{
-			// Crear panel de código primero
-			var codePanel = ControlFactory.CreateCodePanel();
-			codeBox = ControlFactory.CreateCodeTextBox(codePanel);
-			codeBox.TextChanged += CodeBox_TextChanged; // Agregar evento para resetear colores
-			codePanel.Controls.Add(codeBox);
-			this.Controls.Add(codePanel);
+            try
+            {
+                // If we're on a different thread, marshal to UI thread but don't block indefinitely
+                if (this.InvokeRequired)
+                {
+                    var tcs = new System.Threading.Tasks.TaskCompletionSource<string?>();
+                    this.BeginInvoke(new MethodInvoker(() =>
+                    {
+                        try
+                        {
+                            var r = Prompt.Show("Input", prompt);
+                            tcs.TrySetResult(r);
+                        }
+                        catch
+                        {
+                            tcs.TrySetResult(null);
+                        }
+                    }));
 
-			// Ahora crear menú con la referencia válida al codeBox
-			menuStrip = MenuBuilder.CreateMainMenu(codeBox);
-			this.Controls.Add(menuStrip);
+                    // Wait for a short timeout to avoid deadlocks in test environments
+                    if (!tcs.Task.Wait(3000))
+                        return null;
+                    return tcs.Task.Result;
+                }
+                else
+                {
+                    return Prompt.Show("Input", prompt);
+                }
+            }
+            catch
+            {
+                return null;
+            }
+        };
+    }
 
-			// Crear botones
-			compileButton = ControlFactory.CreateCompileButton(codePanel);
-			compileButton.Click += CompileButton_Click;
-			this.Controls.Add(compileButton);
+    private void InitializeForm()
+    {
+        this.Text = UIConstants.Text.WINDOW_TITLE;
+        this.Width = UIConstants.MAIN_WINDOW_WIDTH;
+        this.Height = UIConstants.MAIN_WINDOW_HEIGHT;
+        this.BackColor = UIConstants.Colors.MainBackground;
+        // Allow resizing and maximize; set minimum size for usability
+        this.FormBorderStyle = FormBorderStyle.Sizable;
+        this.MaximizeBox = true;
+        this.MinimumSize = new Size(900, 600);
+    }
 
-			executeButton = ControlFactory.CreateExecuteButton(compileButton);
-			executeButton.Click += ExecuteButton_Click;
-			this.Controls.Add(executeButton);
+    private void InitializeControls()
+    {
+    // Crear panel de código primero
+    var codePanel = ControlFactory.CreateCodePanel();
+    // Make code panel dock to top and allow it to resize
+    codePanel.Height = UIConstants.CODE_PANEL_HEIGHT;
+    codePanel.Dock = DockStyle.Top;
+    codeBox = ControlFactory.CreateCodeTextBox(codePanel);
+    codeBox.TextChanged += CodeBox_TextChanged; // Agregar evento para resetear colores
+    // Let the code textbox fill the panel and resize with it
+    codeBox.Dock = DockStyle.Fill;
+    codePanel.Controls.Add(codeBox);
+    this.Controls.Add(codePanel);
 
-			// Crear panel de salida
-			var outputPanel = ControlFactory.CreateOutputPanel(compileButton);
-			outputBox = ControlFactory.CreateOutputTextBox(outputPanel);
-			outputPanel.Controls.Add(outputBox);
-			this.Controls.Add(outputPanel);
-		}
+    // Ahora crear topbar (logo + menú) con la referencia válida al codeBox
+    topBar = MenuBuilder.CreateTopBar(codeBox);
+    // dock top to behave like a header
+    topBar.Dock = DockStyle.Top;
+    this.Controls.Add(topBar);
 
-		private async void CompileButton_Click(object? sender, EventArgs? e)
-		{
-			if (codeBox == null || outputBox == null || compilationService == null || compileButton == null) return;
+        // Crear botones y añadirlos al topBar (alineados a la derecha)
+        compileButton = ControlFactory.CreateCompileButton(codePanel);
+        compileButton.Click += CompileButton_Click;
+        executeButton = ControlFactory.CreateExecuteButton(compileButton);
+        executeButton.Click += ExecuteButton_Click;
 
-			// Deshabilitar botón durante procesamiento
-			compileButton.Enabled = false;
+        // Crear panel de salida (usa compileButton para posicionamiento relativo si es necesario)
+        var outputPanel = ControlFactory.CreateOutputPanel(compileButton);
+        // Place output panel at bottom and allow it to keep fixed height while width adapts
+        outputPanel.Height = UIConstants.OUTPUT_PANEL_HEIGHT;
+        outputPanel.Dock = DockStyle.Bottom;
+        outputBox = ControlFactory.CreateOutputTextBox(outputPanel);
+        // Make output box fill the output panel
+        outputBox.Dock = DockStyle.Fill;
+        outputPanel.Controls.Add(outputBox);
+        this.Controls.Add(outputPanel);
 
-			// Mostrar estado de procesamiento
-			ControlFactory.SetButtonState(compileButton, ControlFactory.ButtonState.Processing);
+        // Add buttons into topBar and anchor to the right
+        compileButton.Parent = topBar;
+        executeButton.Parent = topBar;
+        compileButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+        executeButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
 
-			try
-			{
-				// Simular procesamiento asíncrono
-				await Task.Run(() =>
-				{
-					string source = codeBox.Text;
-					var result = compilationService.CompileCode(source);
+        // Position them initially; will adjust on resize
+        void PositionTopButtons()
+        {
+            var marginRight = 16;
+            var spacing = UIConstants.BUTTON_SPACING;
+            executeButton.Left = topBar.Width - executeButton.Width - marginRight;
+            executeButton.Top = (topBar.Height - executeButton.Height) / 2;
+            compileButton.Left = executeButton.Left - compileButton.Width - spacing;
+            compileButton.Top = executeButton.Top;
+        }
 
-					// Actualizar UI en el hilo principal
-					this.Invoke(() =>
-					{
-						outputBox.Text = result.Output;
+        topBar.Resize += (s, e) => PositionTopButtons();
+        // initial placement
+        PositionTopButtons();
 
-						// Cambiar estado del botón según el resultado
-						ControlFactory.SetButtonState(compileButton,
-							result.IsSuccessful ? ControlFactory.ButtonState.Success : ControlFactory.ButtonState.Error);
-					});
-				});
-			}
-			finally
-			{
-				// Rehabilitar botón
-				compileButton.Enabled = true;
-			}
-		}
+        topBar.Controls.Add(compileButton);
+        topBar.Controls.Add(executeButton);
 
-		private async void ExecuteButton_Click(object? sender, EventArgs? e)
-		{
-			if (codeBox == null || outputBox == null || executionService == null || executeButton == null) return;
+        // Now add code panel as the filler so it expands between topBar and output
+        codePanel.Dock = DockStyle.Fill;
+        this.Controls.Add(codePanel);
+    }
 
-			// Deshabilitar botón durante procesamiento
-			executeButton.Enabled = false;
+    private async void CompileButton_Click(object? sender, EventArgs? e)
+    {
+        if (codeBox == null || outputBox == null || compilationService == null || compileButton == null)
+            return;
 
-			// Mostrar estado de procesamiento
-			ControlFactory.SetButtonState(executeButton, ControlFactory.ButtonState.Processing);
+        // Deshabilitar botón durante procesamiento
+        compileButton.Enabled = false;
 
-			try
-			{
-				// Simular procesamiento asíncrono
-				await Task.Run(() =>
-				{
-					string source = codeBox.Text;
-					var result = executionService.ExecuteCode(source);
+        // Mostrar estado de procesamiento
+        ControlFactory.SetButtonState(compileButton, ControlFactory.ButtonState.Processing);
 
-					// Actualizar UI en el hilo principal
-					this.Invoke(() =>
-					{
-						outputBox.Text = result.Output;
+        try
+        {
+            // Simular procesamiento asíncrono
+            await Task.Run(() =>
+            {
+                string source = codeBox.Text;
+                var result = compilationService.CompileCode(source);
 
-						// Cambiar estado del botón según el resultado
-						ControlFactory.SetButtonState(executeButton,
-							result.IsSuccessful ? ControlFactory.ButtonState.Success : ControlFactory.ButtonState.Error);
-					});
-				});
-			}
-			finally
-			{
-				// Rehabilitar botón
-				executeButton.Enabled = true;
-			}
-		}
+                // Actualizar UI en el hilo principal
+                this.Invoke(() =>
+                {
+                    outputBox.Text = result.Output;
 
-		private void CodeBox_TextChanged(object? sender, EventArgs? e)
-		{
-			// Resetear estados de botones cuando se modifica el código
-			if (compileButton != null)
-				ControlFactory.SetButtonState(compileButton, ControlFactory.ButtonState.Normal);
-			if (executeButton != null)
-				ControlFactory.SetButtonState(executeButton, ControlFactory.ButtonState.Normal);
-		}
-	}
+                    // Cambiar estado del botón según el resultado
+                    ControlFactory.SetButtonState(compileButton,
+                        result.IsSuccessful ? ControlFactory.ButtonState.Success : ControlFactory.ButtonState.Error);
+                });
+            });
+        }
+        finally
+        {
+            // Rehabilitar botón
+            compileButton.Enabled = true;
+        }
+    }
+
+    private async void ExecuteButton_Click(object? sender, EventArgs? e)
+    {
+        if (codeBox == null || outputBox == null || executionService == null || executeButton == null)
+            return;
+
+        // Deshabilitar botón durante procesamiento
+        executeButton.Enabled = false;
+
+        // Mostrar estado de procesamiento
+        ControlFactory.SetButtonState(executeButton, ControlFactory.ButtonState.Processing);
+
+        try
+        {
+            // Simular procesamiento asíncrono
+            await Task.Run(() =>
+            {
+                string source = codeBox.Text;
+                var result = executionService.ExecuteCode(source);
+
+                // Actualizar UI en el hilo principal
+                this.Invoke(() =>
+                {
+                    outputBox.Text = result.Output;
+
+                    // Cambiar estado del botón según el resultado
+                    ControlFactory.SetButtonState(executeButton,
+                        result.IsSuccessful ? ControlFactory.ButtonState.Success : ControlFactory.ButtonState.Error);
+                });
+            });
+        }
+        finally
+        {
+            // Rehabilitar botón
+            executeButton.Enabled = true;
+        }
+    }
+
+    private void CodeBox_TextChanged(object? sender, EventArgs? e)
+    {
+        // Resetear estados de botones cuando se modifica el código
+        if (compileButton != null)
+            ControlFactory.SetButtonState(compileButton, ControlFactory.ButtonState.Normal);
+        if (executeButton != null)
+            ControlFactory.SetButtonState(executeButton, ControlFactory.ButtonState.Normal);
+    }
 }
