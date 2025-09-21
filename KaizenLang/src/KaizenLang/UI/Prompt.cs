@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace KaizenLang.UI;
@@ -15,7 +16,7 @@ public static class Prompt
                 form.StartPosition = FormStartPosition.CenterParent;
                 form.MinimizeBox = false;
                 form.MaximizeBox = false;
-                form.BackColor = UIConstants.Colors.PanelBackground;
+                form.BackColor = KaizenTheme.Surface;
 
                 var label = new Label()
                 {
@@ -23,9 +24,9 @@ public static class Prompt
                     Top = 12,
                     Width = 396,
                     Text = prompt ?? "",
-                    ForeColor = UIConstants.Colors.CodeForeground,
+                    ForeColor = KaizenTheme.Text,
                     BackColor = Color.Transparent,
-                    Font = new Font(UIConstants.Fonts.MenuFont.FontFamily, 9, FontStyle.Regular)
+                    Font = new Font("Segoe UI", 9, FontStyle.Regular)
                 };
 
                 var textBox = new TextBox()
@@ -33,9 +34,9 @@ public static class Prompt
                     Left = 12,
                     Top = 40,
                     Width = 396,
-                    BackColor = UIConstants.Colors.CodeBackground,
-                    ForeColor = UIConstants.Colors.CodeForeground,
-                    Font = UIConstants.Fonts.CodeFont
+                    BackColor = KaizenTheme.Surface3,
+                    ForeColor = KaizenTheme.Text,
+                    Font = new Font("Consolas", 10)
                 };
 
                 var okButton = new Button()
@@ -45,10 +46,10 @@ public static class Prompt
                     Width = 80,
                     Top = 95,
                     DialogResult = DialogResult.OK,
-                    BackColor = UIConstants.Colors.CompileButton,
-                    ForeColor = UIConstants.Colors.ButtonText,
+                    BackColor = KaizenTheme.Green,
+                    ForeColor = Color.White,
                     FlatStyle = FlatStyle.Flat,
-                    Font = UIConstants.Fonts.ButtonFont
+                    Font = new Font("Segoe UI", 9, FontStyle.Bold)
                 };
 
                 var cancelButton = new Button()
@@ -59,9 +60,9 @@ public static class Prompt
                     Top = 95,
                     DialogResult = DialogResult.Cancel,
                     BackColor = Color.Transparent,
-                    ForeColor = UIConstants.Colors.MenuForeground,
+                    ForeColor = KaizenTheme.Muted,
                     FlatStyle = FlatStyle.Flat,
-                    Font = UIConstants.Fonts.ButtonFont
+                    Font = new Font("Segoe UI", 9, FontStyle.Bold)
                 };
 
                 okButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
