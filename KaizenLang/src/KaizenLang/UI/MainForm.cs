@@ -73,18 +73,25 @@ public class MainForm : Form
         this.Width = UIConstants.MAIN_WINDOW_WIDTH;
         this.Height = UIConstants.MAIN_WINDOW_HEIGHT;
         this.BackColor = UIConstants.Colors.MainBackground;
-        this.FormBorderStyle = FormBorderStyle.FixedSingle;
-        this.MaximizeBox = false;
+        // Allow resizing and maximize; set minimum size for usability
+        this.FormBorderStyle = FormBorderStyle.Sizable;
+        this.MaximizeBox = true;
+        this.MinimumSize = new Size(900, 600);
     }
 
     private void InitializeControls()
     {
-        // Crear panel de código primero
-        var codePanel = ControlFactory.CreateCodePanel();
-        codeBox = ControlFactory.CreateCodeTextBox(codePanel);
-        codeBox.TextChanged += CodeBox_TextChanged; // Agregar evento para resetear colores
-        codePanel.Controls.Add(codeBox);
-        this.Controls.Add(codePanel);
+    // Crear panel de código primero
+    var codePanel = ControlFactory.CreateCodePanel();
+    // Make code panel dock to top and allow it to resize
+    codePanel.Height = UIConstants.CODE_PANEL_HEIGHT;
+    codePanel.Dock = DockStyle.Top;
+    codeBox = ControlFactory.CreateCodeTextBox(codePanel);
+    codeBox.TextChanged += CodeBox_TextChanged; // Agregar evento para resetear colores
+    // Let the code textbox fill the panel and resize with it
+    codeBox.Dock = DockStyle.Fill;
+    codePanel.Controls.Add(codeBox);
+    this.Controls.Add(codePanel);
 
     // Ahora crear topbar (logo + menú) con la referencia válida al codeBox
     topBar = MenuBuilder.CreateTopBar(codeBox);
@@ -92,20 +99,42 @@ public class MainForm : Form
     topBar.Dock = DockStyle.Top;
     this.Controls.Add(topBar);
 
-        // Crear botones
+        // Crear un panel para botones (colocado entre editor y salida)
+        var buttonsPanel = new Panel
+        {
+            Height = 64,
+            Dock = DockStyle.Top,
+            BackColor = Color.Transparent
+        };
+
+        // Crear botones usando los constructores existentes, luego reubicar dentro del panel
         compileButton = ControlFactory.CreateCompileButton(codePanel);
         compileButton.Click += CompileButton_Click;
-        this.Controls.Add(compileButton);
+        // Override location and anchoring so they stay in place when resizing
+        compileButton.Left = 96;
+        compileButton.Top = 14;
+        compileButton.Anchor = AnchorStyles.Top | AnchorStyles.Left;
 
         executeButton = ControlFactory.CreateExecuteButton(compileButton);
         executeButton.Click += ExecuteButton_Click;
-        this.Controls.Add(executeButton);
+        executeButton.Left = compileButton.Right + UIConstants.BUTTON_SPACING;
+        executeButton.Top = compileButton.Top;
+        executeButton.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+
+        buttonsPanel.Controls.Add(compileButton);
+        buttonsPanel.Controls.Add(executeButton);
+        this.Controls.Add(buttonsPanel);
 
         // Crear panel de salida
-        var outputPanel = ControlFactory.CreateOutputPanel(compileButton);
-        outputBox = ControlFactory.CreateOutputTextBox(outputPanel);
-        outputPanel.Controls.Add(outputBox);
-        this.Controls.Add(outputPanel);
+    var outputPanel = ControlFactory.CreateOutputPanel(compileButton);
+    // Place output panel at bottom and allow it to keep fixed height while width adapts
+    outputPanel.Height = UIConstants.OUTPUT_PANEL_HEIGHT;
+    outputPanel.Dock = DockStyle.Bottom;
+    outputBox = ControlFactory.CreateOutputTextBox(outputPanel);
+    // Make output box fill the output panel
+    outputBox.Dock = DockStyle.Fill;
+    outputPanel.Controls.Add(outputBox);
+    this.Controls.Add(outputPanel);
     }
 
     private async void CompileButton_Click(object? sender, EventArgs? e)
