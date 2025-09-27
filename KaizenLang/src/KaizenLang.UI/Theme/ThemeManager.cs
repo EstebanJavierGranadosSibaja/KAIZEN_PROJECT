@@ -168,42 +168,53 @@ namespace KaizenLang.UI.Theme
     /// </summary>
     public class ModernMenuStripRenderer : ToolStripProfessionalRenderer
     {
-        protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e)
-        {
-            if (e.Item.Selected)
-            {
-                e.Graphics.FillRectangle(
-                    new SolidBrush(ThemeManager.CurrentTheme.Selection),
-                    e.Item.ContentRectangle);
-            }
-            else
-            {
-                e.Graphics.FillRectangle(
-                    new SolidBrush(ThemeManager.CurrentTheme.MenuBackground),
-                    e.Item.ContentRectangle);
-            }
-        }
+        public ModernMenuStripRenderer() : base(new ModernColors()) { }
     }
 
-    /// <summary>
-    /// Renderer personalizado para ToolStrip
-    /// </summary>
     public class ModernToolStripRenderer : ToolStripProfessionalRenderer
     {
-        protected override void OnRenderButtonBackground(ToolStripItemRenderEventArgs e)
-        {
-            if (e.Item.Selected)
-            {
-                e.Graphics.FillRectangle(
-                    new SolidBrush(ThemeManager.CurrentTheme.ButtonMouseOver),
-                    e.Item.ContentRectangle);
-            }
-            else if (e.Item.Pressed)
-            {
-                e.Graphics.FillRectangle(
-                    new SolidBrush(ThemeManager.CurrentTheme.ButtonMouseDown),
-                    e.Item.ContentRectangle);
-            }
-        }
+        public ModernToolStripRenderer() : base(new ModernColors()) { }
+    }
+
+    public class ModernColors : ProfessionalColorTable
+    {
+        // General
+        public override Color MenuBorder => ThemeManager.CurrentTheme.Border;
+        public override Color ToolStripDropDownBackground => ThemeManager.CurrentTheme.SecondaryBackground;
+
+        // Botones y elementos del ToolStrip
+        public override Color ButtonSelectedHighlight => ThemeManager.CurrentTheme.Selection;
+        public override Color ButtonSelectedGradientBegin => ThemeManager.CurrentTheme.ButtonMouseOver;
+        public override Color ButtonSelectedGradientMiddle => ThemeManager.CurrentTheme.ButtonMouseOver;
+        public override Color ButtonSelectedGradientEnd => ThemeManager.CurrentTheme.ButtonMouseOver;
+        public override Color ButtonPressedHighlight => ThemeManager.CurrentTheme.Selection;
+        public override Color ButtonPressedGradientBegin => ThemeManager.CurrentTheme.ButtonMouseDown;
+        public override Color ButtonPressedGradientMiddle => ThemeManager.CurrentTheme.ButtonMouseDown;
+        public override Color ButtonPressedGradientEnd => ThemeManager.CurrentTheme.ButtonMouseDown;
+        public override Color ButtonCheckedHighlight => ThemeManager.CurrentTheme.Selection;
+        public override Color ButtonCheckedGradientBegin => ThemeManager.CurrentTheme.ButtonMouseDown;
+        public override Color ButtonCheckedGradientMiddle => ThemeManager.CurrentTheme.ButtonMouseDown;
+        public override Color ButtonCheckedGradientEnd => ThemeManager.CurrentTheme.ButtonMouseDown;
+
+        // Elementos del menú
+        public override Color MenuItemSelected => ThemeManager.CurrentTheme.ButtonMouseOver;
+        public override Color MenuItemBorder => ThemeManager.CurrentTheme.FocusBorder;
+        public override Color MenuItemPressedGradientBegin => ThemeManager.CurrentTheme.MenuBackground;
+        public override Color MenuItemPressedGradientEnd => ThemeManager.CurrentTheme.MenuBackground;
+        public override Color MenuItemSelectedGradientBegin => ThemeManager.CurrentTheme.ButtonMouseOver;
+        public override Color MenuItemSelectedGradientEnd => ThemeManager.CurrentTheme.ButtonMouseOver;
+
+        // Separadores
+        public override Color SeparatorDark => ThemeManager.CurrentTheme.Border;
+        public override Color SeparatorLight => Color.Transparent;
+
+        // Grip (el handle para mover el ToolStrip)
+        public override Color GripDark => ThemeManager.CurrentTheme.Border;
+        public override Color GripLight => Color.Transparent;
+
+        // Borde de la imagen
+        public override Color ImageMarginGradientBegin => ThemeManager.CurrentTheme.SecondaryBackground;
+        public override Color ImageMarginGradientMiddle => ThemeManager.CurrentTheme.SecondaryBackground;
+        public override Color ImageMarginGradientEnd => ThemeManager.CurrentTheme.SecondaryBackground;
     }
 }

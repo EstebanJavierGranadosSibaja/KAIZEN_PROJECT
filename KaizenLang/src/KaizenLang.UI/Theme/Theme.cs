@@ -99,90 +99,92 @@ namespace KaizenLang.UI.Theme
 
         public void DarkTheme()
         {
-            // Kaizen specific theme colors
-            // Main colors
-            Background = ColorTranslator.FromHtml("#0B0F14");
-            Foreground = ColorTranslator.FromHtml("#E6E9ED");
+            // Nueva paleta de colores basada en el logo de Kaizen
+            // Tonos principales: Negro, Verde Oscuro/Claro, Dorado Oscuro/Claro
 
-            // Secondary colors
-            SecondaryBackground = ColorTranslator.FromHtml("#12181E");
-            SecondaryForeground = ColorTranslator.FromHtml("#AAB0B8");
+            // Colores principales
+            Background = ColorTranslator.FromHtml("#0A0A0A"); // Negro profundo
+            Foreground = ColorTranslator.FromHtml("#F0F0F0"); // Blanco roto
 
-            // Accent colors
-            PrimaryAccent = ColorTranslator.FromHtml("#28C76F");
-            SecondaryAccent = ColorTranslator.FromHtml("#D49B2D");
+            // Colores secundarios
+            SecondaryBackground = ColorTranslator.FromHtml("#141414"); // Gris muy oscuro
+            SecondaryForeground = ColorTranslator.FromHtml("#A0A0A0"); // Gris claro
 
-            // Button colors
-            ButtonBackground = ColorTranslator.FromHtml("#181E25");
-            ButtonForeground = ColorTranslator.FromHtml("#E6E9ED");
-            ButtonBorder = ColorTranslator.FromHtml("#252C36");
-            ButtonMouseOver = ColorTranslator.FromHtml("#1F262E");
-            ButtonMouseDown = ColorTranslator.FromHtml("#166C30");
+            // Colores de acento
+            PrimaryAccent = ColorTranslator.FromHtml("#5A8A5D"); // Verde claro
+            SecondaryAccent = ColorTranslator.FromHtml("#D4B37F"); // Dorado claro
 
-            // TextBox colors
-            TextBoxBackground = ColorTranslator.FromHtml("#0E1216");
-            TextBoxForeground = ColorTranslator.FromHtml("#E6E9ED");
-            TextBoxBorder = ColorTranslator.FromHtml("#252C36");
-            TextBoxSelectionBackground = ColorTranslator.FromHtml("#166C30");
-            TextBoxSelectionForeground = Color.White;
+            // Colores de botones
+            ButtonBackground = ColorTranslator.FromHtml("#1F1F1F"); // Gris oscuro
+            ButtonForeground = ColorTranslator.FromHtml("#F0F0F0");
+            ButtonBorder = ColorTranslator.FromHtml("#A98B4F"); // Dorado oscuro
+            ButtonMouseOver = ColorTranslator.FromHtml("#2A4B2C"); // Verde oscuro
+            ButtonMouseDown = ColorTranslator.FromHtml("#5A8A5D"); // Verde claro
 
-            // List colors
-            ListBackground = ColorTranslator.FromHtml("#12181E");
-            ListForeground = ColorTranslator.FromHtml("#E6E9ED");
-            ListSelectionBackground = ColorTranslator.FromHtml("#166C30");
-            ListSelectionForeground = Color.White;
+            // Colores de cajas de texto
+            TextBoxBackground = ColorTranslator.FromHtml("#0A0A0A");
+            TextBoxForeground = ColorTranslator.FromHtml("#F0F0F0");
+            TextBoxBorder = ColorTranslator.FromHtml("#A98B4F"); // Dorado oscuro
+            TextBoxSelectionBackground = ColorTranslator.FromHtml("#2A4B2C"); // Verde oscuro
+            TextBoxSelectionForeground = ColorTranslator.FromHtml("#F0F0F0");
 
-            // Label colors
+            // Colores de listas
+            ListBackground = ColorTranslator.FromHtml("#141414");
+            ListForeground = ColorTranslator.FromHtml("#F0F0F0");
+            ListSelectionBackground = ColorTranslator.FromHtml("#2A4B2C"); // Verde oscuro
+            ListSelectionForeground = ColorTranslator.FromHtml("#F0F0F0");
+
+            // Colores de etiquetas
             LabelBackground = Color.Transparent;
-            LabelForeground = ColorTranslator.FromHtml("#E6E9ED");
+            LabelForeground = ColorTranslator.FromHtml("#F0F0F0");
 
-            // Panel colors
-            PanelBackground = ColorTranslator.FromHtml("#12181E");
-            PanelForeground = ColorTranslator.FromHtml("#E6E9ED");
+            // Colores de paneles
+            PanelBackground = ColorTranslator.FromHtml("#141414");
+            PanelForeground = ColorTranslator.FromHtml("#F0F0F0");
 
-            // DataGridView colors
-            GridBackground = ColorTranslator.FromHtml("#0B0F14");
-            GridForeground = ColorTranslator.FromHtml("#E6E9ED");
-            GridHeaderBackground = ColorTranslator.FromHtml("#181E25");
-            GridHeaderForeground = ColorTranslator.FromHtml("#E6E9ED");
-            GridSelectionBackground = ColorTranslator.FromHtml("#166C30");
+            // Colores de DataGridView
+            GridBackground = ColorTranslator.FromHtml("#0A0A0A");
+            GridForeground = ColorTranslator.FromHtml("#F0F0F0");
+            GridHeaderBackground = ColorTranslator.FromHtml("#1F1F1F");
+            GridHeaderForeground = ColorTranslator.FromHtml("#D4B37F"); // Dorado claro
+            GridSelectionBackground = ColorTranslator.FromHtml("#2A4B2C"); // Verde oscuro
             GridSelectionForeground = Color.White;
-            GridBorder = ColorTranslator.FromHtml("#252C36");
+            GridBorder = ColorTranslator.FromHtml("#A98B4F"); // Dorado oscuro
 
-            // TabControl colors
-            TabBackground = ColorTranslator.FromHtml("#181E25");
-            TabForeground = ColorTranslator.FromHtml("#E6E9ED");
-            TabPageBackground = ColorTranslator.FromHtml("#0B0F14");
-            TabPageForeground = ColorTranslator.FromHtml("#E6E9ED");
+            // Colores de TabControl
+            TabBackground = ColorTranslator.FromHtml("#1F1F1F");
+            TabForeground = ColorTranslator.FromHtml("#F0F0F0");
+            TabPageBackground = ColorTranslator.FromHtml("#0A0A0A");
+            TabPageForeground = ColorTranslator.FromHtml("#F0F0F0");
 
-            // Menu colors
-            MenuBackground = ColorTranslator.FromHtml("#0E1216");
-            MenuForeground = ColorTranslator.FromHtml("#AAB0B8");
-            ToolStripBackground = ColorTranslator.FromHtml("#0E1216");
-            ToolStripForeground = ColorTranslator.FromHtml("#AAB0B8");
+            // Colores de menú
+            MenuBackground = ColorTranslator.FromHtml("#141414");
+            MenuForeground = ColorTranslator.FromHtml("#A0A0A0");
+            ToolStripBackground = ColorTranslator.FromHtml("#141414");
+            ToolStripForeground = ColorTranslator.FromHtml("#A0A0A0");
 
-            // Syntax highlighting colors (example mapping)
-            Keywords = ColorTranslator.FromHtml("#1FA044"); // Green
-            Comments = ColorTranslator.FromHtml("#AAB0B8"); // Muted
-            Strings = ColorTranslator.FromHtml("#D49B2D"); // Gold
-            Numbers = ColorTranslator.FromHtml("#28C76F"); // Highlight
-            Identifiers = ColorTranslator.FromHtml("#E6E9ED"); // Text
-            Functions = ColorTranslator.FromHtml("#D49B2D"); // Gold
-            Operators = ColorTranslator.FromHtml("#AAB0B8"); // Muted
+            // Colores de resaltado de sintaxis
+            Keywords = ColorTranslator.FromHtml("#5A8A5D"); // Verde claro
+            Comments = ColorTranslator.FromHtml("#A0A0A0"); // Gris claro
+            Strings = ColorTranslator.FromHtml("#D4B37F"); // Dorado claro
+            Numbers = ColorTranslator.FromHtml("#5A8A5D"); // Verde claro
+            Identifiers = ColorTranslator.FromHtml("#F0F0F0"); // Blanco roto
+            Functions = ColorTranslator.FromHtml("#D4B37F"); // Dorado claro
+            Operators = ColorTranslator.FromHtml("#A98B4F"); // Dorado oscuro
 
-            // UI element colors
-            Selection = ColorTranslator.FromHtml("#166C30"); // GreenDark
-            LineNumbers = ColorTranslator.FromHtml("#AAB0B8"); // Muted
-            CurrentLine = ColorTranslator.FromHtml("#181E25"); // Surface2
+            // Colores de elementos de UI
+            Selection = ColorTranslator.FromHtml("#2A4B2C"); // Verde oscuro
+            LineNumbers = ColorTranslator.FromHtml("#A0A0A0"); // Gris claro
+            CurrentLine = ColorTranslator.FromHtml("#1F1F1F"); // Gris oscuro
             Error = Color.Firebrick;
-            Warning = ColorTranslator.FromHtml("#D49B2D"); // Gold
-            Info = Color.DodgerBlue;
+            Warning = ColorTranslator.FromHtml("#D4B37F"); // Dorado claro
+            Info = Color.CornflowerBlue;
 
-            // Border colors
-            Border = ColorTranslator.FromHtml("#252C36");
-            FocusBorder = ColorTranslator.FromHtml("#28C76F"); // Highlight
+            // Colores de borde
+            Border = ColorTranslator.FromHtml("#A98B4F"); // Dorado oscuro
+            FocusBorder = ColorTranslator.FromHtml("#5A8A5D"); // Verde claro
 
-            // Font settings
+            // Configuración de fuente
             DefaultFontFamily = "Consolas";
             DefaultFontSize = 12.0f;
         }
