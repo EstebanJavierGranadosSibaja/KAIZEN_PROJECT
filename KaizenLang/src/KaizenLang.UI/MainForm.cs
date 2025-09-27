@@ -20,6 +20,20 @@ namespace KaizenLang.UI
             executionService.InputProvider = prompt => Prompt.Show("Input", prompt);
             
             InitializeCustomComponents();
+            // Load application icon from output Resources folder if available and apply it to the form (taskbar icon)
+            try
+            {
+                var iconPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "icon.ico");
+                if (System.IO.File.Exists(iconPath))
+                {
+                    this.Icon = new Icon(iconPath);
+                }
+            }
+            catch
+            {
+                // Ignore icon load failures - not critical
+            }
+
             this.ApplyCurrentThemeRecursive();
         }
 
