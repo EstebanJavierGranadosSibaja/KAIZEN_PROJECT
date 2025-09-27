@@ -57,7 +57,9 @@ public partial class Interpreter
         return tokens;
     }
 
-    // Ensure inputBuffer has tokens: if empty, ask inputProvider for a line
+    // Ensure inputBuffer has tokens: if empty, ask inputProvider for a line.
+    // If no inputProvider is supplied, attempt a Console.ReadLine with a short timeout
+    // so running snippets in non-interactive contexts doesn't hang indefinitely.
     private string? ReadNextInputToken(string? prompt)
     {
         lock (inputLock)
@@ -66,9 +68,34 @@ public partial class Interpreter
             {
                 try
                 {
-                    var line = inputProvider?.Invoke(prompt);
+                    string? line = null;
+
+                    if (inputProvider != null)
+                    {
+                        // UI-driven provider (modal prompt) - call synchronously
+                        line = inputProvider.Invoke(prompt);
+                    }
+                    else
+                    {
+                        // No provider: attempt Console.ReadLine but with timeout to avoid blocking.
+                        try
+                        {
+                            var readTask = System.Threading.Tasks.Task.Run(() => Console.ReadLine());
+                            // Wait a short timeout (2 seconds) to avoid long blocking during tests
+                            if (readTask.Wait(TimeSpan.FromSeconds(2)))
+                                line = readTask.Result;
+                            else
+                                line = null; // timeout
+                        }
+                        catch
+                        {
+                            line = null;
+                        }
+                    }
+
                     if (line == null)
                         return null;
+
                     var toks = TokenizeInputLine(line);
                     foreach (var t in toks)
                         inputBuffer.Enqueue(t);
