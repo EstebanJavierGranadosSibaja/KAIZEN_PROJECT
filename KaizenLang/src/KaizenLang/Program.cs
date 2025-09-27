@@ -1,6 +1,7 @@
 using KaizenLang.UI;
+using KaizenLang.UI.Theme;
 
-namespace KaizenLang;
+namespace KaizenLang.App;
 
 public static class Program
 {
@@ -11,6 +12,11 @@ public static class Program
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
+            // Inicializar y configurar el tema
+            var theme = new KaizenLang.UI.Theme.Theme();
+            theme.DarkTheme();
+            ThemeManager.SetTheme(theme);
 
             // Agregar manejo global de excepciones
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
