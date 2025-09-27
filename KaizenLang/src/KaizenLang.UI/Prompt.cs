@@ -8,73 +8,102 @@ public static class Prompt
 {
     public static string? Show(string title, string? prompt)
     {
-            using (var form = new Form())
+        using (var form = new Form())
+        {
+            form.Width = 460;
+            form.Height = 200;
+            form.Text = title ?? "Entrada requerida";
+            form.FormBorderStyle = FormBorderStyle.FixedDialog;
+            form.StartPosition = FormStartPosition.CenterParent;
+            form.MinimizeBox = false;
+            form.MaximizeBox = false;
+            form.Padding = new Padding(12, 15, 12, 12);
+            form.ApplyCurrentTheme();
+
+            // Texto descriptivo
+            var label = new Label()
             {
-                form.Width = 420;
-                form.Height = 170;
-                form.Text = title ?? "Input";
-                form.FormBorderStyle = FormBorderStyle.FixedDialog;
-                form.StartPosition = FormStartPosition.CenterParent;
-                form.MinimizeBox = false;
-                form.MaximizeBox = false;
-                form.ApplyCurrentTheme();
+                AutoSize = false,
+                Dock = DockStyle.Top,
+                Height = 40,
+                TextAlign = ContentAlignment.MiddleLeft,
+                Text = prompt ?? "",
+                Font = new Font("Segoe UI", 10, FontStyle.Regular),
+                Padding = new Padding(2, 0, 2, 0)
+            };
 
-                var label = new Label()
-                {
-                    Left = 12,
-                    Top = 12,
-                    Width = 396,
-                    Text = prompt ?? "",
-                    Font = new Font("Segoe UI", 9, FontStyle.Regular)
-                };
+            // Caja de texto
+            var textBox = new TextBox()
+            {
+                Dock = DockStyle.Top,
+                Margin = new Padding(0, 8, 0, 8),
+                Font = new Font("Consolas", 11, FontStyle.Regular)
+            };
 
-                var textBox = new TextBox()
-                {
-                    Left = 12,
-                    Top = 40,
-                    Width = 396,
-                    Font = new Font("Consolas", 10)
-                };
+            // Panel inferior para botones
+            var buttonPanel = new Panel()
+            {
+                Dock = DockStyle.Bottom,
+                Height = 50,
+                Padding = new Padding(0, 5, 0, 0)
+            };
 
-                var okButton = new Button()
-                {
-                    Text = "OK",
-                    Left = 230,
-                    Width = 80,
-                    Top = 95,
-                    DialogResult = DialogResult.OK,
-                    FlatStyle = FlatStyle.Flat,
-                    Font = new Font("Segoe UI", 9, FontStyle.Bold)
-                };
+            // Botón OK
+            var okButton = new Button()
+            {
+                Text = "Aceptar",
+                DialogResult = DialogResult.OK,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                FlatStyle = FlatStyle.Flat,
+                Height = 32,
+                Width = 100,
+                Anchor = AnchorStyles.Right | AnchorStyles.Bottom,
+                Margin = new Padding(6)
+            };
+            okButton.FlatAppearance.BorderSize = 0;
 
-                var cancelButton = new Button()
-                {
-                    Text = "Cancel",
-                    Left = 315,
-                    Width = 80,
-                    Top = 95,
-                    DialogResult = DialogResult.Cancel,
-                    BackColor = Color.Transparent,
-                    FlatStyle = FlatStyle.Flat,
-                    Font = new Font("Segoe UI", 9, FontStyle.Bold)
-                };
+            // Botón Cancelar
+            var cancelButton = new Button()
+            {
+                Text = "Cancelar",
+                DialogResult = DialogResult.Cancel,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                FlatStyle = FlatStyle.Flat,
+                Height = 32,
+                Width = 100,
+                Anchor = AnchorStyles.Right | AnchorStyles.Bottom,
+                Margin = new Padding(6)
+            };
+            cancelButton.FlatAppearance.BorderSize = 0;
 
-                okButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-                cancelButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            // Flujo de botones a la derecha
+            var flow = new FlowLayoutPanel()
+            {
+                Dock = DockStyle.Right,
+                FlowDirection = FlowDirection.LeftToRight,
+                AutoSize = true,
+                WrapContents = false
+            };
+            flow.Controls.Add(okButton);
+            flow.Controls.Add(cancelButton);
 
-                form.Controls.Add(label);
-                form.Controls.Add(textBox);
-                form.Controls.Add(okButton);
-                form.Controls.Add(cancelButton);
-                form.AcceptButton = okButton;
-                form.CancelButton = cancelButton;
+            buttonPanel.Controls.Add(flow);
 
-                form.ApplyCurrentThemeRecursive();
+            // Agregar controles
+            form.Controls.Add(buttonPanel);
+            form.Controls.Add(textBox);
+            form.Controls.Add(label);
 
-                var result = form.ShowDialog();
-                if (result == DialogResult.OK)
-                    return textBox.Text;
-                return null;
-            }
+            // Teclas rápidas
+            form.AcceptButton = okButton;
+            form.CancelButton = cancelButton;
+
+            form.ApplyCurrentThemeRecursive();
+
+            var result = form.ShowDialog();
+            if (result == DialogResult.OK)
+                return textBox.Text;
+            return null;
+        }
     }
 }

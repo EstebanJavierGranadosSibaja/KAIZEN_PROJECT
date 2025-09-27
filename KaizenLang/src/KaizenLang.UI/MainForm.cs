@@ -11,16 +11,19 @@ namespace KaizenLang.UI
         private readonly CompilationService compilationService;
         private readonly ExecutionService executionService;
 
+        private ToolStripStatusLabel? statusLabel;
+
         public MainForm()
         {
             InitializeComponent();
-            
+
             compilationService = new CompilationService();
             executionService = new ExecutionService();
-            executionService.InputProvider = prompt => Prompt.Show("Input", prompt);
-            
+            executionService.InputProvider = prompt => Prompt.Show("Entrada requerida", prompt);
+
             InitializeCustomComponents();
-            // Load application icon from output Resources folder if available and apply it to the form (taskbar icon)
+
+            // Configurar ícono de la aplicación (si existe en carpeta Resources)
             try
             {
                 var iconPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "icon.ico");
@@ -31,7 +34,7 @@ namespace KaizenLang.UI
             }
             catch
             {
-                // Ignore icon load failures - not critical
+                // Ignorar fallo al cargar ícono
             }
 
             this.ApplyCurrentThemeRecursive();
@@ -39,11 +42,24 @@ namespace KaizenLang.UI
 
         private void InitializeCustomComponents()
         {
-            // Event handlers
-            compileButton.Click += CompileButton_Click;
-            executeButton.Click += ExecuteButton_Click;
+            // Eventos de botones
+            compileButton.Click += async (s, e) => await RunWithUIFeedback(
+                compileButton, "Compilando...", "Compilar", async () =>
+                {
+                    var result = await Task.Run(() => compilationService.CompileCode(codeRichTextBox.Text));
+                    DisplayResult(result.Output, result.IsSuccessful);
+                    UpdateStatus(result.IsSuccessful ? "Compilación exitosa" : "Compilación fallida", result.IsSuccessful);
+                });
 
-            // Menu item handlers
+            executeButton.Click += async (s, e) => await RunWithUIFeedback(
+                executeButton, "Ejecutando...", "Ejecutar", async () =>
+                {
+                    var result = await Task.Run(() => executionService.ExecuteCode(codeRichTextBox.Text));
+                    DisplayResult(result.Output, result.IsSuccessful);
+                    UpdateStatus(result.IsSuccessful ? "Ejecución completada" : "Error en ejecución", result.IsSuccessful);
+                });
+
+            // Items de menú -> snippets de código
             reservedWordsToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.ReservedWords);
             ifToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.IfStatement);
             whileToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.WhileLoop);
@@ -52,6 +68,17 @@ namespace KaizenLang.UI
             dataTypesToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.DataTypes);
             operationsToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.Operations);
             semanticsToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.Semantics);
+
+            // Barra de estado
+            var statusStrip = new StatusStrip();
+            statusLabel = new ToolStripStatusLabel("Listo")
+            {
+                Spring = true,
+                TextAlign = ContentAlignment.MiddleLeft,
+                Font = new Font("Segoe UI", 10F, FontStyle.Bold)
+            };
+            statusStrip.Items.Add(statusLabel);
+            this.Controls.Add(statusStrip);
         }
 
         private void InsertCodeSnippet(string snippet)
@@ -60,30 +87,47 @@ namespace KaizenLang.UI
             codeRichTextBox.Text = snippet;
         }
 
-        private async void CompileButton_Click(object? sender, EventArgs e)
+        private void UpdateStatus(string message, bool success)
         {
-            compileButton.Enabled = false;
-            compileButton.Text = "Compiling...";
-            
-            var result = await Task.Run(() => compilationService.CompileCode(codeRichTextBox.Text));
-            
-            outputRichTextBox.Text = result.Output;
-            
-            compileButton.Enabled = true;
-            compileButton.Text = "Compile";
+            if (statusLabel == null) return;
+
+            statusLabel.Text = message;
         }
 
-        private async void ExecuteButton_Click(object? sender, EventArgs e)
+        /// <summary>
+        /// Centraliza la lógica de feedback visual: deshabilita botón, cambia texto, ejecuta acción, restaura estado.
+        /// </summary>
+        private async Task RunWithUIFeedback(Button button, string workingText, string defaultText, Func<Task> action)
         {
-            executeButton.Enabled = false;
-            executeButton.Text = "Executing...";
+            try
+            {
+                button.Enabled = false;
+                button.Text = workingText;
+                UpdateStatus("Procesando...", true);
 
-            var result = await Task.Run(() => executionService.ExecuteCode(codeRichTextBox.Text));
+                await action();
+            }
+            catch (Exception ex)
+            {
+                DisplayResult($"ERROR inesperado: {ex.Message}", false);
+                UpdateStatus("Error inesperado", false);
+            }
+            finally
+            {
+                button.Enabled = true;
+                button.Text = defaultText;
+            }
+        }
 
-            outputRichTextBox.Text = result.Output;
-
-            executeButton.Enabled = true;
-            executeButton.Text = "Execute";
+        /// <summary>
+        /// Muestra resultados en el RichTextBox usando el color de primer plano del tema actual.
+        /// </summary>
+        private void DisplayResult(string output, bool success)
+        {
+            outputRichTextBox.Clear();
+            outputRichTextBox.SelectionColor = ThemeManager.CurrentTheme.Foreground;
+            outputRichTextBox.AppendText(output);
+            outputRichTextBox.SelectionColor = outputRichTextBox.ForeColor; // reset color
         }
     }
 }

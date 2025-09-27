@@ -1,3 +1,6 @@
+using System;
+using System.Windows.Forms;
+
 namespace KaizenLang.UI
 {
     partial class MainForm
@@ -23,8 +26,7 @@ namespace KaizenLang.UI
         #region Windows Form Designer generated code
 
         /// <summary>
-        /// Required method for Designer support - do not modify
-        /// the contents of this method with the code editor.
+        /// Required method for Designer support.
         /// </summary>
         private void InitializeComponent()
         {
@@ -68,31 +70,32 @@ namespace KaizenLang.UI
             this.topBarPanel.Dock = System.Windows.Forms.DockStyle.Top;
             this.topBarPanel.Location = new System.Drawing.Point(10, 10);
             this.topBarPanel.Name = "topBarPanel";
-            this.topBarPanel.Padding = new System.Windows.Forms.Padding(0, 0, 10, 0);
-            this.topBarPanel.Size = new System.Drawing.Size(1244, 50);
+            this.topBarPanel.Padding = new System.Windows.Forms.Padding(5, 5, 15, 5);
+            this.topBarPanel.Size = new System.Drawing.Size(1244, 55);
             this.topBarPanel.TabIndex = 0;
             // 
             // executeButton
             // 
             this.executeButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.executeButton.Font = new System.Drawing.Font("Segoe UI Semibold", 12F, System.Drawing.FontStyle.Bold);
-            this.executeButton.Location = new System.Drawing.Point(1118, 8);
-            this.executeButton.Margin = new System.Windows.Forms.Padding(3, 3, 10, 3);
+            this.executeButton.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold);
+            this.executeButton.Location = new System.Drawing.Point(1118, 10);
+            this.executeButton.Margin = new System.Windows.Forms.Padding(5);
             this.executeButton.Name = "executeButton";
-            this.executeButton.Size = new System.Drawing.Size(116, 35);
+            this.executeButton.Size = new System.Drawing.Size(110, 35);
             this.executeButton.TabIndex = 2;
-            this.executeButton.Text = "Execute";
+            this.executeButton.Text = "Ejecutar";
             this.executeButton.UseVisualStyleBackColor = true;
             // 
             // compileButton
             // 
             this.compileButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.compileButton.Font = new System.Drawing.Font("Segoe UI Semibold", 12F, System.Drawing.FontStyle.Bold);
-            this.compileButton.Location = new System.Drawing.Point(996, 8);
+            this.compileButton.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold);
+            this.compileButton.Location = new System.Drawing.Point(1000, 10);
+            this.compileButton.Margin = new System.Windows.Forms.Padding(5);
             this.compileButton.Name = "compileButton";
-            this.compileButton.Size = new System.Drawing.Size(116, 35);
+            this.compileButton.Size = new System.Drawing.Size(110, 35);
             this.compileButton.TabIndex = 1;
-            this.compileButton.Text = "Compile";
+            this.compileButton.Text = "Compilar";
             this.compileButton.UseVisualStyleBackColor = true;
             // 
             // menuStrip
@@ -101,12 +104,11 @@ namespace KaizenLang.UI
             this.menuStrip.Font = new System.Drawing.Font("Segoe UI", 10F);
             this.menuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.languageStructuresToolStripMenuItem});
-            this.menuStrip.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip.Location = new System.Drawing.Point(5, 5);
             this.menuStrip.Name = "menuStrip";
-            this.menuStrip.Padding = new System.Windows.Forms.Padding(10, 2, 0, 2);
-            this.menuStrip.Size = new System.Drawing.Size(220, 50);
+            this.menuStrip.Padding = new System.Windows.Forms.Padding(5, 2, 0, 2);
+            this.menuStrip.Size = new System.Drawing.Size(220, 45);
             this.menuStrip.TabIndex = 0;
-            this.menuStrip.Text = "menuStrip1";
             // 
             // languageStructuresToolStripMenuItem
             // 
@@ -116,17 +118,17 @@ namespace KaizenLang.UI
             this.syntaxToolStripMenuItem,
             this.semanticsToolStripMenuItem,
             this.dataTypesToolStripMenuItem});
-            this.languageStructuresToolStripMenuItem.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
+            this.languageStructuresToolStripMenuItem.Font = new System.Drawing.Font("Segoe UI Semibold", 11F, System.Drawing.FontStyle.Bold);
             this.languageStructuresToolStripMenuItem.ForeColor = System.Drawing.Color.White;
             this.languageStructuresToolStripMenuItem.Name = "languageStructuresToolStripMenuItem";
-            this.languageStructuresToolStripMenuItem.Padding = new System.Windows.Forms.Padding(10, 0, 10, 0);
-            this.languageStructuresToolStripMenuItem.Size = new System.Drawing.Size(209, 46);
-            this.languageStructuresToolStripMenuItem.Text = "Estructuras del lenguaje";
+            this.languageStructuresToolStripMenuItem.Padding = new System.Windows.Forms.Padding(8, 0, 8, 0);
+            this.languageStructuresToolStripMenuItem.Size = new System.Drawing.Size(198, 41);
+            this.languageStructuresToolStripMenuItem.Text = "Estructuras del Lenguaje";
             // 
             // reservedWordsToolStripMenuItem
             // 
             this.reservedWordsToolStripMenuItem.Name = "reservedWordsToolStripMenuItem";
-            this.reservedWordsToolStripMenuItem.Size = new System.Drawing.Size(243, 26);
+            this.reservedWordsToolStripMenuItem.Size = new System.Drawing.Size(243, 24);
             this.reservedWordsToolStripMenuItem.Text = "Palabras reservadas";
             // 
             // syntaxToolStripMenuItem
@@ -136,7 +138,7 @@ namespace KaizenLang.UI
             this.functionsToolStripMenuItem,
             this.operationsToolStripMenuItem});
             this.syntaxToolStripMenuItem.Name = "syntaxToolStripMenuItem";
-            this.syntaxToolStripMenuItem.Size = new System.Drawing.Size(243, 26);
+            this.syntaxToolStripMenuItem.Size = new System.Drawing.Size(243, 24);
             this.syntaxToolStripMenuItem.Text = "Sintaxis";
             // 
             // controlToolStripMenuItem
@@ -146,55 +148,55 @@ namespace KaizenLang.UI
             this.whileToolStripMenuItem,
             this.forToolStripMenuItem});
             this.controlToolStripMenuItem.Name = "controlToolStripMenuItem";
-            this.controlToolStripMenuItem.Size = new System.Drawing.Size(169, 26);
+            this.controlToolStripMenuItem.Size = new System.Drawing.Size(180, 24);
             this.controlToolStripMenuItem.Text = "Control";
             // 
             // ifToolStripMenuItem
             // 
             this.ifToolStripMenuItem.Name = "ifToolStripMenuItem";
-            this.ifToolStripMenuItem.Size = new System.Drawing.Size(121, 26);
+            this.ifToolStripMenuItem.Size = new System.Drawing.Size(121, 24);
             this.ifToolStripMenuItem.Text = "If";
             // 
             // whileToolStripMenuItem
             // 
             this.whileToolStripMenuItem.Name = "whileToolStripMenuItem";
-            this.whileToolStripMenuItem.Size = new System.Drawing.Size(121, 26);
+            this.whileToolStripMenuItem.Size = new System.Drawing.Size(121, 24);
             this.whileToolStripMenuItem.Text = "While";
             // 
             // forToolStripMenuItem
             // 
             this.forToolStripMenuItem.Name = "forToolStripMenuItem";
-            this.forToolStripMenuItem.Size = new System.Drawing.Size(121, 26);
+            this.forToolStripMenuItem.Size = new System.Drawing.Size(121, 24);
             this.forToolStripMenuItem.Text = "For";
             // 
             // functionsToolStripMenuItem
             // 
             this.functionsToolStripMenuItem.Name = "functionsToolStripMenuItem";
-            this.functionsToolStripMenuItem.Size = new System.Drawing.Size(169, 26);
+            this.functionsToolStripMenuItem.Size = new System.Drawing.Size(180, 24);
             this.functionsToolStripMenuItem.Text = "Funciones";
             // 
             // operationsToolStripMenuItem
             // 
             this.operationsToolStripMenuItem.Name = "operationsToolStripMenuItem";
-            this.operationsToolStripMenuItem.Size = new System.Drawing.Size(169, 26);
+            this.operationsToolStripMenuItem.Size = new System.Drawing.Size(180, 24);
             this.operationsToolStripMenuItem.Text = "Operaciones";
             // 
             // semanticsToolStripMenuItem
             // 
             this.semanticsToolStripMenuItem.Name = "semanticsToolStripMenuItem";
-            this.semanticsToolStripMenuItem.Size = new System.Drawing.Size(243, 26);
+            this.semanticsToolStripMenuItem.Size = new System.Drawing.Size(243, 24);
             this.semanticsToolStripMenuItem.Text = "Semántica";
             // 
             // dataTypesToolStripMenuItem
             // 
             this.dataTypesToolStripMenuItem.Name = "dataTypesToolStripMenuItem";
-            this.dataTypesToolStripMenuItem.Size = new System.Drawing.Size(243, 26);
+            this.dataTypesToolStripMenuItem.Size = new System.Drawing.Size(243, 24);
             this.dataTypesToolStripMenuItem.Text = "Tipos de datos";
             // 
             // mainSplitContainer
             // 
             this.mainSplitContainer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.mainSplitContainer.Location = new System.Drawing.Point(10, 60);
+            this.mainSplitContainer.Location = new System.Drawing.Point(10, 65);
             this.mainSplitContainer.Name = "mainSplitContainer";
             // 
             // mainSplitContainer.Panel1
@@ -204,7 +206,7 @@ namespace KaizenLang.UI
             // mainSplitContainer.Panel2
             // 
             this.mainSplitContainer.Panel2.Controls.Add(this.sidebarPanel);
-            this.mainSplitContainer.Size = new System.Drawing.Size(1244, 691);
+            this.mainSplitContainer.Size = new System.Drawing.Size(1244, 686);
             this.mainSplitContainer.SplitterDistance = 960;
             this.mainSplitContainer.SplitterWidth = 8;
             this.mainSplitContainer.TabIndex = 1;
@@ -225,17 +227,18 @@ namespace KaizenLang.UI
             // 
             this.editorOutputSplitContainer.Panel2.Controls.Add(this.outputRichTextBox);
             this.editorOutputSplitContainer.Panel2.Padding = new System.Windows.Forms.Padding(10, 5, 10, 10);
-            this.editorOutputSplitContainer.Size = new System.Drawing.Size(960, 691);
+            this.editorOutputSplitContainer.Size = new System.Drawing.Size(960, 686);
             this.editorOutputSplitContainer.SplitterDistance = 480;
             this.editorOutputSplitContainer.SplitterWidth = 8;
             this.editorOutputSplitContainer.TabIndex = 0;
             // 
             // codeRichTextBox
             // 
-            this.codeRichTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.codeRichTextBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.codeRichTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.codeRichTextBox.Font = new System.Drawing.Font("Consolas", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.codeRichTextBox.Font = new System.Drawing.Font("Consolas", 13F);
             this.codeRichTextBox.Location = new System.Drawing.Point(10, 10);
+            this.codeRichTextBox.Margin = new System.Windows.Forms.Padding(5);
             this.codeRichTextBox.Name = "codeRichTextBox";
             this.codeRichTextBox.Size = new System.Drawing.Size(940, 465);
             this.codeRichTextBox.TabIndex = 0;
@@ -243,10 +246,11 @@ namespace KaizenLang.UI
             // 
             // outputRichTextBox
             // 
-            this.outputRichTextBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.outputRichTextBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.outputRichTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.outputRichTextBox.Font = new System.Drawing.Font("Segoe UI", 11F);
+            this.outputRichTextBox.Font = new System.Drawing.Font("Segoe UI", 10.5F);
             this.outputRichTextBox.Location = new System.Drawing.Point(10, 5);
+            this.outputRichTextBox.Margin = new System.Windows.Forms.Padding(5);
             this.outputRichTextBox.Name = "outputRichTextBox";
             this.outputRichTextBox.Size = new System.Drawing.Size(940, 183);
             this.outputRichTextBox.TabIndex = 0;
@@ -257,8 +261,8 @@ namespace KaizenLang.UI
             this.sidebarPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.sidebarPanel.Location = new System.Drawing.Point(0, 0);
             this.sidebarPanel.Name = "sidebarPanel";
-            this.sidebarPanel.Padding = new System.Windows.Forms.Padding(10);
-            this.sidebarPanel.Size = new System.Drawing.Size(276, 691);
+            this.sidebarPanel.Padding = new System.Windows.Forms.Padding(8);
+            this.sidebarPanel.Size = new System.Drawing.Size(276, 686);
             this.sidebarPanel.TabIndex = 0;
             // 
             // MainForm
