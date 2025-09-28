@@ -16,6 +16,7 @@ public partial class Parser
                  tokens[pos].Value == "," || tokens[pos].Value == "yang"))
                 break;
 
+            // Detect function call shapes: NAME(...)
             if (pos + 1 < tokens.Count &&
                 (tokens[pos].Type == "IDENTIFIER" || tokens[pos].Type == "RESERVED") &&
                 tokens[pos + 1].Type == "DELIMITER" &&
@@ -23,6 +24,23 @@ public partial class Parser
             {
                 var funcCall = ParseFunctionCall(tokens, ref pos);
                 node.Children.Add(funcCall);
+                continue;
+            }
+
+            // Detect simple assignment expressions like: IDENTIFIER = <expr>
+            if (pos + 2 < tokens.Count && tokens[pos].Type == "IDENTIFIER" &&
+                tokens[pos + 1].Type == "OPERATOR" && tokens[pos + 1].Value == OperatorWords.ASSIGN)
+            {
+                // Build Identifier node
+                var idTok = tokens[pos];
+                var idNode = new Node("Identifier", new List<Node> { new Node(idTok.Value) }) { Line = idTok.Line, Column = idTok.Column };
+                pos += 2; // consume IDENTIFIER and '='
+
+                // Parse RHS expression
+                var rhs = ParseExpression(tokens, ref pos);
+
+                var assignNode = new Node("Assignment", new List<Node> { idNode, rhs }) { Line = idNode.Line, Column = idNode.Column };
+                node.Children.Add(assignNode);
                 continue;
             }
 
