@@ -132,12 +132,18 @@ public partial class Interpreter
     private object EvaluateOperation(object? left, string op, object? right)
     {
         // Convertir valores para operaciones
+        // If either operand is a string and operator is '+', perform concatenation
+        if (op == "+" && (left is string || right is string))
+        {
+            var l = left?.ToString() ?? "null";
+            var r = right?.ToString() ?? "null";
+            return l + r;
+        }
+
         if (left is string leftStr && right is string rightStr)
         {
             switch (op)
             {
-                case "+":
-                    return leftStr + rightStr;
                 case "==":
                     return leftStr == rightStr;
                 case "!=":
