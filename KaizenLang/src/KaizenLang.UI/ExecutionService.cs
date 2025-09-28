@@ -38,7 +38,7 @@ public class ExecutionService
 
             var outputBuilder = new StringBuilder();
             outputBuilder.AppendLine("🚀 INICIANDO EJECUCIÓN");
-            outputBuilder.AppendLine(new string('═', 30));
+            outputBuilder.AppendLine(new string('═', 40));
             outputBuilder.AppendLine();
 
             try
@@ -65,7 +65,7 @@ public class ExecutionService
             outputBuilder.AppendLine($"• Compilación: {(compilationResult.IsSuccessful ? "OK" : "ERRORS")} | Errores: {errorsCount}");
             outputBuilder.AppendLine();
             outputBuilder.AppendLine("▶ EJECUTANDO PROGRAMA...");
-            outputBuilder.AppendLine(new string('─', 30));
+            outputBuilder.AppendLine(new string('─', 40));
 
             var interpreter = new Interpreter(InputProvider);
 
@@ -116,7 +116,7 @@ public class ExecutionService
             outputBuilder.AppendLine("🎯 EJECUCIÓN COMPLETADA");
             outputBuilder.AppendLine($"✅ Estado: Éxito");
             outputBuilder.AppendLine($"⏱️ Tiempo de ejecución: {executionTimer.ElapsedMilliseconds}ms");
-            outputBuilder.AppendLine($"🔧 Tiempo de compilación: {compilationResult.CompilationTime.TotalMilliseconds}ms");
+            outputBuilder.AppendLine($"🔧 Tiempo de compilación: {compilationResult.CompilationTime.TotalMilliseconds:0.0000}ms");
 
             return new ExecutionResult
             {
