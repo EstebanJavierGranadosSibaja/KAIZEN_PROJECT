@@ -18,7 +18,13 @@ public class ExecutionService
         executionTimer = new Stopwatch();
     }
 
-    public ExecutionResult ExecuteCode(string source)
+    private static int CountSourceLines(string src)
+    {
+        if (string.IsNullOrEmpty(src)) return 0;
+        return src.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length;
+    }
+
+        public ExecutionResult ExecuteCode(string source)
     {
         if (string.IsNullOrWhiteSpace(source))
         {
@@ -30,18 +36,18 @@ public class ExecutionService
             };
         }
 
-        var outputBuilder = new StringBuilder();
-        outputBuilder.AppendLine("🚀 INICIANDO EJECUCIÓN");
-        outputBuilder.AppendLine("═════════════════════");
-        outputBuilder.AppendLine();
+            var outputBuilder = new StringBuilder();
+            outputBuilder.AppendLine("🚀 INICIANDO EJECUCIÓN");
+            outputBuilder.AppendLine(new string('═', 30));
+            outputBuilder.AppendLine();
 
-        try
-        {
+            try
+            {
             // Validar compilación antes de ejecutar
             var compilationResult = compilationService.CompileCode(source);
             if (!compilationResult.IsSuccessful || compilationResult.AST == null)
             {
-                outputBuilder.AppendLine(GetValidationErrorMessage(compilationResult));
+                    outputBuilder.AppendLine(GetValidationErrorMessage(compilationResult));
                 return new ExecutionResult
                 {
                     IsSuccessful = false,
@@ -52,9 +58,14 @@ public class ExecutionService
 
             // Ejecutar código (con registro de tiempo y timeout corto para diagnóstico)
             executionTimer.Restart();
-            outputBuilder.AppendLine($"⏱ Inicio ejecución: {DateTime.UtcNow:O}");
-            outputBuilder.AppendLine("� EJECUTANDO CÓDIGO...");
-            outputBuilder.AppendLine("─────────────────────────");
+            // Header: timestamps and compilation summary
+            outputBuilder.AppendLine($"⏱ Inicio ejecución: {DateTime.UtcNow:O} (UTC)");
+            outputBuilder.AppendLine($"• Fuente: <in-memory> | Líneas: {CountSourceLines(source)}");
+            var errorsCount = (compilationResult.LexicalErrors?.Count ?? 0) + compilationResult.SyntaxErrors.Count + compilationResult.SemanticErrors.Count + (compilationResult.InternalError != null ? 1 : 0);
+            outputBuilder.AppendLine($"• Compilación: {(compilationResult.IsSuccessful ? "OK" : "ERRORS")} | Errores: {errorsCount}");
+            outputBuilder.AppendLine();
+            outputBuilder.AppendLine("▶ EJECUTANDO PROGRAMA...");
+            outputBuilder.AppendLine(new string('─', 30));
 
             var interpreter = new Interpreter(InputProvider);
 
@@ -79,24 +90,31 @@ public class ExecutionService
 
             executionOutput = execTask.Result;
             executionTimer.Stop();
-            outputBuilder.AppendLine($"⏱ Fin ejecución: {DateTime.UtcNow:O}");
+            outputBuilder.AppendLine($"⏱ Fin ejecución: {DateTime.UtcNow:O} (UTC)");
 
-            // Mostrar resultados
-            if (executionOutput.Any())
+            // Program output: numbered and labeled
+            if (executionOutput != null && executionOutput.Any())
             {
+                outputBuilder.AppendLine();
                 outputBuilder.AppendLine("📤 SALIDA DEL PROGRAMA:");
+                int idx = 1;
                 foreach (var line in executionOutput)
                 {
-                    outputBuilder.AppendLine($"   {line}");
+                    // Allow the UI to style based on leading markers like [OUT], [TRACE], [WARN]
+                    var prefix = "[OUT]";
+                    outputBuilder.AppendLine($" {idx:00}. {prefix} {line}");
+                    idx++;
                 }
             }
             else
             {
+                outputBuilder.AppendLine();
                 outputBuilder.AppendLine("✅ El programa se ejecutó sin salida");
             }
 
             outputBuilder.AppendLine();
-            outputBuilder.AppendLine("🎯 EJECUCIÓN COMPLETADA EXITOSAMENTE");
+            outputBuilder.AppendLine("🎯 EJECUCIÓN COMPLETADA");
+            outputBuilder.AppendLine($"✅ Estado: Éxito");
             outputBuilder.AppendLine($"⏱️ Tiempo de ejecución: {executionTimer.ElapsedMilliseconds}ms");
             outputBuilder.AppendLine($"🔧 Tiempo de compilación: {compilationResult.CompilationTime.TotalMilliseconds}ms");
 
