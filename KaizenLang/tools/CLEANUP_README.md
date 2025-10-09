@@ -14,3 +14,5 @@ Recommended steps:
    git push origin HEAD
 
 Optional: To purge artifacts from git history (reduces repo size) use BFG or git-filter-repo. This rewrites history and requires force-push and coordination.
+
+Note: I removed some helper scripts from `tools/backups/` that appeared to be simple local helpers. If you want to keep them, restore from your local copy or let me move them to `docs/` instead.
