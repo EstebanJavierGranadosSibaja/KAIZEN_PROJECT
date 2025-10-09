@@ -50,17 +50,23 @@ git rm --cached --ignore-unmatch tools/**/out.txt tools/**/err.txt tools/**/run-
 git commit -m "chore: stop tracking build artifacts and tool outputs; update .gitignore"
 
 Write-Host "Committed. If you want to purge these files from git history (optional), follow the BFG/git-filter-repo instructions below."
+Write-Output "Committed. If you want to purge these files from git history (optional), follow the BFG/git-filter-repo instructions below."
 
-Write-Host "\n== Optional: purge files from history (DANGEROUS, rewrites history) =="
-Write-Host "1) Backup your repo or ensure you have a clone elsewhere."
-Write-Host "2) Install BFG Repo-Cleaner (https://rtyley.github.io/bfg-repo-cleaner/) or git-filter-repo."
-Write-Host "3) Example BFG steps (run from outside your repo):"
-Write-Host "   git clone --mirror <repo-url> repo-mirror.git"
-Write-Host "   java -jar bfg.jar --delete-folders bin --delete-folders obj --delete-files out.txt --delete-files err.txt repo-mirror.git"
-Write-Host "   cd repo-mirror.git"
-Write-Host "   git reflog expire --expire=now --all && git gc --prune=now --aggressive"
-Write-Host "   git push --force"
+$purgeHelp = @'
+== Optional: purge files from history (DANGEROUS, rewrites history) ==
+1) Backup your repo or ensure you have a clone elsewhere.
+2) Install BFG Repo-Cleaner (https://rtyley.github.io/bfg-repo-cleaner/) or git-filter-repo.
+3) Example BFG steps (run from outside your repo):
+    git clone --mirror <repo-url> repo-mirror.git
+    java -jar bfg.jar --delete-folders bin --delete-folders obj --delete-files out.txt --delete-files err.txt repo-mirror.git
+    cd repo-mirror.git
+    git reflog expire --expire=now --all
+    git gc --prune=now --aggressive
+    git push --force
 
-Write-Host "Or use git-filter-repo with similar patterns. Do not proceed unless you understand force-push and its impact."
+Or use git-filter-repo with similar patterns. Do not proceed unless you understand force-push and its impact.
+'@
 
-Write-Host "\nRepo cleanup script completed."
+Write-Output $purgeHelp
+
+Write-Output "Repo cleanup script completed."
