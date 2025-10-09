@@ -13,43 +13,75 @@ use the BFG or git-filter-repo instructions at the end of this script (manual st
 #>
 
 param(
-    [switch]$DoIt
+    [switch]$DoIt,
+    [switch]$Verbose
 )
 
-Write-Host "Repo cleanup helper"
-Write-Host "Dry run mode (no changes) unless you pass -DoIt"
+function Write-Info($msg) { Write-Host $msg }
+function Write-DebugMsg($msg) { if ($Verbose) { Write-Host "[DBG] $msg" } }
+
+Write-Info "Repo cleanup helper"
+Write-Info "Dry run (preview) mode unless you pass -DoIt"
 
 # 1) Preview tracked build artifacts
-Write-Host "\nTracked bin/ or obj/ entries (preview):"
-git ls-files --full-name | Select-String -Pattern '\b(bin|obj)\\' | Select-Object -First 200
+# Ensure we're inside a git repository
+$gitInside = & git rev-parse --is-inside-work-tree 2>$null
+if ($LASTEXITCODE -ne 0 -or $gitInside -ne 'true') {
+    Write-Info "Error: This script must be run from inside a git repository root."
+    exit 1
+}
 
-Write-Host "\nTracked tool output files (preview):"
-git ls-files | Select-String -Pattern 'tools/.*/(out|err|run-output)\.txt' | Select-Object -First 200
+# Collect tracked files and make matches robust across path separators
+$allFiles = & git ls-files 2>$null
+
+Write-Info "\nPreview: tracked 'bin/' entries (matches up to first 200):"
+$binMatches = $allFiles | Where-Object { $_ -match '(?:/|\\)bin(?:/|\\)' } | Select-Object -First 200
+if ($binMatches) { $binMatches | ForEach-Object { Write-Info "  $_" } } else { Write-Info "  (none)" }
+
+Write-Info "\nPreview: tracked 'obj/' entries (matches up to first 200):"
+$objMatches = $allFiles | Where-Object { $_ -match '(?:/|\\)obj(?:/|\\)' } | Select-Object -First 200
+if ($objMatches) { $objMatches | ForEach-Object { Write-Info "  $_" } } else { Write-Info "  (none)" }
+
+Write-Info "\nPreview: tracked tool output files (out/err/run-output.txt) (first 200):"
+$toolOut = $allFiles | Where-Object { $_ -match 'tools(?:/|\\).*(?:/|\\)(?:out|err|run-output)\.txt$' } | Select-Object -First 200
+if ($toolOut) { $toolOut | ForEach-Object { Write-Info "  $_" } } else { Write-Info "  (none)" }
 
 if (-not $DoIt) {
-    Write-Host "\nRun with -DoIt to perform the untracking and commit. Example:`n    .\\tools\\repo_cleanup.ps1 -DoIt`"
+    Write-Info "\nRun with -DoIt to perform the untracking and commit. Example:`n    .\\tools\\repo_cleanup.ps1 -DoIt"
     exit 0
 }
 
 Write-Host "\n-- Executing: untrack build artifacts and tool outputs --"
 
-# Stage .gitignore first (if present)
-git add .gitignore
+try {
+    # Stage .gitignore first (if present)
+    if (Test-Path .gitignore) { Write-DebugMsg "Staging .gitignore"; & git add .gitignore }
 
-# Remove tracked artifacts from index but keep files on disk
-git rm -r --cached --ignore-unmatch bin obj
-# Also untrack project-level bin/obj
-git rm -r --cached --ignore-unmatch src/*/bin src/*/obj
-# Tools build outputs
-git rm -r --cached --ignore-unmatch tools/*/bin tools/*/obj
+    Write-DebugMsg "Untracking common build artifact folders (cached)..."
+    & git rm -r --cached --ignore-unmatch bin obj 2>$null | Out-Null
+    & git rm -r --cached --ignore-unmatch "src/*/bin" "src/*/obj" 2>$null | Out-Null
+    & git rm -r --cached --ignore-unmatch "tools/*/bin" "tools/*/obj" 2>$null | Out-Null
 
-# Untrack specific tool outputs if previously committed
-git rm --cached --ignore-unmatch tools/**/out.txt tools/**/err.txt tools/**/run-output.txt
+    Write-DebugMsg "Untracking known tool output files..."
+    & git rm --cached --ignore-unmatch "tools/**/out.txt" "tools/**/err.txt" "tools/**/run-output.txt" 2>$null | Out-Null
 
-# Commit changes
-git commit -m "chore: stop tracking build artifacts and tool outputs; update .gitignore"
+    # Check if there are staged changes to commit
+    $staged = & git diff --cached --name-only
+    if ($staged) {
+        Write-Info "Staged changes detected (will commit):"
+        $staged | ForEach-Object { Write-Info "  $_" }
+        & git commit -m "chore: stop tracking build artifacts and tool outputs; update .gitignore"
+        Write-Info "Committed changes to stop tracking artifacts."
+    } else {
+        Write-Info "No tracked build artifacts or tool outputs found to untrack. Nothing to commit."
+    }
+}
+catch {
+    Write-Host "Error while running git commands: $_"
+    exit 2
+}
 
-Write-Host "Committed. If you want to purge these files from git history (optional), follow the BFG/git-filter-repo instructions below."
+Write-Output "Committed. If you want to purge these files from git history (optional), follow the BFG/git-filter-repo instructions below."
 Write-Output "Committed. If you want to purge these files from git history (optional), follow the BFG/git-filter-repo instructions below."
 
 $purgeHelp = @'
@@ -69,4 +101,4 @@ Or use git-filter-repo with similar patterns. Do not proceed unless you understa
 
 Write-Output $purgeHelp
 
-Write-Output "Repo cleanup script completed."
+Write-Output "Repo cleanup script completed"
