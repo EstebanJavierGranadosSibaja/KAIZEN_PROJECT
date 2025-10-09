@@ -5,7 +5,8 @@ public partial class Interpreter
     private SymbolTable globalScope;
     private SymbolTable currentScope;
     private List<string> output;
-    private Dictionary<string, object> functions;
+    // Map function name -> Function AST node (user-defined functions are stored at runtime)
+    private Dictionary<string, Node> functions;
     private readonly Func<string?, string?>? inputProvider;
     private readonly Queue<string> inputBuffer = new Queue<string>();
     private readonly object inputLock = new object();
@@ -19,7 +20,17 @@ public partial class Interpreter
         globalScope = new SymbolTable();
         currentScope = globalScope;
         output = new List<string>();
-        functions = new Dictionary<string, object>();
+        functions = new Dictionary<string, Node>(StringComparer.OrdinalIgnoreCase);
+    }
+
+    // Internal exception used to unwind execution when a 'return' is executed inside a function
+    private class ReturnException : Exception
+    {
+        public object? Value { get; }
+        public ReturnException(object? value)
+        {
+            Value = value;
+        }
     }
 
     // Tokenize an input line into whitespace-separated tokens, respecting quoted strings
@@ -190,6 +201,14 @@ public partial class Interpreter
 
             case "Function":
                 return ExecuteFunction(node);
+
+            case "FunctionCall":
+                // Evaluate a function call expression: either builtin handled in ExecuteExpression
+                // or user-defined function lookup and invocation
+                return ExecuteFunctionCall(node);
+
+            case "Return":
+                return ExecuteReturn(node);
 
             case "Block":
                 return ExecuteBlock(node);

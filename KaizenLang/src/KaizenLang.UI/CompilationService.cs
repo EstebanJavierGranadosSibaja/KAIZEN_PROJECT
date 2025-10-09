@@ -17,6 +17,7 @@ public class CompilationService
 
     public CompilationResult CompileCode(string source)
     {
+            ParadigmasLang.Logging.Logger.Debug("CompilationService.CompileCode START");
         if (string.IsNullOrWhiteSpace(source))
         {
             return new CompilationResult
@@ -35,6 +36,7 @@ public class CompilationService
         try
         {
             var result = PerformCompilationStages(source);
+            ParadigmasLang.Logging.Logger.Debug("PerformCompilationStages returned");
             compilationTimer.Stop();
 
             result.CompilationTime = compilationTimer.Elapsed;
@@ -44,6 +46,7 @@ public class CompilationService
         }
         catch (Exception ex)
         {
+            ParadigmasLang.Logging.Logger.Error($"CompileCode EXCEPTION: {ex.Message}");
             compilationTimer.Stop();
             AppendError($"� ERROR INTERNO DEL COMPILADOR:\r\n{ex.Message}\r\n{ex.StackTrace}");
 
@@ -59,22 +62,35 @@ public class CompilationService
 
     private CompilationResult PerformCompilationStages(string source)
     {
+    ParadigmasLang.Logging.Logger.Debug("PerformCompilationStages START");
         var result = new CompilationResult();
 
         // FASE 1: ANÁLISIS LÉXICO
+    ParadigmasLang.Logging.Logger.Debug("Starting lexical analysis");
         if (!PerformLexicalAnalysis(source, out var tokens, result))
+        {
+            ParadigmasLang.Logging.Logger.Debug("Lexical analysis failed/returned false");
             return result;
+        }
 
         // FASE 2: ANÁLISIS SINTÁCTICO
+    ParadigmasLang.Logging.Logger.Debug("Starting syntactic analysis");
         if (!PerformSyntacticAnalysis(tokens!, out var ast, result))
+        {
+            ParadigmasLang.Logging.Logger.Debug("Syntactic analysis failed/returned false");
             return result;
+        }
 
         // Always attach the AST to the result after parsing so tools/debuggers can inspect it even on semantic failures
         result.AST = ast;
 
         // FASE 3: ANÁLISIS SEMÁNTICO
+    ParadigmasLang.Logging.Logger.Debug("Starting semantic analysis");
         if (!PerformSemanticAnalysis(ast!, result))
+        {
+            ParadigmasLang.Logging.Logger.Debug("Semantic analysis failed/returned false");
             return result;
+        }
 
         // MOSTRAR INFORMACIÓN DETALLADA
         ShowCompilationDetails(tokens!, ast!, result);

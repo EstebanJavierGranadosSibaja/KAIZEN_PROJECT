@@ -8,17 +8,17 @@ class Program
         var source = "integer suma(integer x, integer y) ying\n    return x + y;\n\ninteger a; a = suma(1, 2); output(a);";
         var service = new CompilationService();
         var result = service.CompileCode(source);
-        System.Console.WriteLine(result.Output);
+    ParadigmasLang.Logging.Logger.Debug(result.Output);
         if (result.AST != null)
         {
-            System.Console.WriteLine("--- AST (full):");
-            System.Console.WriteLine(result.AST.ToTreeString());
+            ParadigmasLang.Logging.Logger.Debug("--- AST (full):");
+            ParadigmasLang.Logging.Logger.Debug(result.AST.ToTreeString());
         }
         if (result.Tokens != null)
         {
-            System.Console.WriteLine("--- Tokens:");
+            ParadigmasLang.Logging.Logger.Debug("--- Tokens:");
             foreach (var t in result.Tokens)
-                System.Console.WriteLine($"{t.Type}\t'{t.Value}' (l{t.Line}:c{t.Column})");
+                ParadigmasLang.Logging.Logger.Debug($"{t.Type}\t'{t.Value}' (l{t.Line}:c{t.Column})");
         }
     }
 

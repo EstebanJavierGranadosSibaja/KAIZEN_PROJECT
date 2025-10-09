@@ -17,8 +17,9 @@ public partial class Parser
 
     private bool IsFunctionDeclaration(List<Token> tokens, int pos)
     {
-        // tipo nombre ( ... ) { ... }
-        return pos + 3 < tokens.Count && tokens[pos].Type == "TYPE" && tokens[pos + 1].Type == "IDENTIFIER" && tokens[pos + 2].Type == "DELIMITER" && tokens[pos + 2].Value == "(";
+        // tipo|reserved nombre ( ... ) { ... }
+        // Allow reserved words like 'void' to be used as the function return type
+        return pos + 3 < tokens.Count && (tokens[pos].Type == "TYPE" || tokens[pos].Type == "RESERVED") && tokens[pos + 1].Type == "IDENTIFIER" && tokens[pos + 2].Type == "DELIMITER" && tokens[pos + 2].Value == "(";
     }
 
     private bool IsAssignment(List<Token> tokens, int pos)
@@ -63,6 +64,9 @@ public partial class Parser
     private bool IsExpressionStatement(List<Token> tokens, int pos)
     {
         if (pos >= tokens.Count)
+            return false;
+        // If the current token is a block end, this is not an expression statement.
+        if (tokens[pos].Type == "DELIMITER" && tokens[pos].Value == DelimiterWords.BLOCK_END)
             return false;
         int tempPos = pos;
         int parenLevel = 0;

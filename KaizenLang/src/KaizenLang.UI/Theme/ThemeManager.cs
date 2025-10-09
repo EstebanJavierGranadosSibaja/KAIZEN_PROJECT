@@ -141,8 +141,8 @@ namespace KaizenLang.UI.Theme
             }
             catch (Exception ex)
             {
-                // Log del error si es necesario
-                Console.WriteLine($"Error cargando tema: {ex.Message}");
+                // Log del error
+                ParadigmasLang.Logging.Logger.Error($"Error cargando tema: {ex.Message}");
             }
         }
 
@@ -158,7 +158,7 @@ namespace KaizenLang.UI.Theme
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error guardando tema: {ex.Message}");
+                ParadigmasLang.Logging.Logger.Error($"Error guardando tema: {ex.Message}");
             }
         }
     }
