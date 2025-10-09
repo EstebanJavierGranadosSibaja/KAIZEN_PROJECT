@@ -49,6 +49,10 @@ TestResults/
 # Tools build outputs (e.g. tools/CompilationTester)
 tools/**/bin/
 tools/**/obj/
+# Tool run outputs/logs
+tools/**/out.txt
+tools/**/err.txt
+tools/**/run-output.txt
 
 # Visual Studio cache and generated files
 .vs/
