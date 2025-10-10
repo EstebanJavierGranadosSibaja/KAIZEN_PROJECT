@@ -99,6 +99,8 @@ public class SemanticAnalyzer
         }
 
         current[varName] = new SymbolInfo { Name = varName, Kind = SymbolKind.Variable };
+        // run additional checks on initializer if present (arrays / matrices)
+        CheckCollectionInitializer(node);
     }
 
     private void RegisterFunction(Node node)
@@ -194,6 +196,8 @@ public class SemanticAnalyzer
         {
             case "VariableDeclaration":
                 RegisterVariable(node);
+                // Additional semantic checks for array/matrix initializers
+                CheckCollectionInitializer(node);
                 break;
             case "Assignment":
                 // LHS identifier must exist or be declared
@@ -221,6 +225,127 @@ public class SemanticAnalyzer
                 foreach (var c in node.Children)
                     VisitNode(c);
                 break;
+        }
+    }
+
+    // Check variable declaration initializers for arrays/matrices
+    private void CheckCollectionInitializer(Node varDecl)
+    {
+        // Expect shape: VariableDeclaration -> Type, Identifier, (optional) Initializer
+        if (varDecl.Children.Count < 3)
+            return;
+
+        var typeNode = varDecl.Children[0];
+        // declaredType should be the wrapper name (e.g., "array" or "matrix")
+        string declaredType = typeNode.Type ?? string.Empty;
+        // element type (if present) is usually the first child of the type node
+        string elemType = string.Empty;
+        if (typeNode.Children.Count > 0)
+            elemType = typeNode.Children[0].Type ?? string.Empty;
+
+        // Only interested in array<T> or matrix<T> declared types
+        if (string.IsNullOrEmpty(declaredType))
+            return;
+
+        // Inspect initializer node
+    var initNode = varDecl.Children[2];
+    // initializer shape: may be wrapped inside a 'Value' node -> child, or Expression -> ArrayLiteral.
+    // Find first descendant node of type ArrayLiteral
+    Node? arrayLiteral = FindDescendant(initNode, "ArrayLiteral");
+        if (arrayLiteral == null)
+            return;
+
+        // If declared as matrix, ensure rows are arrays and all rows have same length
+        if (declaredType.IndexOf("matrix", StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            var elements = arrayLiteral.FindChild("Elements");
+            if (elements == null)
+                return;
+            int? expectedCols = null;
+            int rowIndex = 0;
+            foreach (var rowExpr in elements.Children)
+            {
+                // each row should be an ArrayLiteral
+                var rowArr = rowExpr.FindChild("ArrayLiteral") ?? (rowExpr.Type == "ArrayLiteral" ? rowExpr : null);
+                if (rowArr == null)
+                {
+                    errors.Add(FormattedError(rowExpr, $"Matriz no rectangular: fila {rowIndex} no es una fila (se esperaba array)"));
+                    rowIndex++;
+                    continue;
+                }
+
+                var rowEls = rowArr.FindChild("Elements");
+                int cols = rowEls?.Children.Count ?? 0;
+                if (expectedCols == null)
+                    expectedCols = cols;
+                else if (expectedCols != cols)
+                {
+                    errors.Add(FormattedError(rowArr, $"Matriz no rectangular: longitudes de fila inconsistentes (esperado {expectedCols}, fila {rowIndex} tiene {cols})"));
+                }
+
+                // If element type is declared, validate each element literal type superficially
+                if (!string.IsNullOrEmpty(elemType) && rowEls != null)
+                {
+                    int col = 0;
+                    foreach (var elExpr in rowEls.Children)
+                    {
+                        // simple check: if element is INT/FLOAT/STRING/LITERAL
+                        var lit = elExpr.FindChild("INT") ?? elExpr.FindChild("FLOAT") ?? elExpr.FindChild("STRING") ?? elExpr.FindChild("LITERAL");
+                        if (lit != null)
+                        {
+                            var detected = lit.Type;
+                            // map node type to declared type names
+                            string detectedType = detected switch
+                            {
+                                "INT" => "integer",
+                                "FLOAT" => "float",
+                                "STRING" => "string",
+                                "LITERAL" => (lit.Children.Count>0 && (lit.Children[0].Type == "true" || lit.Children[0].Type=="false")) ? "bool" : "string",
+                                _ => ""
+                            };
+                            if (!string.IsNullOrEmpty(detectedType) && !string.Equals(detectedType, elemType, StringComparison.OrdinalIgnoreCase))
+                            {
+                                errors.Add(FormattedError(elExpr, $"Tipo incompatible en inicialización de matriz/array: se esperaba '{elemType}' pero se encontró '{detectedType}' (fila {rowIndex}, col {col})"));
+                            }
+                        }
+                        col++;
+                    }
+                }
+
+                rowIndex++;
+            }
+        }
+        else if (declaredType.IndexOf("array", StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            // For arrays, check each element matches elemType (if present)
+            var elements = arrayLiteral.FindChild("Elements");
+            if (elements == null)
+                return;
+            if (!string.IsNullOrEmpty(elemType))
+            {
+                int idx = 0;
+                foreach (var elExpr in elements.Children)
+                {
+                    var lit = elExpr.FindChild("INT") ?? elExpr.FindChild("FLOAT") ?? elExpr.FindChild("STRING") ?? elExpr.FindChild("LITERAL");
+                    if (lit != null)
+                    {
+                        var detected = lit.Type;
+                        string detectedType = detected switch
+                        {
+                            "INT" => "integer",
+                            "FLOAT" => "float",
+                            "STRING" => "string",
+                            "LITERAL" => (lit.Children.Count>0 && (lit.Children[0].Type == "true" || lit.Children[0].Type=="false")) ? "bool" : "string",
+                            _ => ""
+                        };
+                        if (!string.IsNullOrEmpty(detectedType) && !string.Equals(detectedType, elemType, StringComparison.OrdinalIgnoreCase))
+                        {
+                            errors.Add(FormattedError(elExpr, $"Tipo incompatible en inicialización de array: se esperaba '{elemType}' pero se encontró '{detectedType}' (índice {idx})"));
+                        }
+                    }
+                    idx++;
+                }
+            }
         }
     }
 
@@ -329,6 +454,19 @@ public class SemanticAnalyzer
         if (node == null)
             return message;
         return $"{message} (l{node.Line}:c{node.Column})";
+    }
+
+    // Helper: find descendant node with given type (depth-first)
+    private Node? FindDescendant(Node root, string type)
+    {
+        if (root == null) return null;
+        if (root.Type == type) return root;
+        foreach (var c in root.Children)
+        {
+            var found = FindDescendant(c, type);
+            if (found != null) return found;
+        }
+        return null;
     }
 
     private class SymbolInfo
