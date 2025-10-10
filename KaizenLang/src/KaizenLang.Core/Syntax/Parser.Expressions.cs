@@ -13,7 +13,7 @@ public partial class Parser
         {
             if (tokens[pos].Type == "DELIMITER" &&
                 (tokens[pos].Value == ";" || tokens[pos].Value == ")" ||
-                 tokens[pos].Value == "," || tokens[pos].Value == "yang"))
+                 tokens[pos].Value == "," || tokens[pos].Value == "]" || tokens[pos].Value == "yang"))
                 break;
 
             // Detect function call shapes: NAME(...)
@@ -28,20 +28,50 @@ public partial class Parser
             }
 
             // Detect simple assignment expressions like: IDENTIFIER = <expr>
-            if (pos + 2 < tokens.Count && tokens[pos].Type == "IDENTIFIER" &&
-                tokens[pos + 1].Type == "OPERATOR" && tokens[pos + 1].Value == OperatorWords.ASSIGN)
+            // Assignment to identifier or index access: e.g. a = <expr> or a[0] = <expr>
+            // We need to detect '=' after an identifier possibly followed by indexers
+            if (pos < tokens.Count && tokens[pos].Type == "IDENTIFIER")
             {
-                // Build Identifier node
-                var idTok = tokens[pos];
-                var idNode = new Node("Identifier", new List<Node> { new Node(idTok.Value) }) { Line = idTok.Line, Column = idTok.Column };
-                pos += 2; // consume IDENTIFIER and '='
+                // scan ahead past any indexers to see if next non-index token is '='
+                int scan = pos + 1;
+                while (scan < tokens.Count && tokens[scan].Type == "DELIMITER" && tokens[scan].Value == "[")
+                {
+                    // advance to matching ]
+                    scan++; // after [
+                    // skip until ']' or end
+                    while (scan < tokens.Count && !(tokens[scan].Type == "DELIMITER" && tokens[scan].Value == "]"))
+                        scan++;
+                    if (scan < tokens.Count && tokens[scan].Type == "DELIMITER" && tokens[scan].Value == "]")
+                        scan++; // consume ]
+                    else
+                        break; // malformed, stop scanning
+                }
 
-                // Parse RHS expression
-                var rhs = ParseExpression(tokens, ref pos);
+                if (scan < tokens.Count && tokens[scan].Type == "OPERATOR" && tokens[scan].Value == OperatorWords.ASSIGN)
+                {
+                    // we detected an assignment with LHS possibly containing indexers
+                    Node lhs;
+                    // parse LHS properly: if there are indexers, use ParseIndexAccess, else simple identifier
+                    if (pos + 1 < tokens.Count && tokens[pos+1].Type == "DELIMITER" && tokens[pos+1].Value == "[")
+                    {
+                        lhs = ParseIndexAccess(tokens, ref pos);
+                    }
+                    else
+                    {
+                        var idTok = tokens[pos];
+                        lhs = new Node("IDENTIFIER", new List<Node> { new Node(idTok.Value) }) { Line = idTok.Line, Column = idTok.Column };
+                        pos++; // consume IDENTIFIER
+                    }
 
-                var assignNode = new Node("Assignment", new List<Node> { idNode, rhs }) { Line = idNode.Line, Column = idNode.Column };
-                node.Children.Add(assignNode);
-                continue;
+                    // now expect '=' operator
+                    if (pos < tokens.Count && tokens[pos].Type == "OPERATOR" && tokens[pos].Value == OperatorWords.ASSIGN)
+                        pos++; // consume '='
+
+                    var rhs = ParseExpression(tokens, ref pos);
+                    var assignNode = new Node("Assignment", new List<Node> { lhs, rhs }) { Line = lhs.Line, Column = lhs.Column };
+                    node.Children.Add(assignNode);
+                    continue;
+                }
             }
 
             if (tokens[pos].Type == "DELIMITER" && tokens[pos].Value == "(")
@@ -63,6 +93,18 @@ public partial class Parser
                 var arrayNode = ParseArrayLiteral(tokens, ref pos);
                 node.Children.Add(arrayNode);
                 continue;
+            }
+
+            // Identifier possibly with indexers (a[0], m[0][1])
+            if (tokens[pos].Type == "IDENTIFIER")
+            {
+                // If next token is '[' then parse index access
+                if (pos + 1 < tokens.Count && tokens[pos+1].Type == "DELIMITER" && tokens[pos+1].Value == "[")
+                {
+                    var idx = ParseIndexAccess(tokens, ref pos);
+                    node.Children.Add(idx);
+                    continue;
+                }
             }
 
             if (tokens[pos].Type == "OPERATOR")
@@ -166,5 +208,48 @@ public partial class Parser
         }
 
         return arrayNode;
+    }
+
+    // Parse an identifier possibly followed by one or more indexers: e.g. a, a[0], m[0][1]
+    private Node ParseIndexAccess(List<Token> tokens, ref int pos)
+    {
+        // Expect IDENTIFIER at pos
+        if (pos >= tokens.Count || tokens[pos].Type != "IDENTIFIER")
+            return new Node("Identifier") { Type = "IDENTIFIER" };
+
+        var idTok = tokens[pos];
+        var currentNode = new Node("IDENTIFIER", new List<Node> { new Node(idTok.Value) }) { Line = idTok.Line, Column = idTok.Column };
+        pos++; // consume identifier
+
+        // While next token is '[' parse an index expression
+        while (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == "[")
+        {
+            pos++; // consume '['
+            var idxExpr = ParseExpression(tokens, ref pos);
+            // expect ']'
+            if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == "]")
+            {
+                pos++; // consume ']'
+            }
+            else
+            {
+                // malformed indexer: produce error node but continue
+                var err = ErrorNode("Se esperaba ']' en indexador", pos);
+                // attach and break
+                var iaErr = new Node { Type = "IndexAccess" };
+                iaErr.Children.Add(currentNode);
+                iaErr.Children.Add(idxExpr);
+                iaErr.Children.Add(err);
+                return iaErr;
+            }
+
+            // Build a new IndexAccess node with currentNode as target and idxExpr as index
+            var idxNode = new Node { Type = "IndexAccess" };
+            idxNode.Children.Add(currentNode);
+            idxNode.Children.Add(idxExpr);
+            currentNode = idxNode;
+        }
+
+        return currentNode;
     }
 }

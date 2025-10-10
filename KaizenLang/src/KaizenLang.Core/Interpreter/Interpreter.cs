@@ -252,6 +252,39 @@ public partial class Interpreter
                 }
                 return symbol.Value;
 
+            case "ArrayLiteral":
+                // Construct a runtime list from array literal elements
+                var elementsNode = node.Children.FirstOrDefault(c => c.Type == "Elements");
+                var list = new List<object?>();
+                if (elementsNode != null)
+                {
+                    foreach (var childExpr in elementsNode.Children)
+                    {
+                        var v = ExecuteNode(childExpr);
+                        list.Add(v);
+                    }
+                }
+                return list;
+
+            case "IndexAccess":
+                // children[0] = target (identifier or nested index), children[1] = index expression
+                if (node.Children.Count >= 2)
+                {
+                    var target = ExecuteNode(node.Children[0]);
+                    var idx = ExecuteNode(node.Children[1]);
+                    if (target is System.Collections.IList listTarget && idx is int i)
+                    {
+                        if (i < 0 || i >= listTarget.Count)
+                            throw new Exception($"Index fuera de rango: {i}");
+                        return listTarget[i];
+                    }
+                    else
+                    {
+                        throw new Exception($"Operación de indexación no soportada para tipo {target?.GetType().Name}");
+                    }
+                }
+                return null;
+
             default:
                 // Para nodos como 'ExpressionStatement', simplemente ejecutamos sus hijos
                 foreach (var child in node.Children)

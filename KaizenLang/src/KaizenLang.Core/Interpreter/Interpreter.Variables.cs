@@ -60,6 +60,29 @@ public partial class Interpreter
         {
             var varNode = node.Children[0];
             var valueNode = node.Children[1];
+            // Assignment to index access: e.g. a[0] = expr
+            if (varNode.Type == "IndexAccess")
+            {
+                // Evaluate target (should return IList)
+                var targetNode = varNode.Children[0];
+                var indexNode = varNode.Children[1];
+                var target = ExecuteNode(targetNode);
+                var idxVal = ExecuteNode(indexNode);
+                var rawValue = ExecuteNode(valueNode);
+
+                if (target is System.Collections.IList listTarget && idxVal is int i)
+                {
+                    if (i < 0 || i >= listTarget.Count)
+                        throw new Exception($"Index fuera de rango: {i}");
+                    listTarget[i] = rawValue;
+                    output.Add($"Index '{i}' asignado con valor: {rawValue}");
+                    return null;
+                }
+                else
+                {
+                    throw new Exception("Asignación por índice fallida: target no es lista o índice no es entero");
+                }
+            }
 
             if (varNode.Children.Count > 0)
             {
