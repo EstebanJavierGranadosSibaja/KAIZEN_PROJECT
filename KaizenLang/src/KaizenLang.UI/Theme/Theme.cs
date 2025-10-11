@@ -99,34 +99,34 @@ namespace KaizenLang.UI.Theme
 
         public void DarkTheme()
         {
-            // Nueva paleta de colores basada en el logo de Kaizen
-            // Tonos principales: Negro, Verde Oscuro/Claro, Dorado Oscuro/Claro
+            // Paleta de colores moderna inspirada en VS Code Dark+ y el logo de Kaizen
+            // Tonos refinados: Negro elegante, Verdes sutiles, Dorados cálidos
 
             // Colores principales
-            Background = ColorTranslator.FromHtml("#0A0A0A"); // Negro profundo
-            Foreground = ColorTranslator.FromHtml("#F0F0F0"); // Blanco roto
+            Background = ColorTranslator.FromHtml("#1E1E1E"); // Negro elegante (más suave)
+            Foreground = ColorTranslator.FromHtml("#D4D4D4"); // Gris claro suave
 
             // Colores secundarios
-            SecondaryBackground = ColorTranslator.FromHtml("#141414"); // Gris muy oscuro
-            SecondaryForeground = ColorTranslator.FromHtml("#A0A0A0"); // Gris claro
+            SecondaryBackground = ColorTranslator.FromHtml("#252526"); // Gris medio elegante
+            SecondaryForeground = ColorTranslator.FromHtml("#CCCCCC"); // Gris claro
 
-            // Colores de acento
-            PrimaryAccent = ColorTranslator.FromHtml("#5A8A5D"); // Verde claro
-            SecondaryAccent = ColorTranslator.FromHtml("#D4B37F"); // Dorado claro
+            // Colores de acento (más sofisticados)
+            PrimaryAccent = ColorTranslator.FromHtml("#4EC9B0"); // Verde Teal moderno
+            SecondaryAccent = ColorTranslator.FromHtml("#DCDCAA"); // Dorado suave
 
-            // Colores de botones
-            ButtonBackground = ColorTranslator.FromHtml("#1F1F1F"); // Gris oscuro
-            ButtonForeground = ColorTranslator.FromHtml("#F0F0F0");
-            ButtonBorder = ColorTranslator.FromHtml("#A98B4F"); // Dorado oscuro
-            ButtonMouseOver = ColorTranslator.FromHtml("#2A4B2C"); // Verde oscuro
-            ButtonMouseDown = ColorTranslator.FromHtml("#5A8A5D"); // Verde claro
+            // Colores de botones (más modernos)
+            ButtonBackground = ColorTranslator.FromHtml("#0E639C"); // Azul moderno
+            ButtonForeground = ColorTranslator.FromHtml("#FFFFFF");
+            ButtonBorder = ColorTranslator.FromHtml("#007ACC"); // Azul brillante
+            ButtonMouseOver = ColorTranslator.FromHtml("#1177BB"); // Azul hover
+            ButtonMouseDown = ColorTranslator.FromHtml("#005A9E"); // Azul presionado
 
-            // Colores de cajas de texto
-            TextBoxBackground = ColorTranslator.FromHtml("#0A0A0A");
-            TextBoxForeground = ColorTranslator.FromHtml("#F0F0F0");
-            TextBoxBorder = ColorTranslator.FromHtml("#A98B4F"); // Dorado oscuro
-            TextBoxSelectionBackground = ColorTranslator.FromHtml("#2A4B2C"); // Verde oscuro
-            TextBoxSelectionForeground = ColorTranslator.FromHtml("#F0F0F0");
+            // Colores de cajas de texto (más legibles)
+            TextBoxBackground = ColorTranslator.FromHtml("#1E1E1E");
+            TextBoxForeground = ColorTranslator.FromHtml("#D4D4D4");
+            TextBoxBorder = ColorTranslator.FromHtml("#3C3C3C"); // Gris sutil
+            TextBoxSelectionBackground = ColorTranslator.FromHtml("#264F78"); // Azul selección
+            TextBoxSelectionForeground = ColorTranslator.FromHtml("#FFFFFF");
 
             // Colores de listas
             ListBackground = ColorTranslator.FromHtml("#141414");

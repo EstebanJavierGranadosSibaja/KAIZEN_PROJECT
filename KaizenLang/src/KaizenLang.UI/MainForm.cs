@@ -10,9 +10,7 @@ namespace KaizenLang.UI
     {
         private readonly CompilationService compilationService;
         private readonly ExecutionService executionService;
-
         private ToolStripStatusLabel? statusLabel;
-
         public MainForm()
         {
             InitializeComponent();
@@ -42,6 +40,9 @@ namespace KaizenLang.UI
 
         private void InitializeCustomComponents()
         {
+            // Configurar iconos del menú
+            SetupMenuIcons();
+
             // Eventos de botones
             compileButton.Click += async (s, e) => await RunWithUIFeedback(
                 compileButton, "Compilando...", "Compilar", async () =>
@@ -87,7 +88,46 @@ namespace KaizenLang.UI
             codeRichTextBox.Text = snippet;
         }
 
-        private void UpdateStatus(string message, bool success)
+        private void SetupMenuIcons()
+        {
+            // Configurar iconos de los elementos principales del menú
+            languageStructuresToolStripMenuItem.Image = IconFactory.GetIcon("examples", 16, 16);
+            reservedWordsToolStripMenuItem.Image = IconFactory.GetIcon("keywords", 16, 16);
+            syntaxToolStripMenuItem.Image = IconFactory.GetIcon("syntax", 16, 16);
+            semanticsToolStripMenuItem.Image = IconFactory.GetIcon("semantics", 16, 16);
+            dataTypesToolStripMenuItem.Image = IconFactory.GetIcon("datatypes", 16, 16);
+
+            // Configurar iconos de submenús
+            controlToolStripMenuItem.Image = IconFactory.GetIcon("control", 16, 16);
+            functionsToolStripMenuItem.Image = IconFactory.GetIcon("functions", 16, 16);
+            operationsToolStripMenuItem.Image = IconFactory.GetIcon("operations", 16, 16);
+
+            // Configurar iconos de los botones principales
+            SetupButtonIcons();
+        }
+
+        private void SetupButtonIcons()
+        {
+            // Asignar iconos a los botones principales
+            var compileIcon = IconFactory.GetIcon("compile", 16, 16);
+            var executeIcon = IconFactory.GetIcon("execute", 16, 16);
+
+            if (compileIcon != null)
+            {
+                compileButton.Image = compileIcon;
+                compileButton.ImageAlign = ContentAlignment.MiddleLeft;
+                compileButton.TextAlign = ContentAlignment.MiddleRight;
+                compileButton.Text = "  Compilar";
+            }
+
+            if (executeIcon != null)
+            {
+                executeButton.Image = executeIcon;
+                executeButton.ImageAlign = ContentAlignment.MiddleLeft;
+                executeButton.TextAlign = ContentAlignment.MiddleRight;
+                executeButton.Text = "  Ejecutar";
+            }
+        }        private void UpdateStatus(string message, bool success)
         {
             if (statusLabel == null) return;
 
