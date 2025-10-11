@@ -114,12 +114,12 @@ namespace KaizenLang.UI.Theme
             PrimaryAccent = ColorTranslator.FromHtml("#4EC9B0"); // Verde Teal moderno
             SecondaryAccent = ColorTranslator.FromHtml("#DCDCAA"); // Dorado suave
 
-            // Colores de botones (más modernos)
-            ButtonBackground = ColorTranslator.FromHtml("#0E639C"); // Azul moderno
+            // Colores de botones (más modernos y elegantes)
+            ButtonBackground = ColorTranslator.FromHtml("#0078D4"); // Azul Microsoft moderno
             ButtonForeground = ColorTranslator.FromHtml("#FFFFFF");
-            ButtonBorder = ColorTranslator.FromHtml("#007ACC"); // Azul brillante
-            ButtonMouseOver = ColorTranslator.FromHtml("#1177BB"); // Azul hover
-            ButtonMouseDown = ColorTranslator.FromHtml("#005A9E"); // Azul presionado
+            ButtonBorder = ColorTranslator.FromHtml("#106EBE"); // Azul borde elegante
+            ButtonMouseOver = ColorTranslator.FromHtml("#1E88E5"); // Azul hover brillante
+            ButtonMouseDown = ColorTranslator.FromHtml("#0D5D9F"); // Azul presionado
 
             // Colores de cajas de texto (más legibles)
             TextBoxBackground = ColorTranslator.FromHtml("#1E1E1E");

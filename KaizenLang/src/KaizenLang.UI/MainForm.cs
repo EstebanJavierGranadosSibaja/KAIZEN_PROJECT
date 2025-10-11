@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using KaizenLang.UI.Theme;
@@ -11,6 +12,9 @@ namespace KaizenLang.UI
         private readonly CompilationService compilationService;
         private readonly ExecutionService executionService;
         private ToolStripStatusLabel? statusLabel;
+        private ToolStripStatusLabel? statusIcon;
+        private ToolStripStatusLabel? lineColumnLabel;
+        private ToolStripStatusLabel? timeLabel;
         public MainForm()
         {
             InitializeComponent();
@@ -36,12 +40,18 @@ namespace KaizenLang.UI
             }
 
             this.ApplyCurrentThemeRecursive();
+
+            // Cargar ejemplo con syntax highlighting para demostrar la funcionalidad
+            this.Load += (s, e) => TestSyntaxHighlighting();
         }
 
         private void InitializeCustomComponents()
         {
             // Configurar iconos del menú
             SetupMenuIcons();
+
+            // Aplicar efectos visuales modernos
+            ApplyVisualEffects();
 
             // Eventos de botones
             compileButton.Click += async (s, e) => await RunWithUIFeedback(
@@ -70,16 +80,86 @@ namespace KaizenLang.UI
             operationsToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.Operations);
             semanticsToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.Semantics);
 
-            // Barra de estado
-            var statusStrip = new StatusStrip();
-            statusLabel = new ToolStripStatusLabel("Listo")
+            // Barra de estado mejorada
+            SetupEnhancedStatusBar();
+        }
+
+        private void ApplyVisualEffects()
+        {
+            var theme = ThemeManager.CurrentTheme;
+
+            // Aplicar efectos 3D reales a los botones principales
+            EnhancedVisualEffects.MakeButtonModern(compileButton, theme.ButtonBackground, true);
+            EnhancedVisualEffects.MakeButtonModern(executeButton, theme.ButtonBackground, true);
+
+            // Mejorar la apariencia de los RichTextBox con efectos reales y syntax highlighting
+            EnhancedVisualEffects.MakeRichTextBoxModern(codeRichTextBox, true);  // Habilitar syntax highlighting para código
+            EnhancedVisualEffects.MakeRichTextBoxModern(outputRichTextBox, false); // Sin highlighting para salida
+
+            // Aplicar efectos de profundidad a paneles
+            ApplyPanelEffects();
+
+            // Mejorar el espaciado general
+            ImproveLayoutSpacing();
+
+            // Agregar gradiente de fondo al formulario principal
+            ApplyFormBackgroundGradient();
+        }
+
+        private void ApplyPanelEffects()
+        {
+            // Buscar y mejorar todos los paneles
+            foreach (Control control in this.Controls)
             {
-                Spring = true,
-                TextAlign = ContentAlignment.MiddleLeft,
-                Font = new Font("Segoe UI", 10F, FontStyle.Bold)
+                if (control is Panel panel)
+                {
+                    EnhancedVisualEffects.MakePanelModern(panel);
+                }
+            }
+        }
+
+        private void ApplyFormBackgroundGradient()
+        {
+            // Aplicar gradiente sutil al fondo del formulario
+            this.Paint += (s, e) =>
+            {
+                var g = e.Graphics;
+                var rect = this.ClientRectangle;
+                var theme = ThemeManager.CurrentTheme;
+
+                using (var brush = new System.Drawing.Drawing2D.LinearGradientBrush(rect,
+                    theme.Background,
+                    EnhancedVisualEffects.DarkenColor(theme.Background, 8),
+                    System.Drawing.Drawing2D.LinearGradientMode.Vertical))
+                {
+                    g.FillRectangle(brush, rect);
+                }
             };
-            statusStrip.Items.Add(statusLabel);
-            this.Controls.Add(statusStrip);
+        }
+
+        private void AddVisualSeparators()
+        {
+            // Este método se puede expandir para agregar separadores entre secciones
+            // Por ahora, mejoramos el espaciado de los controles existentes
+        }
+
+        private void ImproveLayoutSpacing()
+        {
+            // Mejorar márgenes y espaciado general
+            this.Padding = new Padding(15);
+
+            // Ajustar espaciado de botones
+            if (compileButton != null && executeButton != null)
+            {
+                compileButton.Margin = new Padding(5);
+                executeButton.Margin = new Padding(5);
+
+                // Asegurar altura consistente para botones
+                compileButton.Height = 40;
+                executeButton.Height = 40;
+                compileButton.MinimumSize = new Size(120, 40);
+                executeButton.MinimumSize = new Size(120, 40);
+            }
         }
 
         private void InsertCodeSnippet(string snippet)
@@ -104,34 +184,179 @@ namespace KaizenLang.UI
 
             // Configurar iconos de los botones principales
             SetupButtonIcons();
+
+            // Aplicar efectos visuales al menú
+            ApplyMenuEffects();
+        }
+
+        private void ApplyMenuEffects()
+        {
+            // Buscar el MenuStrip en los controles
+            foreach (Control control in this.Controls)
+            {
+                if (control is MenuStrip menuStrip)
+                {
+                    var theme = ThemeManager.CurrentTheme;
+
+                    // Configurar renderer personalizado para efectos visuales
+                    menuStrip.RenderMode = ToolStripRenderMode.Professional;
+                    menuStrip.Renderer = new ModernMenuRenderer(theme);
+
+                    // Aplicar font más elegante
+                    menuStrip.Font = new Font("Segoe UI", 9.5F, FontStyle.Regular);
+
+                    break;
+                }
+            }
         }
 
         private void SetupButtonIcons()
         {
-            // Asignar iconos a los botones principales
-            var compileIcon = IconFactory.GetIcon("compile", 16, 16);
-            var executeIcon = IconFactory.GetIcon("execute", 16, 16);
+            // Asignar iconos a los botones principales con mejor espaciado
+            var compileIcon = IconFactory.GetIcon("compile", 18, 18);
+            var executeIcon = IconFactory.GetIcon("execute", 18, 18);
 
             if (compileIcon != null)
             {
                 compileButton.Image = compileIcon;
                 compileButton.ImageAlign = ContentAlignment.MiddleLeft;
-                compileButton.TextAlign = ContentAlignment.MiddleRight;
-                compileButton.Text = "  Compilar";
+                compileButton.TextAlign = ContentAlignment.MiddleCenter;
+                compileButton.Text = "   Compilar";
+                compileButton.TextImageRelation = TextImageRelation.ImageBeforeText;
             }
 
             if (executeIcon != null)
             {
                 executeButton.Image = executeIcon;
                 executeButton.ImageAlign = ContentAlignment.MiddleLeft;
-                executeButton.TextAlign = ContentAlignment.MiddleRight;
-                executeButton.Text = "  Ejecutar";
+                executeButton.TextAlign = ContentAlignment.MiddleCenter;
+                executeButton.Text = "   Ejecutar";
+                executeButton.TextImageRelation = TextImageRelation.ImageBeforeText;
             }
-        }        private void UpdateStatus(string message, bool success)
+        }
+
+        private void SetupEnhancedStatusBar()
         {
-            if (statusLabel == null) return;
+            var statusStrip = new StatusStrip();
+            var theme = ThemeManager.CurrentTheme;
+
+            // Configurar tema de la barra de estado
+            statusStrip.BackColor = theme.SecondaryBackground;
+            statusStrip.ForeColor = theme.SecondaryForeground;
+            statusStrip.RenderMode = ToolStripRenderMode.Professional;
+
+            // Ícono de estado
+            statusIcon = new ToolStripStatusLabel
+            {
+                Image = IconFactory.GetIcon("info", 16, 16),
+                DisplayStyle = ToolStripItemDisplayStyle.Image,
+                AutoSize = false,
+                Width = 20
+            };
+
+            // Mensaje principal
+            statusLabel = new ToolStripStatusLabel("Listo")
+            {
+                Spring = true,
+                TextAlign = ContentAlignment.MiddleLeft,
+                Font = new Font("Segoe UI", 9F, FontStyle.Regular)
+            };
+
+            // Posición del cursor (línea, columna)
+            lineColumnLabel = new ToolStripStatusLabel("Ln 1, Col 1")
+            {
+                AutoSize = false,
+                Width = 80,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Font = new Font("Segoe UI", 9F, FontStyle.Regular),
+                BorderSides = ToolStripStatusLabelBorderSides.Left
+            };
+
+            // Hora actual
+            timeLabel = new ToolStripStatusLabel(DateTime.Now.ToString("HH:mm"))
+            {
+                AutoSize = false,
+                Width = 50,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Font = new Font("Segoe UI", 9F, FontStyle.Regular),
+                BorderSides = ToolStripStatusLabelBorderSides.Left
+            };
+
+            // Agregar elementos a la barra
+            statusStrip.Items.AddRange(new ToolStripItem[]
+            {
+                statusIcon,
+                statusLabel,
+                lineColumnLabel,
+                timeLabel
+            });
+
+            this.Controls.Add(statusStrip);
+
+            // Configurar eventos para actualizaciones
+            SetupStatusBarEvents();
+        }
+
+        private void SetupStatusBarEvents()
+        {
+            // Timer para actualizar la hora cada minuto
+            var timeTimer = new System.Windows.Forms.Timer { Interval = 60000 }; // 1 minuto
+            timeTimer.Tick += (s, e) => {
+                if (timeLabel != null)
+                    timeLabel.Text = DateTime.Now.ToString("HH:mm");
+            };
+            timeTimer.Start();
+
+            // Eventos para actualizar posición del cursor
+            if (codeRichTextBox != null)
+            {
+                codeRichTextBox.SelectionChanged += UpdateCursorPosition;
+                codeRichTextBox.TextChanged += UpdateCursorPosition;
+            }
+        }
+
+        private void UpdateCursorPosition(object? sender, EventArgs e)
+        {
+            if (lineColumnLabel == null || codeRichTextBox == null) return;
+
+            try {
+                var selectionStart = codeRichTextBox.SelectionStart;
+                var line = codeRichTextBox.GetLineFromCharIndex(selectionStart) + 1;
+                var column = selectionStart - codeRichTextBox.GetFirstCharIndexFromLine(line - 1) + 1;
+
+                lineColumnLabel.Text = $"Ln {line}, Col {column}";
+            }
+            catch {
+                lineColumnLabel.Text = "Ln 1, Col 1";
+            }
+        }
+
+        private void UpdateStatus(string message, bool success)
+        {
+            if (statusLabel == null || statusIcon == null) return;
 
             statusLabel.Text = message;
+
+            // Actualizar ícono según el estado
+            var iconName = success ? "success" : "error";
+            var icon = IconFactory.GetIcon(iconName, 16, 16);
+            if (icon != null)
+            {
+                statusIcon.Image = icon;
+            }
+        }
+
+        private void UpdateStatusWithIcon(string message, string iconName)
+        {
+            if (statusLabel == null || statusIcon == null) return;
+
+            statusLabel.Text = message;
+
+            var icon = IconFactory.GetIcon(iconName, 16, 16);
+            if (icon != null)
+            {
+                statusIcon.Image = icon;
+            }
         }
 
         /// <summary>
@@ -143,7 +368,7 @@ namespace KaizenLang.UI
             {
                 button.Enabled = false;
                 button.Text = workingText;
-                UpdateStatus("Procesando...", true);
+                UpdateStatusWithIcon("Procesando...", "loading");
 
                 await action();
             }
@@ -156,6 +381,8 @@ namespace KaizenLang.UI
             {
                 button.Enabled = true;
                 button.Text = defaultText;
+                // Restaurar ícono de info por defecto
+                UpdateStatusWithIcon("Listo", "info");
             }
         }
 
@@ -168,6 +395,86 @@ namespace KaizenLang.UI
             outputRichTextBox.SelectionColor = ThemeManager.CurrentTheme.Foreground;
             outputRichTextBox.AppendText(output);
             outputRichTextBox.SelectionColor = outputRichTextBox.ForeColor; // reset color
+        }
+
+        /// <summary>
+        /// Prueba el sistema de syntax highlighting cargando código de ejemplo
+        /// </summary>
+        public void TestSyntaxHighlighting()
+        {
+            try
+            {
+                // Código de ejemplo embebido para probar syntax highlighting con sintaxis KaizenLang
+                var exampleCode = @"// ============================================
+// EJEMPLOS DE CÓDIGO EN KAIZENLANG
+// ============================================
+
+// EJEMPLO 1: Declaraciones básicas de variables
+integer numero = 42;
+string mensaje = ""Hola KaizenLang"";
+bool activo = true;
+float precio = 19.99;
+
+// EJEMPLO 2: Estructuras de control con ying/yang
+if (numero > 0) ying
+    output(""El número es positivo"");
+yang else ying
+    output(""El número es negativo o cero"");
+yang
+
+// EJEMPLO 3: Bucle while
+integer contador = 0;
+while (contador < 5) ying
+    output(""Contador: "" + contador);
+    contador = contador + 1;
+yang
+
+// EJEMPLO 4: Bucle for
+for (integer i = 0; i < 10; i++) ying
+    output(""Iteración: "" + i);
+yang
+
+// EJEMPLO 5: Función con sintaxis KaizenLang
+integer factorial(integer n) ying
+    if (n <= 1) ying
+        return 1;
+    yang
+    return n * factorial(n - 1);
+yang
+
+// EJEMPLO 6: Función void
+void saludar(string nombre) ying
+    output(""Hola "" + nombre + ""!"");
+yang
+
+// EJEMPLO 7: Arrays y matrices
+array<integer> numeros = [1, 2, 3, 4, 5];
+matrix<integer> tabla = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+
+// EJEMPLO 8: Funciones builtin
+string name = input();
+output(name);
+integer len = length(numeros);
+
+// EJEMPLO 9: Operaciones complejas
+integer resultado = (10 + 5) * 2;
+bool comparacion = (resultado > 25) && (numero < 100);
+
+// EJEMPLO 10: Acceso a arrays y matrices
+integer primero = numeros[0];
+integer elemento = tabla[0][1];
+
+saludar(""KaizenLang"");";                codeRichTextBox.Text = exampleCode;
+
+                // Aplicar syntax highlighting manualmente (forzado para el ejemplo inicial)
+                SyntaxHighlighter.ApplySyntaxHighlighting(codeRichTextBox, true);
+
+                DisplayResult("✅ Syntax highlighting para KaizenLang aplicado correctamente!\n\nPuedes ver:\n- Comentarios en verde e itálica (//)\n- Palabras clave en bold (if, else, for, while, ying, yang)\n- Tipos en bold (integer, string, bool, array<>, matrix<>)\n- Funciones builtin (input, output, length)\n- Cadenas de texto coloreadas\n- Números resaltados\n- Operadores y símbolos destacados", true);
+            }
+            catch (Exception ex)
+            {
+                DisplayResult($"❌ Error al cargar ejemplo de syntax highlighting: {ex.Message}", false);
+            }
         }
     }
 }

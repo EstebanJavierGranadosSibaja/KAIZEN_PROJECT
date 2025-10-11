@@ -53,7 +53,57 @@ public class SemanticAnalyzer
             VisitTopLevel(child);
         }
 
-        return errors.ToList();
+        // Final pass: validate all identifier usages across the AST to catch undeclared usages
+        ValidateAllIdentifiers(ast);
+
+        // Deduplicate errors to avoid repeated messages from multiple passes
+        var unique = errors.Distinct().ToList();
+        return unique;
+    }
+
+    private void ValidateAllIdentifiers(Node root)
+    {
+        if (root == null) return;
+        foreach (var child in root.Children)
+            ValidateNodeWithScope(child);
+    }
+
+    // Validate a node and its children, creating temporary scopes for function parameters
+    private void ValidateNodeWithScope(Node node)
+    {
+        if (node == null) return;
+
+        if (string.Equals(node.Type, "Function", StringComparison.OrdinalIgnoreCase) || string.Equals(node.Type, "FunctionDeclaration", StringComparison.OrdinalIgnoreCase))
+        {
+            // Register parameters in a new temporary scope so body validation recognizes them
+            PushScope();
+            var paramsNode = node.FindChild("Parameters");
+            if (paramsNode != null)
+            {
+                foreach (var p in paramsNode.Children)
+                {
+                    var id = p.FindChild("Identifier") ?? p.FindChild("IDENTIFIER");
+                    var pname = ExtractIdentifierName(id) ?? id?.Type;
+                    var typeNode = p.Children.Count > 0 ? p.Children[0] : null;
+                    var ptype = typeNode != null && typeNode.Children.Count>0 ? typeNode.Children[0].Type : typeNode?.Type ?? string.Empty;
+                    if (!string.IsNullOrEmpty(pname))
+                        scopes.Peek()[pname] = new SymbolInfo { Name = pname, Kind = SymbolKind.Variable, Type = ptype, IsInitialized = true };
+                }
+            }
+
+            // Validate body under this scope
+            var body = node.FindChild("Body") ?? node.FindChild("Block");
+            if (body != null)
+                ValidateIdentifiersInExpression(body);
+
+            PopScope();
+            return;
+        }
+
+        // Default: validate this node and recurse
+        ValidateIdentifiersInExpression(node);
+        foreach (var c in node.Children)
+            ValidateNodeWithScope(c);
     }
 
     private void VisitTopLevel(Node node)
@@ -98,7 +148,59 @@ public class SemanticAnalyzer
             return;
         }
 
-        current[varName] = new SymbolInfo { Name = varName, Kind = SymbolKind.Variable };
+        // determine declared type from node
+        string declaredType = string.Empty;
+        var typeNode = node.Children[0];
+        if (typeNode.Children.Count > 0)
+            declaredType = typeNode.Children[0].Type;
+        else
+            declaredType = typeNode.Type;
+
+        // Do not register the variable in the current scope yet: validate initializer first
+        // If initializer present, validate identifiers used and types
+        if (node.Children.Count > 2)
+        {
+            var initWrapper = node.Children[2];
+            var initExpr = initWrapper.Children.Count > 0 ? initWrapper.Children[0] : initWrapper;
+
+            // 1) Walk initializer to find identifier usages and ensure they are declared
+            ValidateIdentifiersInExpression(initExpr);
+
+            // 2) Resolve initializer type and compare to declared type
+            var initType = ResolveExpressionType(initExpr);
+            if (initType != null)
+            {
+                if (declaredType.StartsWith("array", StringComparison.OrdinalIgnoreCase) || declaredType.StartsWith("matrix", StringComparison.OrdinalIgnoreCase))
+                {
+                    string declaredElem = string.Empty;
+                    if (typeNode.Children.Count > 0)
+                        declaredElem = typeNode.Children[0].Type;
+                    if (initType.StartsWith("array<") && !string.IsNullOrEmpty(declaredElem))
+                    {
+                        var start = initType.IndexOf('<') + 1;
+                        var end = initType.IndexOf('>');
+                        if (start > 0 && end > start)
+                        {
+                            var initElem = initType.Substring(start, end - start);
+                            if (!string.Equals(initElem, declaredElem, StringComparison.OrdinalIgnoreCase))
+                                errors.Add(FormattedError(node, $"Tipo incompatible en inicialización: se esperaba '{declaredElem}' pero se encontró '{initElem}'"));
+                        }
+                    }
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(declaredType) && !string.Equals(declaredType, initType, StringComparison.OrdinalIgnoreCase))
+                    {
+                        errors.Add(FormattedError(node, $"Tipo incompatible en inicialización: se esperaba '{declaredType}' pero se encontró '{initType}'"));
+                    }
+                }
+            }
+        }
+
+        // Finally register variable in current scope
+        var sinfo = new SymbolInfo { Name = varName, Kind = SymbolKind.Variable, Type = declaredType, IsInitialized = node.Children.Count > 2 };
+        current[varName] = sinfo;
+
         // run additional checks on initializer if present (arrays / matrices)
         CheckCollectionInitializer(node);
     }
@@ -201,15 +303,33 @@ public class SemanticAnalyzer
                 break;
             case "Assignment":
                 // LHS identifier must exist or be declared
-                var id = node.FindChild("Identifier") ?? node.FindChild("IDENTIFIER");
+                var id = node.FindChild("Identifier") ?? node.FindChild("IDENTIFIER") ?? node.FindChild("IndexAccess");
                 var name = ExtractIdentifierName(id);
                 if (!string.IsNullOrEmpty(name) && !IsSymbolDefined(name))
-                    errors.Add(FormattedError(node, $"Variable '{name}' not declared"));
+                    errors.Add(FormattedError(node, $"Variable '{name}' not declarada"));
 
-                // Visit RHS expression
-                var rhs = node.FindChild("Expression");
+                // Resolve RHS type and compare with declared LHS type when possible
+                var rhs = node.FindChild("Expression") ?? (node.Children.Count > 1 ? node.Children[1] : null);
                 if (rhs != null)
-                    VisitNode(rhs);
+                {
+                    var rhsExpr = rhs.Children.Count > 0 ? rhs.Children[0] : rhs;
+                    var rhsType = ResolveExpressionType(rhsExpr);
+                    if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(rhsType))
+                    {
+                        // lookup var type
+                        foreach (var scope in scopes)
+                        {
+                            if (scope.TryGetValue(name, out var si) && !string.IsNullOrEmpty(si.Type))
+                            {
+                                if (!string.Equals(si.Type, rhsType, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    errors.Add(FormattedError(node, $"Tipos incompatibles para asignación: {si.Type} y {rhsType}"));
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
                 break;
             case "Identifier":
             case "IDENTIFIER":
@@ -473,6 +593,9 @@ public class SemanticAnalyzer
     {
         public string Name { get; set; } = string.Empty;
         public SymbolKind Kind { get; set; }
+        // Declared type for variables (e.g., "integer", "string", "array", etc.)
+        public string Type { get; set; } = string.Empty;
+        public bool IsInitialized { get; set; }
     }
 
     private enum SymbolKind { Variable, Function }
@@ -482,5 +605,149 @@ public class SemanticAnalyzer
         public string Name { get; set; } = string.Empty;
         public int Arity { get; set; }
         public bool IsBuiltin { get; set; }
+        // Optional return type ("integer", "string", etc.)
+        public string ReturnType { get; set; } = string.Empty;
+    }
+
+    // --- Type resolution helpers ---
+    // Try to resolve the static type of an expression node. Returns null if unknown.
+    private string? ResolveExpressionType(Node? expr)
+    {
+        if (expr == null) return null;
+
+        switch (expr.Type)
+        {
+            case "INT":
+                return "integer";
+            case "FLOAT":
+                return "float";
+            case "STRING":
+                return "string";
+            case "LITERAL":
+                // boolean literals or null
+                if (expr.Children.Count > 0)
+                {
+                    var lit = expr.Children[0].Type;
+                    if (lit == "true" || lit == "false") return "bool";
+                    if (lit == "null") return "null";
+                }
+                return "string";
+            case "IDENTIFIER":
+            case "Identifier":
+                var name = ExtractIdentifierName(expr);
+                if (string.IsNullOrEmpty(name)) return null;
+                // Look up symbol type in scopes
+                foreach (var scope in scopes)
+                {
+                    if (scope.TryGetValue(name, out var si) && !string.IsNullOrEmpty(si.Type))
+                        return si.Type;
+                }
+                // Not found
+                errors.Add(FormattedError(expr, $"Variable '{name}' no declarada"));
+                return null;
+            case "FunctionCall":
+                var fnameNode = expr.FindChild("FunctionName");
+                var fname = ExtractIdentifierName(fnameNode);
+                if (string.IsNullOrEmpty(fname)) return null;
+                if (functions.TryGetValue(fname, out var sig))
+                {
+                    return string.IsNullOrEmpty(sig.ReturnType) ? null : sig.ReturnType;
+                }
+                if (builtins.ContainsKey(fname))
+                {
+                    // input -> string, output -> void
+                    if (string.Equals(fname, "input", StringComparison.OrdinalIgnoreCase)) return "string";
+                    return null;
+                }
+                errors.Add(FormattedError(expr, $"Function '{fname}' no definida"));
+                return null;
+            case "Expression":
+            case "Parentheses":
+            case "ExpressionStatement":
+                // Descend into first child expression if present
+                if (expr.Children.Count > 0) return ResolveExpressionType(expr.Children[0]);
+                return null;
+            case "ArrayLiteral":
+                // Determine element type if all elements share same type
+                var elements = expr.FindChild("Elements");
+                if (elements == null || elements.Children.Count == 0) return "array"; // unknown element type but an array
+                string? eltType = null;
+                foreach (var el in elements.Children)
+                {
+                    var et = ResolveExpressionType(el);
+                    if (et == null) return null;
+                    if (eltType == null) eltType = et;
+                    else if (!string.Equals(eltType, et, StringComparison.OrdinalIgnoreCase))
+                        return null; // heterogeneous
+                }
+                return "array<" + (eltType ?? "?") + ">";
+            default:
+                // Binary operator shapes: Expression children with IDENTIFIER/Operator/INT etc.
+                if (expr.Children != null && expr.Children.Count == 3)
+                {
+                    var left = ResolveExpressionType(expr.Children[0]);
+                    var op = expr.Children[1];
+                    var right = ResolveExpressionType(expr.Children[2]);
+                    if (left == null || right == null) return null;
+                    // Numeric operators
+                    var ops = new[] { ">", "<", ">=", "<=", "+", "-", "*", "/" };
+                    var opSymbol = op.Type;
+                    if (Array.Exists(ops, o => o == opSymbol))
+                    {
+                        // If both integer -> integer; if any float -> float
+                        if (string.Equals(left, "integer", StringComparison.OrdinalIgnoreCase) && string.Equals(right, "integer", StringComparison.OrdinalIgnoreCase))
+                            return "integer";
+                        if ((string.Equals(left, "integer", StringComparison.OrdinalIgnoreCase) && string.Equals(right, "float", StringComparison.OrdinalIgnoreCase)) ||
+                            (string.Equals(left, "float", StringComparison.OrdinalIgnoreCase) && string.Equals(right, "integer", StringComparison.OrdinalIgnoreCase)) ||
+                            (string.Equals(left, "float", StringComparison.OrdinalIgnoreCase) && string.Equals(right, "float", StringComparison.OrdinalIgnoreCase)))
+                            return "float";
+                    }
+                    // Comparison operators produce bool
+                    var cmpOps = new[] { ">", "<", ">=", "<=", "==", "!=" };
+                    if (Array.Exists(cmpOps, o => o == opSymbol)) return "bool";
+                }
+                // Fallback
+                return null;
+        }
+    }
+
+    // Walk an expression AST and report identifiers that are not defined in any accessible scope
+    private void ValidateIdentifiersInExpression(Node? expr)
+    {
+        if (expr == null) return;
+
+        // If this node is an identifier node, check it's defined
+        if (expr.Type == "IDENTIFIER" || expr.Type == "Identifier" || expr.Type == "Identifier" )
+        {
+            var name = ExtractIdentifierName(expr);
+            if (!string.IsNullOrEmpty(name) && !IsSymbolDefined(name) && !functions.ContainsKey(name) && !builtins.ContainsKey(name))
+            {
+                errors.Add(FormattedError(expr, $"Variable '{name}' no declarada"));
+            }
+            return;
+        }
+
+        // If function call, validate function name and arguments
+        if (expr.Type == "FunctionCall")
+        {
+            var fname = ExtractIdentifierName(expr.FindChild("FunctionName"));
+            if (!string.IsNullOrEmpty(fname) && !functions.ContainsKey(fname) && !builtins.ContainsKey(fname))
+                errors.Add(FormattedError(expr, $"Function '{fname}' no definida"));
+
+            var args = expr.FindChild("Arguments");
+            if (args != null)
+            {
+                foreach (var a in args.Children)
+                    ValidateIdentifiersInExpression(a);
+            }
+            return;
+        }
+
+        // For other nodes, recurse into children
+        if (expr.Children != null)
+        {
+            foreach (var c in expr.Children)
+                ValidateIdentifiersInExpression(c);
+        }
     }
 }

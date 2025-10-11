@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Ícono de procesando/loading -->
+  <circle cx="8" cy="8" r="6" fill="none" stroke="#D4B37F" stroke-width="1.5" stroke-dasharray="9 3"/>
+  <animateTransform attributeName="transform" type="rotate" values="0 8 8;360 8 8" dur="1s" repeatCount="indefinite"/>
+</svg>
