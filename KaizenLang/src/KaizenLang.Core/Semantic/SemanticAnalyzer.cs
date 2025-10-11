@@ -158,16 +158,39 @@ public class SemanticAnalyzer
 
         // Do not register the variable in the current scope yet: validate initializer first
         // If initializer present, validate identifiers used and types
+        bool initializerHasErrors = false;
         if (node.Children.Count > 2)
         {
             var initWrapper = node.Children[2];
             var initExpr = initWrapper.Children.Count > 0 ? initWrapper.Children[0] : initWrapper;
 
-            // 1) Walk initializer to find identifier usages and ensure they are declared
-            ValidateIdentifiersInExpression(initExpr);
+            // 0) Quick malformed-initializer detection: if initializer expression contains
+            // an INT followed immediately by an IDENTIFIER child (no operator between),
+            // that likely came from a token sequence like '2323hdfhwef34' which the lexer
+            // split into INT + IDENTIFIER but the parser produced a single Expression node.
+            // This pattern is invalid as a standalone expression.
+            if (initExpr != null && initExpr.Children != null && initExpr.Children.Count >= 2)
+            {
+                for (int i = 0; i < initExpr.Children.Count - 1; i++)
+                {
+                    var a = initExpr.Children[i];
+                    var b = initExpr.Children[i + 1];
+                    if ((a.Type == "INT" || a.Type == "FLOAT") && (b.Type == "IDENTIFIER" || b.Type == "Identifier"))
+                    {
+                        errors.Add(FormattedError(initExpr, $"Inicializador inválido: literal seguido de identificador sin operador (posible token pegado)"));
+                        initializerHasErrors = true;
+                        break;
+                    }
+                }
+            }
 
-            // 2) Resolve initializer type and compare to declared type
-            var initType = ResolveExpressionType(initExpr);
+            // 1) Walk initializer to find identifier usages and ensure they are declared
+            // Only perform this if we haven't already flagged a malformed initializer.
+            if (!initializerHasErrors)
+                ValidateIdentifiersInExpression(initExpr);
+
+            // 2) Resolve initializer type and compare to declared type (only if no identifier errors)
+            var initType = initializerHasErrors ? null : ResolveExpressionType(initExpr);
             if (initType != null)
             {
                 if (declaredType.StartsWith("array", StringComparison.OrdinalIgnoreCase) || declaredType.StartsWith("matrix", StringComparison.OrdinalIgnoreCase))
@@ -197,9 +220,14 @@ public class SemanticAnalyzer
             }
         }
 
-        // Finally register variable in current scope
-        var sinfo = new SymbolInfo { Name = varName, Kind = SymbolKind.Variable, Type = declaredType, IsInitialized = node.Children.Count > 2 };
-        current[varName] = sinfo;
+        // Only register variable if initializer did not have fatal errors (like malformed tokens
+        // or undeclared identifiers discovered above). This prevents subsequent passes from
+        // assuming variable exists when its initializer was invalid.
+        if (!initializerHasErrors)
+        {
+            var sinfo = new SymbolInfo { Name = varName, Kind = SymbolKind.Variable, Type = declaredType, IsInitialized = node.Children.Count > 2 };
+            current[varName] = sinfo;
+        }
 
         // run additional checks on initializer if present (arrays / matrices)
         CheckCollectionInitializer(node);
