@@ -12,6 +12,11 @@ class Program
         var code = System.IO.File.ReadAllText(path);
         var cs = new CompilationService();
         var res = cs.CompileCode(code);
+        // Always print the compiled output so lexical/syntax/semantic errors are visible
+        if (!string.IsNullOrEmpty(res.Output))
+        {
+            Console.WriteLine(res.Output);
+        }
         if (res.AST != null)
         {
             Console.WriteLine(res.AST.ToTreeString());

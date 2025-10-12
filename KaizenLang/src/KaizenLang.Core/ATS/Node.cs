@@ -97,19 +97,19 @@ public class Node
     // Método para obtener todos los errores del árbol
     public List<string> GetAllErrors()
     {
-        var errors = new List<string>();
+        var collected = new List<string>();
 
         if (Type.Contains("Error") || Type.Contains("Invalid"))
         {
             if (Children.Count > 0 && !string.IsNullOrEmpty(Children[0].Type))
-                errors.Add(Children[0].Type);
+                collected.Add(Children[0].Type);
             else
-                errors.Add($"Error en nodo: {Type}");
+                collected.Add($"Error en nodo: {Type}");
         }
 
         foreach (var child in Children)
-            errors.AddRange(child.GetAllErrors());
+            collected.AddRange(child.GetAllErrors());
 
-        return errors;
+        return collected;
     }
 }

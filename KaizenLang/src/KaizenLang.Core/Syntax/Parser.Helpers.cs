@@ -55,6 +55,11 @@ public partial class Parser
             {
                 return true;
             }
+            // Also treat a bare 'array NAME' or 'matrix NAME' sequence as an attempted declaration
+            // so that the parser can produce a clearer error (missing element type) instead of
+            // parsing it as an expression.
+            if (pos + 1 < tokens.Count && tokens[pos + 1].Type == "IDENTIFIER")
+                return true;
         }
 
         return false;

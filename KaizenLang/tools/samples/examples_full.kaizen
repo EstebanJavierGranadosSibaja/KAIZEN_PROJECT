@@ -1,0 +1,60 @@
+// ============================================
+// EJEMPLOS DE CÓDIGO EN KAIZENLANG
+// ============================================
+
+// EJEMPLO 1: Declaraciones básicas de variables
+integer numero = 42;
+string mensaje = "Hola KaizenLang";
+bool activo = true;
+float precio = 19.99;
+
+// EJEMPLO 2: Estructuras de control con ying/yang
+if (numero > 0) ying
+    output("El número es positivo");
+yang else ying
+    output("El número es negativo o cero");
+yang
+
+// EJEMPLO 3: Bucle while
+integer contador = 0;
+while (contador < 5) ying
+    output("Contador: " + contador);
+    contador = contador + 1;
+yang
+
+// EJEMPLO 4: Bucle for
+for (integer i = 0; i < 10; i++) ying
+    output("Iteración: " + i);
+yang
+
+// EJEMPLO 5: Función con sintaxis KaizenLang
+integer factorial(integer n) ying
+    if (n <= 1) ying
+        return 1;
+    yang
+    return n * factorial(n - 1);
+yang
+
+// EJEMPLO 6: Función void
+void saludar(string nombre) ying
+    output("Hola " + nombre + "!");
+yang
+
+// EJEMPLO 7: Arrays y matrices
+array<integer> numeros = [1, 2, 3, 4, 5];
+matrix<integer> tabla = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+
+// EJEMPLO 8: Funciones builtin
+string name = input();
+output(name);
+integer len = length(numeros);
+
+// EJEMPLO 9: Operaciones complejas
+integer resultado = (10 + 5) * 2;
+bool comparacion = (resultado > 25) && (numero < 100);
+
+// EJEMPLO 10: Acceso a arrays y matrices
+integer primero = numeros[0];
+integer elemento = tabla[0][1];
+
+saludar("KaizenLang");

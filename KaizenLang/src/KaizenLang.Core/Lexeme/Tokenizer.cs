@@ -57,6 +57,7 @@ internal class Tokenizer
                 var startLine = stream.Line;
                 var startCol = stream.Column;
                 var number = stream.ReadWhile(c => char.IsDigit(c));
+                // If after digits we have a dot, parse float
                 if (stream.Peek() == '.')
                 {
                     stream.Read();
@@ -65,7 +66,19 @@ internal class Tokenizer
                 }
                 else
                 {
-                    tokens.Add(new Token("INT", number, startLine, startCol));
+                    // Check if following characters are letters or '_' (e.g. '2323abc')
+                    var nextChar = stream.Peek();
+                    if (nextChar != null && (char.IsLetter(nextChar.Value) || nextChar == '_'))
+                    {
+                        // Consume the rest of the run (letters/digits/_ ) to produce a helpful error token
+                        var rest = stream.ReadWhile(c => char.IsLetterOrDigit(c) || c == '_');
+                        var full = number + rest;
+                        tokens.Add(new Token("INVALID", $"Token inválido: secuencia numérica seguida de identificador '{full}'", startLine, startCol));
+                    }
+                    else
+                    {
+                        tokens.Add(new Token("INT", number, startLine, startCol));
+                    }
                 }
                 continue;
             }

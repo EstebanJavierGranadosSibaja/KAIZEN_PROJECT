@@ -16,9 +16,11 @@ public class SemanticAnalyzer
     // If depth >= 1 and we encounter another control block, that's an illegal nested block.
     private int controlDepth = 0;
 
-    private readonly Stack<Dictionary<string, SymbolInfo>> scopes = new();
+    private readonly Stack<SymbolTable> scopes = new();
     private readonly Dictionary<string, FunctionSignature> functions = new(StringComparer.OrdinalIgnoreCase);
-    private readonly List<string> errors = new();
+    private readonly Diagnostics diagnostics = new();
+    private TypeResolver? typeResolver;
+    private DeclarationChecker? declarationChecker;
 
     // Known builtins with expected arity (-1 means variadic / flexible)
     private readonly Dictionary<string, int> builtins = new(StringComparer.OrdinalIgnoreCase)
@@ -26,11 +28,12 @@ public class SemanticAnalyzer
         { "input", 0 }, // input() or input(prompt) -> treat as 0..1 but we'll accept 0 or 1
         { "output", -1 }, // output(...) any number
         { "print", -1 }, // print(...) familiar convenience alias
+        { "length", 1 }, // length(collection) -> integer
     };
 
     public List<string> AnalyzeProgram(Node ast)
     {
-        errors.Clear();
+    diagnostics.Clear();
         // Reset per-analysis state
         controlDepth = 0;
         scopes.Clear();
@@ -39,13 +42,25 @@ public class SemanticAnalyzer
         // (No diagnostic prints in normal operation)
 
         // Initialize global scope
-        PushScope();
+    PushScope();
 
         // Register builtins as functions
         foreach (var kv in builtins)
         {
             functions[kv.Key] = new FunctionSignature { Name = kv.Key, Arity = kv.Value, IsBuiltin = true };
         }
+
+        // Provide return type info for builtins
+        if (functions.ContainsKey("input")) functions["input"].ReturnType = "string";
+        if (functions.ContainsKey("length")) functions["length"].ReturnType = "integer";
+        if (functions.ContainsKey("output")) functions["output"].ReturnType = "void";
+        if (functions.ContainsKey("print")) functions["print"].ReturnType = "void";
+
+    // Create a TypeResolver for expression type queries
+    typeResolver = new TypeResolver(scopes, functions, builtins, diagnostics);
+
+        // Create a DeclarationChecker to handle variable/function registration
+    declarationChecker = new DeclarationChecker(scopes, functions, builtins, typeResolver, diagnostics, VisitNode);
 
         // Walk top-level nodes
         foreach (var child in ast.Children)
@@ -56,9 +71,8 @@ public class SemanticAnalyzer
         // Final pass: validate all identifier usages across the AST to catch undeclared usages
         ValidateAllIdentifiers(ast);
 
-        // Deduplicate errors to avoid repeated messages from multiple passes
-        var unique = errors.Distinct().ToList();
-        return unique;
+        // Return unique diagnostics
+        return diagnostics.GetUnique();
     }
 
     private void ValidateAllIdentifiers(Node root)
@@ -85,9 +99,9 @@ public class SemanticAnalyzer
                     var id = p.FindChild("Identifier") ?? p.FindChild("IDENTIFIER");
                     var pname = ExtractIdentifierName(id) ?? id?.Type;
                     var typeNode = p.Children.Count > 0 ? p.Children[0] : null;
-                    var ptype = typeNode != null && typeNode.Children.Count>0 ? typeNode.Children[0].Type : typeNode?.Type ?? string.Empty;
-                    if (!string.IsNullOrEmpty(pname))
-                        scopes.Peek()[pname] = new SymbolInfo { Name = pname, Kind = SymbolKind.Variable, Type = ptype, IsInitialized = true };
+                        var ptype = typeNode != null && typeNode.Children.Count>0 ? typeNode.Children[0].Type : typeNode?.Type ?? string.Empty;
+                        if (!string.IsNullOrEmpty(pname))
+                            scopes.Peek().DeclareVariable(pname, ptype, p.Line);
                 }
             }
 
@@ -111,11 +125,11 @@ public class SemanticAnalyzer
         switch (node.Type)
         {
             case "VariableDeclaration":
-                RegisterVariable(node);
+                declarationChecker?.RegisterVariable(node);
                 break;
             case "Function":
             case "FunctionDeclaration":
-                RegisterFunction(node);
+                declarationChecker?.RegisterFunction(node);
                 break;
             default:
                 // Other top-level constructs — analyze recursively to find usages
@@ -124,172 +138,7 @@ public class SemanticAnalyzer
         }
     }
 
-    private void RegisterVariable(Node node)
-    {
-        // Expected structure: VariableDeclaration -> Type, Identifier
-        var nameNode = node.FindChild("Identifier") ?? node.FindChild("IDENTIFIER");
-        if (nameNode == null)
-        {
-            errors.Add(FormattedError(node, "Variable declaration missing identifier"));
-            return;
-        }
-
-        var varName = ExtractIdentifierName(nameNode);
-        if (string.IsNullOrEmpty(varName))
-        {
-            errors.Add(FormattedError(node, "Variable declaration has empty name"));
-            return;
-        }
-
-        var current = scopes.Peek();
-        if (current.ContainsKey(varName))
-        {
-            errors.Add(FormattedError(node, $"Variable '{varName}' already declared in this scope"));
-            return;
-        }
-
-        // determine declared type from node
-        string declaredType = string.Empty;
-        var typeNode = node.Children[0];
-        if (typeNode.Children.Count > 0)
-            declaredType = typeNode.Children[0].Type;
-        else
-            declaredType = typeNode.Type;
-
-        // Do not register the variable in the current scope yet: validate initializer first
-        // If initializer present, validate identifiers used and types
-        bool initializerHasErrors = false;
-        if (node.Children.Count > 2)
-        {
-            var initWrapper = node.Children[2];
-            var initExpr = initWrapper.Children.Count > 0 ? initWrapper.Children[0] : initWrapper;
-
-            // 0) Quick malformed-initializer detection: if initializer expression contains
-            // an INT followed immediately by an IDENTIFIER child (no operator between),
-            // that likely came from a token sequence like '2323hdfhwef34' which the lexer
-            // split into INT + IDENTIFIER but the parser produced a single Expression node.
-            // This pattern is invalid as a standalone expression.
-            if (initExpr != null && initExpr.Children != null && initExpr.Children.Count >= 2)
-            {
-                for (int i = 0; i < initExpr.Children.Count - 1; i++)
-                {
-                    var a = initExpr.Children[i];
-                    var b = initExpr.Children[i + 1];
-                    if ((a.Type == "INT" || a.Type == "FLOAT") && (b.Type == "IDENTIFIER" || b.Type == "Identifier"))
-                    {
-                        errors.Add(FormattedError(initExpr, $"Inicializador inválido: literal seguido de identificador sin operador (posible token pegado)"));
-                        initializerHasErrors = true;
-                        break;
-                    }
-                }
-            }
-
-            // 1) Walk initializer to find identifier usages and ensure they are declared
-            // Only perform this if we haven't already flagged a malformed initializer.
-            if (!initializerHasErrors)
-                ValidateIdentifiersInExpression(initExpr);
-
-            // 2) Resolve initializer type and compare to declared type (only if no identifier errors)
-            var initType = initializerHasErrors ? null : ResolveExpressionType(initExpr);
-            if (initType != null)
-            {
-                if (declaredType.StartsWith("array", StringComparison.OrdinalIgnoreCase) || declaredType.StartsWith("matrix", StringComparison.OrdinalIgnoreCase))
-                {
-                    string declaredElem = string.Empty;
-                    if (typeNode.Children.Count > 0)
-                        declaredElem = typeNode.Children[0].Type;
-                    if (initType.StartsWith("array<") && !string.IsNullOrEmpty(declaredElem))
-                    {
-                        var start = initType.IndexOf('<') + 1;
-                        var end = initType.IndexOf('>');
-                        if (start > 0 && end > start)
-                        {
-                            var initElem = initType.Substring(start, end - start);
-                            if (!string.Equals(initElem, declaredElem, StringComparison.OrdinalIgnoreCase))
-                                errors.Add(FormattedError(node, $"Tipo incompatible en inicialización: se esperaba '{declaredElem}' pero se encontró '{initElem}'"));
-                        }
-                    }
-                }
-                else
-                {
-                    if (!string.IsNullOrEmpty(declaredType) && !string.Equals(declaredType, initType, StringComparison.OrdinalIgnoreCase))
-                    {
-                        errors.Add(FormattedError(node, $"Tipo incompatible en inicialización: se esperaba '{declaredType}' pero se encontró '{initType}'"));
-                    }
-                }
-            }
-        }
-
-        // Only register variable if initializer did not have fatal errors (like malformed tokens
-        // or undeclared identifiers discovered above). This prevents subsequent passes from
-        // assuming variable exists when its initializer was invalid.
-        if (!initializerHasErrors)
-        {
-            var sinfo = new SymbolInfo { Name = varName, Kind = SymbolKind.Variable, Type = declaredType, IsInitialized = node.Children.Count > 2 };
-            current[varName] = sinfo;
-        }
-
-        // run additional checks on initializer if present (arrays / matrices)
-        CheckCollectionInitializer(node);
-    }
-
-    private void RegisterFunction(Node node)
-    {
-        // Expected types: Function or FunctionDeclaration with children: FunctionName, Parameters, Body
-        var nameNode = node.FindChild("FunctionName") ?? node.FindChild("Identifier") ?? node.FindChild("IDENTIFIER");
-        var fnName = ExtractIdentifierName(nameNode);
-        if (string.IsNullOrEmpty(fnName))
-        {
-            errors.Add(FormattedError(node, "Function declaration missing name"));
-            return;
-        }
-
-        // Count parameters if present
-        int arity = 0;
-        var paramsNode = node.FindChild("Parameters") ?? node.FindChild("Arguments") ?? node.FindChild("PARAMETERS");
-        if (paramsNode != null)
-        {
-            arity = paramsNode.Children.Count;
-        }
-
-        if (functions.ContainsKey(fnName))
-        {
-            errors.Add(FormattedError(node, $"Function '{fnName}' already declared"));
-            return;
-        }
-
-        functions[fnName] = new FunctionSignature { Name = fnName, Arity = arity, IsBuiltin = false };
-
-        // New scope for function body: register parameters as variables
-        PushScope();
-        if (paramsNode != null)
-        {
-            foreach (var p in paramsNode.Children)
-            {
-                // Parameter node shape is usually: Param -> Type, Identifier
-                var idNode = p.FindChild("Identifier") ?? p.FindChild("IDENTIFIER");
-                var paramName = ExtractIdentifierName(idNode) ?? p.Value?.ToString();
-                if (string.IsNullOrEmpty(paramName))
-                    continue;
-                var cur = scopes.Peek();
-                if (cur.ContainsKey(paramName))
-                {
-                    errors.Add(FormattedError(p, $"Parameter '{paramName}' duplicated"));
-                }
-                else
-                {
-                    cur[paramName] = new SymbolInfo { Name = paramName, Kind = SymbolKind.Variable };
-                }
-            }
-        }
-
-        // Visit function body if present
-        var body = node.FindChild("Body") ?? node.FindChild("Block");
-        if (body != null)
-            VisitNode(body);
-
-        PopScope();
-    }
+    // RegisterVariable and RegisterFunction were moved to DeclarationChecker
 
     private void VisitNode(Node node)
     {
@@ -308,7 +157,7 @@ public class SemanticAnalyzer
             {
                 // Message contains 'nested', 'anid' and 'nivel' so tests matching any substring will find it
                 var msg = FormattedError(node, $"Bloque de control anidado no permitido (nested / anid / nivel) (nivel {newDepth})");
-                errors.Add(msg);
+                diagnostics.ReportMessage(msg);
                 // Still continue analyzing to collect more errors
             }
 
@@ -325,7 +174,7 @@ public class SemanticAnalyzer
         switch (node.Type)
         {
             case "VariableDeclaration":
-                RegisterVariable(node);
+                declarationChecker?.RegisterVariable(node);
                 // Additional semantic checks for array/matrix initializers
                 CheckCollectionInitializer(node);
                 break;
@@ -334,24 +183,26 @@ public class SemanticAnalyzer
                 var id = node.FindChild("Identifier") ?? node.FindChild("IDENTIFIER") ?? node.FindChild("IndexAccess");
                 var name = ExtractIdentifierName(id);
                 if (!string.IsNullOrEmpty(name) && !IsSymbolDefined(name))
-                    errors.Add(FormattedError(node, $"Variable '{name}' not declarada"));
+                    diagnostics.Report(node, $"Variable '{name}' not declarada");
 
                 // Resolve RHS type and compare with declared LHS type when possible
                 var rhs = node.FindChild("Expression") ?? (node.Children.Count > 1 ? node.Children[1] : null);
                 if (rhs != null)
                 {
                     var rhsExpr = rhs.Children.Count > 0 ? rhs.Children[0] : rhs;
-                    var rhsType = ResolveExpressionType(rhsExpr);
+                    var rhsType = typeResolver?.Resolve(rhsExpr);
                     if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(rhsType))
                     {
                         // lookup var type
                         foreach (var scope in scopes)
                         {
-                            if (scope.TryGetValue(name, out var si) && !string.IsNullOrEmpty(si.Type))
+                            var si = scope.LookupVariable(name);
+                            if (si != null && !string.IsNullOrEmpty(si.Type))
                             {
                                 if (!string.Equals(si.Type, rhsType, StringComparison.OrdinalIgnoreCase))
                                 {
-                                    errors.Add(FormattedError(node, $"Tipos incompatibles para asignación: {si.Type} y {rhsType}"));
+                        if (!CanAssign(si.Type, rhsType))
+                        diagnostics.Report(node, $"Tipos incompatibles para asignación: {si.Type} y {rhsType}");
                                 }
                                 break;
                             }
@@ -363,7 +214,7 @@ public class SemanticAnalyzer
             case "IDENTIFIER":
                 var sname = ExtractIdentifierName(node);
                 if (!string.IsNullOrEmpty(sname) && !IsSymbolDefined(sname) && !functions.ContainsKey(sname))
-                    errors.Add(FormattedError(node, $"Variable '{sname}' not declared"));
+                    diagnostics.Report(node, $"Variable '{sname}' not declared");
                 break;
             case "FunctionCall":
                 ValidateFunctionCall(node);
@@ -417,7 +268,7 @@ public class SemanticAnalyzer
                 var rowArr = rowExpr.FindChild("ArrayLiteral") ?? (rowExpr.Type == "ArrayLiteral" ? rowExpr : null);
                 if (rowArr == null)
                 {
-                    errors.Add(FormattedError(rowExpr, $"Matriz no rectangular: fila {rowIndex} no es una fila (se esperaba array)"));
+                    diagnostics.Report(rowExpr, $"Matriz no rectangular: fila {rowIndex} no es una fila (se esperaba array)");
                     rowIndex++;
                     continue;
                 }
@@ -426,10 +277,10 @@ public class SemanticAnalyzer
                 int cols = rowEls?.Children.Count ?? 0;
                 if (expectedCols == null)
                     expectedCols = cols;
-                else if (expectedCols != cols)
-                {
-                    errors.Add(FormattedError(rowArr, $"Matriz no rectangular: longitudes de fila inconsistentes (esperado {expectedCols}, fila {rowIndex} tiene {cols})"));
-                }
+                    else if (expectedCols != cols)
+                    {
+                        diagnostics.Report(rowArr, $"Matriz no rectangular: longitudes de fila inconsistentes (esperado {expectedCols}, fila {rowIndex} tiene {cols})");
+                    }
 
                 // If element type is declared, validate each element literal type superficially
                 if (!string.IsNullOrEmpty(elemType) && rowEls != null)
@@ -451,9 +302,9 @@ public class SemanticAnalyzer
                                 "LITERAL" => (lit.Children.Count>0 && (lit.Children[0].Type == "true" || lit.Children[0].Type=="false")) ? "bool" : "string",
                                 _ => ""
                             };
-                            if (!string.IsNullOrEmpty(detectedType) && !string.Equals(detectedType, elemType, StringComparison.OrdinalIgnoreCase))
+                                if (!string.IsNullOrEmpty(detectedType) && !string.Equals(detectedType, elemType, StringComparison.OrdinalIgnoreCase))
                             {
-                                errors.Add(FormattedError(elExpr, $"Tipo incompatible en inicialización de matriz/array: se esperaba '{elemType}' pero se encontró '{detectedType}' (fila {rowIndex}, col {col})"));
+                                diagnostics.Report(elExpr, $"Tipo incompatible en inicialización de matriz/array: se esperaba '{elemType}' pero se encontró '{detectedType}' (fila {rowIndex}, col {col})");
                             }
                         }
                         col++;
@@ -488,7 +339,7 @@ public class SemanticAnalyzer
                         };
                         if (!string.IsNullOrEmpty(detectedType) && !string.Equals(detectedType, elemType, StringComparison.OrdinalIgnoreCase))
                         {
-                            errors.Add(FormattedError(elExpr, $"Tipo incompatible en inicialización de array: se esperaba '{elemType}' pero se encontró '{detectedType}' (índice {idx})"));
+                            diagnostics.Report(elExpr, $"Tipo incompatible en inicialización de array: se esperaba '{elemType}' pero se encontró '{detectedType}' (índice {idx})");
                         }
                     }
                     idx++;
@@ -505,7 +356,7 @@ public class SemanticAnalyzer
 
         if (string.IsNullOrEmpty(fname))
         {
-            errors.Add(FormattedError(fnCallNode, "Function call missing function name"));
+            diagnostics.Report(fnCallNode, "Function call missing function name");
             return;
         }
 
@@ -519,20 +370,20 @@ public class SemanticAnalyzer
             {
                 // Accept either expected or expected+1 for input(prompt?) convenience when expected==0
                 if (expected == 0 && !(argCount == 0 || argCount == 1))
-                    errors.Add(FormattedError(fnCallNode, $"Builtin '{fname}' expects 0 or 1 arguments, got {argCount}"));
+                    diagnostics.Report(fnCallNode, $"Builtin '{fname}' expects 0 or 1 arguments, got {argCount}");
                 else if (expected > 0 && argCount != expected)
-                    errors.Add(FormattedError(fnCallNode, $"Builtin '{fname}' expects {expected} arguments, got {argCount}"));
+                    diagnostics.Report(fnCallNode, $"Builtin '{fname}' expects {expected} arguments, got {argCount}");
             }
         }
         else if (functions.TryGetValue(fname, out var sig))
         {
             if (sig.Arity >= 0 && sig.Arity != argCount)
-                errors.Add(FormattedError(fnCallNode, $"Function '{fname}' expects {sig.Arity} arguments, got {argCount}"));
+                diagnostics.Report(fnCallNode, $"Function '{fname}' expects {sig.Arity} arguments, got {argCount}");
         }
         else
         {
             // Unknown function: error
-            errors.Add(FormattedError(fnCallNode, $"Function '{fname}' is not defined"));
+            diagnostics.Report(fnCallNode, $"Function '{fname}' is not defined");
         }
 
         // Visit arguments expressions
@@ -580,7 +431,7 @@ public class SemanticAnalyzer
     {
         foreach (var scope in scopes)
         {
-            if (scope.ContainsKey(name))
+            if (scope.LookupVariable(name) != null)
                 return true;
         }
         return false;
@@ -588,7 +439,7 @@ public class SemanticAnalyzer
 
     private void PushScope()
     {
-        scopes.Push(new Dictionary<string, SymbolInfo>(StringComparer.OrdinalIgnoreCase));
+        scopes.Push(new SymbolTable());
     }
 
     private void PopScope()
@@ -603,6 +454,8 @@ public class SemanticAnalyzer
             return message;
         return $"{message} (l{node.Line}:c{node.Column})";
     }
+
+    // Helper: find descendant node with given type (depth-first)
 
     // Helper: find descendant node with given type (depth-first)
     private Node? FindDescendant(Node root, string type)
@@ -628,115 +481,27 @@ public class SemanticAnalyzer
 
     private enum SymbolKind { Variable, Function }
 
-    private class FunctionSignature
+    // Determine if a value of sourceType can be assigned to a variable of targetType
+    // Promotion rules (widening): integer -> float -> double
+    private bool CanAssign(string targetType, string sourceType)
     {
-        public string Name { get; set; } = string.Empty;
-        public int Arity { get; set; }
-        public bool IsBuiltin { get; set; }
-        // Optional return type ("integer", "string", etc.)
-        public string ReturnType { get; set; } = string.Empty;
-    }
+        if (string.Equals(targetType, sourceType, StringComparison.OrdinalIgnoreCase))
+            return true;
 
-    // --- Type resolution helpers ---
-    // Try to resolve the static type of an expression node. Returns null if unknown.
-    private string? ResolveExpressionType(Node? expr)
-    {
-        if (expr == null) return null;
-
-        switch (expr.Type)
+        // integer -> float or double
+        if (string.Equals(sourceType, "integer", StringComparison.OrdinalIgnoreCase))
         {
-            case "INT":
-                return "integer";
-            case "FLOAT":
-                return "float";
-            case "STRING":
-                return "string";
-            case "LITERAL":
-                // boolean literals or null
-                if (expr.Children.Count > 0)
-                {
-                    var lit = expr.Children[0].Type;
-                    if (lit == "true" || lit == "false") return "bool";
-                    if (lit == "null") return "null";
-                }
-                return "string";
-            case "IDENTIFIER":
-            case "Identifier":
-                var name = ExtractIdentifierName(expr);
-                if (string.IsNullOrEmpty(name)) return null;
-                // Look up symbol type in scopes
-                foreach (var scope in scopes)
-                {
-                    if (scope.TryGetValue(name, out var si) && !string.IsNullOrEmpty(si.Type))
-                        return si.Type;
-                }
-                // Not found
-                errors.Add(FormattedError(expr, $"Variable '{name}' no declarada"));
-                return null;
-            case "FunctionCall":
-                var fnameNode = expr.FindChild("FunctionName");
-                var fname = ExtractIdentifierName(fnameNode);
-                if (string.IsNullOrEmpty(fname)) return null;
-                if (functions.TryGetValue(fname, out var sig))
-                {
-                    return string.IsNullOrEmpty(sig.ReturnType) ? null : sig.ReturnType;
-                }
-                if (builtins.ContainsKey(fname))
-                {
-                    // input -> string, output -> void
-                    if (string.Equals(fname, "input", StringComparison.OrdinalIgnoreCase)) return "string";
-                    return null;
-                }
-                errors.Add(FormattedError(expr, $"Function '{fname}' no definida"));
-                return null;
-            case "Expression":
-            case "Parentheses":
-            case "ExpressionStatement":
-                // Descend into first child expression if present
-                if (expr.Children.Count > 0) return ResolveExpressionType(expr.Children[0]);
-                return null;
-            case "ArrayLiteral":
-                // Determine element type if all elements share same type
-                var elements = expr.FindChild("Elements");
-                if (elements == null || elements.Children.Count == 0) return "array"; // unknown element type but an array
-                string? eltType = null;
-                foreach (var el in elements.Children)
-                {
-                    var et = ResolveExpressionType(el);
-                    if (et == null) return null;
-                    if (eltType == null) eltType = et;
-                    else if (!string.Equals(eltType, et, StringComparison.OrdinalIgnoreCase))
-                        return null; // heterogeneous
-                }
-                return "array<" + (eltType ?? "?") + ">";
-            default:
-                // Binary operator shapes: Expression children with IDENTIFIER/Operator/INT etc.
-                if (expr.Children != null && expr.Children.Count == 3)
-                {
-                    var left = ResolveExpressionType(expr.Children[0]);
-                    var op = expr.Children[1];
-                    var right = ResolveExpressionType(expr.Children[2]);
-                    if (left == null || right == null) return null;
-                    // Numeric operators
-                    var ops = new[] { ">", "<", ">=", "<=", "+", "-", "*", "/" };
-                    var opSymbol = op.Type;
-                    if (Array.Exists(ops, o => o == opSymbol))
-                    {
-                        // If both integer -> integer; if any float -> float
-                        if (string.Equals(left, "integer", StringComparison.OrdinalIgnoreCase) && string.Equals(right, "integer", StringComparison.OrdinalIgnoreCase))
-                            return "integer";
-                        if ((string.Equals(left, "integer", StringComparison.OrdinalIgnoreCase) && string.Equals(right, "float", StringComparison.OrdinalIgnoreCase)) ||
-                            (string.Equals(left, "float", StringComparison.OrdinalIgnoreCase) && string.Equals(right, "integer", StringComparison.OrdinalIgnoreCase)) ||
-                            (string.Equals(left, "float", StringComparison.OrdinalIgnoreCase) && string.Equals(right, "float", StringComparison.OrdinalIgnoreCase)))
-                            return "float";
-                    }
-                    // Comparison operators produce bool
-                    var cmpOps = new[] { ">", "<", ">=", "<=", "==", "!=" };
-                    if (Array.Exists(cmpOps, o => o == opSymbol)) return "bool";
-                }
-                // Fallback
-                return null;
+            if (string.Equals(targetType, "float", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(targetType, "double", StringComparison.OrdinalIgnoreCase))
+                return true;
         }
+
+        // float -> double
+        if (string.Equals(sourceType, "float", StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(targetType, "double", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
     }
 
     // Walk an expression AST and report identifiers that are not defined in any accessible scope
@@ -748,9 +513,9 @@ public class SemanticAnalyzer
         if (expr.Type == "IDENTIFIER" || expr.Type == "Identifier" || expr.Type == "Identifier" )
         {
             var name = ExtractIdentifierName(expr);
-            if (!string.IsNullOrEmpty(name) && !IsSymbolDefined(name) && !functions.ContainsKey(name) && !builtins.ContainsKey(name))
+                if (!string.IsNullOrEmpty(name) && !IsSymbolDefined(name) && !functions.ContainsKey(name) && !builtins.ContainsKey(name))
             {
-                errors.Add(FormattedError(expr, $"Variable '{name}' no declarada"));
+                diagnostics.Report(expr, $"Variable '{name}' no declarada");
             }
             return;
         }
@@ -760,7 +525,7 @@ public class SemanticAnalyzer
         {
             var fname = ExtractIdentifierName(expr.FindChild("FunctionName"));
             if (!string.IsNullOrEmpty(fname) && !functions.ContainsKey(fname) && !builtins.ContainsKey(fname))
-                errors.Add(FormattedError(expr, $"Function '{fname}' no definida"));
+                diagnostics.Report(expr, $"Function '{fname}' no definida");
 
             var args = expr.FindChild("Arguments");
             if (args != null)
