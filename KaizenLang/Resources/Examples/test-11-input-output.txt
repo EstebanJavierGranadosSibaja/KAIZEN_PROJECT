@@ -1,0 +1,56 @@
+// ========================================
+// TEST 11: ENTRADA Y SALIDA (INPUT/OUTPUT)
+// ========================================
+// NOTA: Este test requiere interacción del usuario
+
+output("=== TEST INPUT BÁSICO ===");
+output("Por favor ingresa tu nombre:");
+string nombre = input();
+output("¡Hola " + nombre + "!");
+
+output("=== TEST INPUT CON OPERACIONES ===");
+output("Ingresa un número:");
+string texto = input();
+// Nota: La conversión de string a número se maneja en runtime
+output("Recibido: " + texto);
+
+output("=== TEST MÚLTIPLES INPUTS ===");
+output("Ingresa tu nombre:");
+string nombre1 = input();
+
+output("Ingresa tu edad:");
+string edad = input();
+
+output("Ingresa tu ciudad:");
+string ciudad = input();
+
+output("=== RESUMEN ===");
+output("Nombre: " + nombre1);
+output("Edad: " + edad);
+output("Ciudad: " + ciudad);
+
+output("=== TEST OUTPUT MÚLTIPLE ===");
+integer numero1 = 10;
+integer numero2 = 20;
+integer suma = numero1 + numero2;
+
+output("Número 1: " + numero1);
+output("Número 2: " + numero2);
+output("Suma: " + suma);
+
+output("=== TEST CONCATENACIÓN COMPLEJA ===");
+string saludo = "Hola";
+string complemento = "Mundo";
+string mensaje = saludo + " " + complemento + "!";
+output(mensaje);
+
+output("=== TEST OUTPUT CON TIPOS MIXTOS ===");
+integer edad2 = 25;
+string texto2 = "años";
+output("Tienes " + edad2 + " " + texto2);
+
+float precio = 19.99;
+output("El precio es: $" + precio);
+
+bool activo = true;
+output("Estado activo: " + activo);

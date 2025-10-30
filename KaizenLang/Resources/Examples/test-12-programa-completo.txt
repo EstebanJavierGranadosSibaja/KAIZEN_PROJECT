@@ -1,0 +1,163 @@
+// ========================================
+// TEST 12: PROGRAMA COMPLETO INTEGRADO
+// ========================================
+// Sistema de gestión de estudiantes
+
+output("========================================");
+output("  SISTEMA DE GESTIÓN DE ESTUDIANTES");
+output("========================================");
+
+// Datos de estudiantes
+chainsaw<string> estudiantes = ["Ana García", "Luis Pérez", "María López", "Pedro Ruiz"];
+chainsaw<integer> notas = [85, 92, 78, 88];
+chainsaw<string> clasificaciones = ["B - Muy Bien", "A - Excelente", "C - Bien", "B - Muy Bien"];
+
+output("=== LISTADO DE ESTUDIANTES ===");
+integer totalEstudiantes = length(estudiantes);
+output("Total de estudiantes: " + totalEstudiantes);
+
+// Mostrar información de cada estudiante
+for (integer i = 0; i < totalEstudiantes; i = i + 1) ying
+    string nombre = estudiantes[i];
+    integer nota = notas[i];
+    string clasificacion = clasificaciones[i];
+
+    output("---");
+    output("Estudiante: " + nombre);
+    output("Nota: " + nota);
+    output("Clasificación: " + clasificacion);
+yang
+
+output("=== ESTADÍSTICAS ===");
+
+// Calcular promedio
+integer sumaNotas = 0;
+for (integer j = 0; j < totalEstudiantes; j = j + 1) ying
+    sumaNotas = sumaNotas + notas[j];
+yang
+
+integer promedio = sumaNotas / totalEstudiantes;
+output("Promedio de clase: " + promedio);
+
+// Encontrar nota máxima
+integer notaMaxima = notas[0];
+string mejorEstudiante = estudiantes[0];
+integer notaCandidato1 = notas[1];
+integer notaCandidato2 = notas[2];
+integer notaCandidato3 = notas[3];
+string estudianteCandidato1 = estudiantes[1];
+string estudianteCandidato2 = estudiantes[2];
+string estudianteCandidato3 = estudiantes[3];
+
+bool mayorCandidato1 = notaCandidato1 > notaMaxima;
+
+if (mayorCandidato1) ying
+    notaMaxima = notaCandidato1;
+yang
+
+if (mayorCandidato1) ying
+    mejorEstudiante = estudianteCandidato1;
+yang
+
+bool mayorCandidato2 = notaCandidato2 > notaMaxima;
+
+if (mayorCandidato2) ying
+    notaMaxima = notaCandidato2;
+yang
+
+if (mayorCandidato2) ying
+    mejorEstudiante = estudianteCandidato2;
+yang
+
+bool mayorCandidato3 = notaCandidato3 > notaMaxima;
+
+if (mayorCandidato3) ying
+    notaMaxima = notaCandidato3;
+yang
+
+if (mayorCandidato3) ying
+    mejorEstudiante = estudianteCandidato3;
+yang
+
+output("=== MEJOR ESTUDIANTE ===");
+output("Nombre: " + mejorEstudiante);
+output("Nota: " + notaMaxima);
+
+// Encontrar nota mínima
+integer notaMinima = notas[0];
+string estudianteMinimo = estudiantes[0];
+integer notaVerificacion1 = notaCandidato1;
+integer notaVerificacion2 = notaCandidato2;
+integer notaVerificacion3 = notaCandidato3;
+string estudianteVerificacion1 = estudianteCandidato1;
+string estudianteVerificacion2 = estudianteCandidato2;
+string estudianteVerificacion3 = estudianteCandidato3;
+
+bool menorCandidato1 = notaVerificacion1 < notaMinima;
+
+if (menorCandidato1) ying
+    notaMinima = notaVerificacion1;
+yang
+
+if (menorCandidato1) ying
+    estudianteMinimo = estudianteVerificacion1;
+yang
+
+bool menorCandidato2 = notaVerificacion2 < notaMinima;
+
+if (menorCandidato2) ying
+    notaMinima = notaVerificacion2;
+yang
+
+if (menorCandidato2) ying
+    estudianteMinimo = estudianteVerificacion2;
+yang
+
+bool menorCandidato3 = notaVerificacion3 < notaMinima;
+
+if (menorCandidato3) ying
+    notaMinima = notaVerificacion3;
+yang
+
+if (menorCandidato3) ying
+    estudianteMinimo = estudianteVerificacion3;
+yang
+
+output("=== ESTUDIANTE CON NOTA MÁS BAJA ===");
+output("Nombre: " + estudianteMinimo);
+output("Nota: " + notaMinima);
+
+// Contar aprobados
+integer aprobados = 0;
+bool aprueba0 = notas[0] >= 70;
+bool aprueba1 = notaCandidato1 >= 70;
+bool aprueba2 = notaCandidato2 >= 70;
+bool aprueba3 = notaCandidato3 >= 70;
+
+if (aprueba0) ying
+    aprobados = aprobados + 1;
+yang
+
+if (aprueba1) ying
+    aprobados = aprobados + 1;
+yang
+
+if (aprueba2) ying
+    aprobados = aprobados + 1;
+yang
+
+if (aprueba3) ying
+    aprobados = aprobados + 1;
+yang
+
+integer reprobados = totalEstudiantes - aprobados;
+
+output("=== RESUMEN FINAL ===");
+output("Total de estudiantes: " + totalEstudiantes);
+output("Aprobados (>=70): " + aprobados);
+output("Reprobados (<70): " + reprobados);
+output("Promedio general: " + promedio);
+
+output("========================================");
+output("  FIN DEL PROGRAMA");
+output("========================================");

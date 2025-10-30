@@ -31,7 +31,7 @@ public class SymbolTable
         return parent?.LookupVariable(name);
     }
 
-    public bool SetVariableValue(string name, object value)
+    public bool SetVariableValue(string name, object? value)
     {
         var symbol = LookupVariable(name);
         if (symbol == null)

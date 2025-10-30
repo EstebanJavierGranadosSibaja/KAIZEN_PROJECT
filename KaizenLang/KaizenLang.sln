@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KaizenLang.App", "KaizenLang.App.csproj", "{D3F14CB1-1FC5-EB16-8BB0-3A3CF0DCA1DE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KaizenLang.App", "src\KaizenLang.App\KaizenLang.App.csproj", "{D3F14CB1-1FC5-EB16-8BB0-3A3CF0DCA1DE}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
 EndProject
@@ -64,6 +64,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{50C1D253-66FA-4271-B03B-CE4CA2DB45B5} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{E26CB327-50BD-4398-99C6-FDB791D12C03} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{D3F14CB1-1FC5-EB16-8BB0-3A3CF0DCA1DE} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E1EF28ED-E0CC-4E1C-B747-DBB224AABCEA}

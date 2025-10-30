@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using ParadigmasLang;
 
@@ -7,7 +8,7 @@ namespace KaizenLang.UI;
 public class CompilationService
 {
     private readonly Stopwatch compilationTimer;
-    private StringBuilder outputBuilder;
+    private readonly StringBuilder outputBuilder;
 
     public CompilationService()
     {
@@ -17,207 +18,318 @@ public class CompilationService
 
     public CompilationResult CompileCode(string source)
     {
-            ParadigmasLang.Logging.Logger.Debug("CompilationService.CompileCode START");
+        ParadigmasLang.Logging.Logger.Debug("CompilationService.CompileCode START");
+
+        var stageOutcomes = new List<CompilationStageOutcome>();
+        outputBuilder.Clear();
+        AppendHeader();
+
         if (string.IsNullOrWhiteSpace(source))
         {
-            return new CompilationResult
+            AppendError("[ERROR] No hay codigo para compilar.");
+            var emptyResult = new CompilationResult
             {
                 IsSuccessful = false,
-                Output = "❌ ERROR: No hay código para compilar",
                 CompilationTime = TimeSpan.Zero
             };
+
+            stageOutcomes.Add(new CompilationStageOutcome(
+                "Validacion de entrada",
+                false,
+                1,
+                "No se proporciono codigo fuente."));
+
+            FinalizeResult(emptyResult, stageOutcomes, success: false);
+            return emptyResult;
         }
 
         compilationTimer.Restart();
-        outputBuilder.Clear();
-
-        AppendHeader();
 
         try
         {
-            var result = PerformCompilationStages(source);
-            ParadigmasLang.Logging.Logger.Debug("PerformCompilationStages returned");
+            var result = PerformCompilationStages(source, stageOutcomes);
             compilationTimer.Stop();
 
-            result.CompilationTime = compilationTimer.Elapsed;
-            result.Output = outputBuilder.ToString();
-
+            FinalizeResult(result, stageOutcomes, result.IsSuccessful);
             return result;
         }
         catch (Exception ex)
         {
-            ParadigmasLang.Logging.Logger.Error($"CompileCode EXCEPTION: {ex.Message}");
             compilationTimer.Stop();
-            AppendError($"� ERROR INTERNO DEL COMPILADOR:\r\n{ex.Message}\r\n{ex.StackTrace}");
+            AppendError("[ERROR] Error interno del compilador.");
+            AppendError(ex.Message ?? "Error no especificado.");
+            if (!string.IsNullOrWhiteSpace(ex.StackTrace))
+            {
+                AppendError(ex.StackTrace!);
+            }
 
-            return new CompilationResult
+            stageOutcomes.Add(new CompilationStageOutcome(
+                "Error inesperado",
+                false,
+                1,
+                "Se produjo una excepcion no controlada.",
+                detail: ex.Message,
+                exception: ex));
+
+            var failedResult = new CompilationResult
             {
                 IsSuccessful = false,
-                Output = outputBuilder.ToString(),
                 CompilationTime = compilationTimer.Elapsed,
                 InternalError = ex
             };
+
+            FinalizeResult(failedResult, stageOutcomes, success: false);
+            return failedResult;
         }
     }
 
-    private CompilationResult PerformCompilationStages(string source)
+    private CompilationResult PerformCompilationStages(string source, List<CompilationStageOutcome> stageOutcomes)
     {
-    ParadigmasLang.Logging.Logger.Debug("PerformCompilationStages START");
+        ParadigmasLang.Logging.Logger.Debug("PerformCompilationStages START");
+
         var result = new CompilationResult();
 
-        // FASE 1: ANÁLISIS LÉXICO
-    ParadigmasLang.Logging.Logger.Debug("Starting lexical analysis");
-        if (!PerformLexicalAnalysis(source, out var tokens, result))
+        if (!PerformLexicalAnalysis(source, out var tokens, result, stageOutcomes))
         {
-            ParadigmasLang.Logging.Logger.Debug("Lexical analysis failed/returned false");
             return result;
         }
 
-        // FASE 2: ANÁLISIS SINTÁCTICO
-    ParadigmasLang.Logging.Logger.Debug("Starting syntactic analysis");
-        if (!PerformSyntacticAnalysis(tokens!, out var ast, result))
+        if (!PerformSyntacticAnalysis(tokens!, out var ast, result, stageOutcomes))
         {
-            ParadigmasLang.Logging.Logger.Debug("Syntactic analysis failed/returned false");
             return result;
         }
 
-        // Always attach the AST to the result after parsing so tools/debuggers can inspect it even on semantic failures
         result.AST = ast;
 
-        // FASE 3: ANÁLISIS SEMÁNTICO
-    ParadigmasLang.Logging.Logger.Debug("Starting semantic analysis");
-        if (!PerformSemanticAnalysis(ast!, result))
+        if (!PerformSemanticAnalysis(ast!, result, stageOutcomes))
         {
-            ParadigmasLang.Logging.Logger.Debug("Semantic analysis failed/returned false");
             return result;
         }
 
-        // MOSTRAR INFORMACIÓN DETALLADA
-        ShowCompilationDetails(tokens!, ast!, result);
-
-        // RESULTADO FINAL
-        AppendSuccessMessage();
         result.IsSuccessful = true;
         result.Tokens = tokens;
-        result.AST = ast;
+
+        ShowCompilationDetails(tokens!, ast!, result);
 
         return result;
     }
 
-    private bool PerformLexicalAnalysis(string source, out List<Token>? tokens, CompilationResult result)
+    private bool PerformLexicalAnalysis(
+        string source,
+        out List<Token>? tokens,
+        CompilationResult result,
+        List<CompilationStageOutcome> stageOutcomes)
     {
-        AppendPhaseHeader("FASE 1: ANÁLISIS LÉXICO");
+        AppendPhaseHeader("FASE 1: ANALISIS LEXICO");
 
-        var lexer = new Lexer();
-        tokens = lexer.Tokenize(source);
-
-        // Categorizar tokens
-        var invalidTokens = tokens.Where(t => t.Type == "INVALID").ToList();
-        var reservedTokens = tokens.Where(t => t.Type == "RESERVED_WORD").ToList();
-        var identifierTokens = tokens.Where(t => t.Type == "IDENTIFIER").ToList();
-        var literalTokens = tokens.Where(t => t.Type.Contains("LITERAL")).ToList();
-
-        if (invalidTokens.Any())
+        try
         {
-            AppendError("❌ ERRORES LÉXICOS ENCONTRADOS:");
-            foreach (var invalidToken in invalidTokens)
-            {
-                AppendError($"   • Token inválido: '{invalidToken.Value}' (línea {invalidToken.Line}, col {invalidToken.Column})");
-            }
-            AppendError("\r\n❌ COMPILACIÓN DETENIDA");
+            var lexer = new Lexer();
+            tokens = lexer.Tokenize(source);
 
-            result.LexicalErrors = invalidTokens;
+            var invalidTokens = tokens.Where(t => t.Type == "INVALID").ToList();
+            var reservedTokens = tokens.Where(t => t.Type == "RESERVED_WORD").ToList();
+            var identifierTokens = tokens.Where(t => t.Type == "IDENTIFIER").ToList();
+            var literalTokens = tokens.Where(t => t.Type.Contains("LITERAL")).ToList();
+
+            if (invalidTokens.Any())
+            {
+                AppendError("[ERROR] Se encontraron tokens invalidos:");
+                foreach (var invalidToken in invalidTokens)
+                {
+                    AppendError($"   - '{invalidToken.Value}' (linea {invalidToken.Line}, columna {invalidToken.Column})");
+                }
+                AppendError(string.Empty);
+                AppendError("[ERROR] Compilacion detenida.");
+
+                result.LexicalErrors = invalidTokens;
+                stageOutcomes.Add(new CompilationStageOutcome(
+                    "Analisis lexico",
+                    false,
+                    invalidTokens.Count,
+                    "Se detectaron tokens invalidos."));
+
+                tokens = null;
+                return false;
+            }
+
+            AppendSuccess("[OK] Analisis lexico completado.");
+            AppendInfo("Estadisticas de tokens:");
+            AppendInfo($"   Total de tokens: {tokens.Count}");
+            AppendInfo($"   Palabras reservadas: {reservedTokens.Count}");
+            AppendInfo($"   Identificadores: {identifierTokens.Count}");
+            AppendInfo($"   Literales: {literalTokens.Count}");
+
+            ShowTokenSample(tokens);
+            AppendNewLine();
+
+            stageOutcomes.Add(new CompilationStageOutcome(
+                "Analisis lexico",
+                true,
+                0,
+                $"Tokens generados: {tokens.Count}"));
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            AppendError("[ERROR] Fallo el analisis lexico.");
+            AppendError(ex.Message ?? "Error no especificado.");
+            stageOutcomes.Add(new CompilationStageOutcome(
+                "Analisis lexico",
+                false,
+                1,
+                "Se produjo una excepcion durante el analisis lexico.",
+                detail: ex.Message,
+                exception: ex));
+            result.InternalError = ex;
             tokens = null;
             return false;
         }
-
-        AppendSuccess("✅ Análisis léxico completado exitosamente");
-        AppendInfo($"📊 Estadísticas de tokens:");
-        AppendInfo($"   • Total de tokens: {tokens.Count}");
-        AppendInfo($"   • Palabras reservadas: {reservedTokens.Count}");
-        AppendInfo($"   • Identificadores: {identifierTokens.Count}");
-        AppendInfo($"   • Literales: {literalTokens.Count}");
-
-        ShowTokenSample(tokens);
-        AppendNewLine();
-
-        return true;
     }
 
-    private bool PerformSyntacticAnalysis(List<Token> tokens, out Node? ast, CompilationResult result)
+    private bool PerformSyntacticAnalysis(
+        List<Token> tokens,
+        out Node? ast,
+        CompilationResult result,
+        List<CompilationStageOutcome> stageOutcomes)
     {
-        AppendPhaseHeader("FASE 2: ANÁLISIS SINTÁCTICO");
+        AppendPhaseHeader("FASE 2: ANALISIS SINTACTICO");
 
-        var parser = new Parser();
-        ast = parser.Parse(tokens);
-
-        var syntaxErrors = ast.GetAllErrors();
-        if (syntaxErrors.Any())
+        try
         {
-            AppendError("❌ ERRORES SINTÁCTICOS ENCONTRADOS:");
-            foreach (var error in syntaxErrors)
-            {
-                AppendError($"   • {error}");
-            }
-            AppendError("\r\n❌ COMPILACIÓN DETENIDA");
+            var parser = new Parser();
+            ast = parser.Parse(tokens);
 
-            result.SyntaxErrors = syntaxErrors;
+            var syntaxErrors = ast.GetAllErrors();
+            if (syntaxErrors.Any())
+            {
+                AppendError("[ERROR] Se encontraron errores sintacticos:");
+                foreach (var error in syntaxErrors)
+                {
+                    AppendError($"   - {error}");
+                }
+                AppendError(string.Empty);
+                AppendError("[ERROR] Compilacion detenida.");
+
+                result.SyntaxErrors = syntaxErrors;
+                ast = null;
+
+                stageOutcomes.Add(new CompilationStageOutcome(
+                    "Analisis sintactico",
+                    false,
+                    syntaxErrors.Count,
+                    "Se detectaron errores sintacticos."));
+
+                return false;
+            }
+
+            AppendSuccess("[OK] Analisis sintactico completado.");
+            AppendSuccess("[OK] Se genero el arbol de sintaxis abstracta.");
+
+            var nodeCount = CountNodes(ast);
+            var depth = CalculateDepth(ast);
+
+            AppendInfo("Estadisticas del AST:");
+            AppendInfo($"   Nodos totales: {nodeCount}");
+            AppendInfo($"   Profundidad maxima: {depth}");
+            AppendNewLine();
+
+            stageOutcomes.Add(new CompilationStageOutcome(
+                "Analisis sintactico",
+                true,
+                0,
+                $"AST con {nodeCount} nodos y profundidad {depth}."));
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            AppendError("[ERROR] Fallo el analisis sintactico.");
+            AppendError(ex.Message ?? "Error no especificado.");
+            stageOutcomes.Add(new CompilationStageOutcome(
+                "Analisis sintactico",
+                false,
+                1,
+                "Se produjo una excepcion durante el analisis sintactico.",
+                detail: ex.Message,
+                exception: ex));
+            result.InternalError = ex;
             ast = null;
             return false;
         }
-
-        AppendSuccess("✅ Análisis sintáctico completado exitosamente");
-        AppendSuccess("🌳 Árbol de Sintaxis Abstracta (AST) generado");
-
-        // Mostrar estadísticas del AST
-        var nodeCount = CountNodes(ast);
-        var depth = CalculateDepth(ast);
-        AppendInfo($"📊 Estadísticas del AST:");
-        AppendInfo($"   • Nodos totales: {nodeCount}");
-        AppendInfo($"   • Profundidad máxima: {depth}");
-        AppendNewLine();
-
-        return true;
     }
 
-    private bool PerformSemanticAnalysis(Node ast, CompilationResult result)
+    private bool PerformSemanticAnalysis(
+        Node ast,
+        CompilationResult result,
+        List<CompilationStageOutcome> stageOutcomes)
     {
-        AppendPhaseHeader("FASE 3: ANÁLISIS SEMÁNTICO");
+        AppendPhaseHeader("FASE 3: ANALISIS SEMANTICO");
 
-        var semanticAnalyzer = new SemanticAnalyzer();
-        var semanticErrors = semanticAnalyzer.AnalyzeProgram(ast);
-
-        if (semanticErrors.Any())
+        try
         {
-            AppendError("❌ ERRORES SEMÁNTICOS ENCONTRADOS:");
-            foreach (var error in semanticErrors)
-            {
-                AppendError($"   • {error}");
-            }
-            AppendError("\r\n❌ COMPILACIÓN DETENIDA");
+            var semanticAnalyzer = new SemanticAnalyzer();
+            var semanticErrors = semanticAnalyzer.AnalyzeProgram(ast);
 
-            result.SemanticErrors = semanticErrors;
+            if (semanticErrors.Any())
+            {
+                AppendError("[ERROR] Se encontraron errores semanticos:");
+                foreach (var error in semanticErrors)
+                {
+                    AppendError($"   - {error}");
+                }
+                AppendError(string.Empty);
+                AppendError("[ERROR] Compilacion detenida.");
+
+                result.SemanticErrors = semanticErrors;
+
+                stageOutcomes.Add(new CompilationStageOutcome(
+                    "Analisis semantico",
+                    false,
+                    semanticErrors.Count,
+                    "Se detectaron errores semanticos."));
+
+                return false;
+            }
+
+            AppendSuccess("[OK] Analisis semantico completado.");
+            AppendSuccess("[OK] Validaciones de tipos y alcance superadas.");
+            AppendNewLine();
+
+            stageOutcomes.Add(new CompilationStageOutcome(
+                "Analisis semantico",
+                true,
+                0,
+                "No se detectaron errores semanticos."));
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            AppendError("[ERROR] Fallo el analisis semantico.");
+            AppendError(ex.Message ?? "Error no especificado.");
+            stageOutcomes.Add(new CompilationStageOutcome(
+                "Analisis semantico",
+                false,
+                1,
+                "Se produjo una excepcion durante el analisis semantico.",
+                detail: ex.Message,
+                exception: ex));
+            result.InternalError = ex;
             return false;
         }
-
-        AppendSuccess("✅ Análisis semántico completado exitosamente");
-        AppendSuccess("✅ Todas las validaciones de tipos y scope pasaron");
-        AppendNewLine();
-
-        return true;
     }
 
     private void ShowCompilationDetails(List<Token> tokens, Node ast, CompilationResult result)
     {
-        AppendSectionHeader("DETALLES DE COMPILACIÓN");
+        AppendSectionHeader("DETALLES DE COMPILACION");
 
-        // Mostrar AST compacto
-        AppendInfo("🌳 ESTRUCTURA DEL AST:");
-        AppendInfo("────────────────────────");
+        AppendInfo("AST (vista truncada si es necesario):");
         var astString = ast.ToTreeString();
-        if (astString.Length > 1000) // Limitar tamaño para no saturar la salida
+        if (astString.Length > 1000)
         {
-            AppendInfo(astString.Substring(0, 1000) + "\r\n... (AST truncado para visualización)");
+            AppendInfo(astString.Substring(0, 1000) + Environment.NewLine + "... (AST truncado para visualizacion)");
         }
         else
         {
@@ -225,114 +337,177 @@ public class CompilationService
         }
         AppendNewLine();
 
-        // Mostrar métricas de complejidad
         ShowComplexityMetrics(ast);
     }
 
     private void ShowComplexityMetrics(Node ast)
     {
-        AppendInfo("� MÉTRICAS DE COMPLEJIDAD:");
-        AppendInfo("──────────────────────────");
+        AppendInfo("Metricas de complejidad:");
+        AppendInfo("-------------------------");
 
         var functions = CountNodesByType(ast, "FUNCTION");
         var conditionals = CountNodesByType(ast, "IF") + CountNodesByType(ast, "WHILE") + CountNodesByType(ast, "FOR");
         var variables = CountNodesByType(ast, "VARIABLE_DECLARATION");
 
-        AppendInfo($"   • Funciones definidas: {functions}");
-        AppendInfo($"   • Estructuras de control: {conditionals}");
-        AppendInfo($"   • Variables declaradas: {variables}");
+        AppendInfo($"   Funciones definidas: {functions}");
+        AppendInfo($"   Estructuras de control: {conditionals}");
+        AppendInfo($"   Variables declaradas: {variables}");
         AppendNewLine();
     }
 
     private void ShowTokenSample(List<Token> tokens)
     {
-        AppendInfo("🔍 MUESTRA DE TOKENS:");
+        AppendInfo("Muestra de tokens:");
         var importantTokens = tokens.Take(15).ToList();
         foreach (var token in importantTokens)
         {
             AppendInfo($"   {token.Type.PadRight(15)}: '{token.Value}' (l{token.Line}:c{token.Column})");
         }
+
         if (tokens.Count > 15)
-            AppendInfo($"   ... y {tokens.Count - 15} tokens más");
+        {
+            AppendInfo($"   ... y {tokens.Count - 15} tokens adicionales.");
+        }
     }
 
-    // Métodos auxiliares para contar nodos
+    private void FinalizeResult(CompilationResult result, List<CompilationStageOutcome> stageOutcomes, bool success)
+    {
+        if (result.CompilationTime == default)
+        {
+            result.CompilationTime = compilationTimer.Elapsed;
+        }
+
+        result.StageOutcomes.Clear();
+        result.StageOutcomes.AddRange(stageOutcomes);
+
+        AppendStageSummary(stageOutcomes);
+
+        if (success)
+        {
+            AppendSuccessMessage();
+        }
+        else
+        {
+            AppendFailureMessage();
+        }
+
+        result.Output = outputBuilder.ToString();
+    }
+
+    private void AppendStageSummary(IEnumerable<CompilationStageOutcome> outcomes)
+    {
+        AppendSectionHeader("RESUMEN DE ETAPAS");
+        if (!outcomes.Any())
+        {
+            AppendInfo("No se registraron etapas.");
+            AppendNewLine();
+            return;
+        }
+
+        foreach (var outcome in outcomes)
+        {
+            var status = outcome.Succeeded ? "[OK]" : "[FAIL]";
+            var summary = string.IsNullOrWhiteSpace(outcome.Summary)
+                ? "Sin descripcion."
+                : outcome.Summary;
+
+            AppendInfo($"{status} {outcome.Stage}: {summary}");
+
+            if (outcome.ErrorCount > 0)
+            {
+                AppendInfo($"    Errores detectados: {outcome.ErrorCount}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(outcome.Detail))
+            {
+                AppendInfo($"    Detalle: {outcome.Detail}");
+            }
+
+            if (outcome.Exception != null)
+            {
+                AppendInfo($"    Excepcion: {outcome.Exception.GetType().Name} - {outcome.Exception.Message}");
+            }
+        }
+
+        AppendNewLine();
+    }
+
     private int CountNodes(Node node)
     {
-        int count = 1;
+        var count = 1;
         foreach (var child in node.Children)
+        {
             count += CountNodes(child);
+        }
         return count;
     }
 
     private int CalculateDepth(Node node)
     {
         if (!node.Children.Any())
+        {
             return 1;
+        }
+
         return 1 + node.Children.Max(child => CalculateDepth(child));
     }
 
     private int CountNodesByType(Node node, string type)
     {
-        int count = node.Type.Equals(type, StringComparison.OrdinalIgnoreCase) ? 1 : 0;
+        var count = node.Type.Equals(type, StringComparison.OrdinalIgnoreCase) ? 1 : 0;
         foreach (var child in node.Children)
+        {
             count += CountNodesByType(child, type);
+        }
         return count;
     }
 
-    // Métodos de formateo de salida
     private void AppendHeader()
     {
-        outputBuilder.AppendLine("🔧 PROCESO DE COMPILACIÓN INICIADO");
-        outputBuilder.AppendLine("═════════════════════════════════════");
+        outputBuilder.AppendLine("[INIT] PROCESO DE COMPILACION");
+        outputBuilder.AppendLine(new string('=', 35));
         outputBuilder.AppendLine();
     }
 
     private void AppendPhaseHeader(string phase)
     {
-        outputBuilder.AppendLine($"📍 {phase}");
-        outputBuilder.AppendLine("─────────────────────────────");
+        outputBuilder.AppendLine($"== {phase}");
+        outputBuilder.AppendLine(new string('-', 35));
     }
 
     private void AppendSectionHeader(string section)
     {
-        outputBuilder.AppendLine($"📋 {section}");
-        outputBuilder.AppendLine("═════════════════════════");
+        outputBuilder.AppendLine($"== {section}");
+        outputBuilder.AppendLine(new string('=', 35));
     }
 
-    private void AppendSuccess(string message)
-    {
-        outputBuilder.AppendLine(message);
-    }
+    private void AppendSuccess(string message) => outputBuilder.AppendLine(message);
 
-    private void AppendInfo(string message)
-    {
-        outputBuilder.AppendLine(message);
-    }
+    private void AppendInfo(string message) => outputBuilder.AppendLine(message);
 
-    private void AppendError(string message)
-    {
-        outputBuilder.AppendLine(message);
-    }
+    private void AppendError(string message) => outputBuilder.AppendLine(message);
 
-    private void AppendNewLine()
-    {
-        outputBuilder.AppendLine();
-    }
+    private void AppendNewLine() => outputBuilder.AppendLine();
 
     private void AppendSuccessMessage()
     {
-        AppendSectionHeader("COMPILACIÓN EXITOSA");
-        AppendSuccess("✓ Análisis léxico: CORRECTO");
-        AppendSuccess("✓ Análisis sintáctico: CORRECTO");
-        AppendSuccess("✓ Análisis semántico: CORRECTO");
-        AppendSuccess($"⏱️ Tiempo de compilación: {compilationTimer.ElapsedMilliseconds}ms");
+        AppendSectionHeader("COMPILACION EXITOSA");
+        AppendSuccess("Analisis lexico: OK");
+        AppendSuccess("Analisis sintactico: OK");
+        AppendSuccess("Analisis semantico: OK");
+        AppendSuccess($"Tiempo de compilacion: {compilationTimer.ElapsedMilliseconds} ms");
         AppendNewLine();
-        AppendSuccess("💡 El código está listo para ejecutarse");
+        AppendSuccess("El codigo esta listo para ejecutarse.");
+    }
+
+    private void AppendFailureMessage()
+    {
+        AppendSectionHeader("COMPILACION INCOMPLETA");
+        AppendError("Se detectaron errores. Revise la informacion anterior.");
+        AppendNewLine();
     }
 }
 
-// Clase para encapsular el resultado de la compilación
 public class CompilationResult
 {
     public bool IsSuccessful { get; set; }
@@ -341,13 +516,42 @@ public class CompilationResult
     public List<Token>? Tokens { get; set; }
     public Node? AST { get; set; }
     public List<Token>? LexicalErrors { get; set; }
-    // Ensure these lists are non-null to make downstream checks simpler and tests more robust
     public List<string> SyntaxErrors { get; set; } = new List<string>();
     public List<string> SemanticErrors { get; set; } = new List<string>();
     public Exception? InternalError { get; set; }
+    public List<CompilationStageOutcome> StageOutcomes { get; } = new List<CompilationStageOutcome>();
 
-    public bool HasErrors => (LexicalErrors?.Any() == true) ||
-                             SyntaxErrors.Any() ||
-                             SemanticErrors.Any() ||
-                             InternalError != null;
+    public bool HasErrors =>
+        (LexicalErrors?.Any() == true) ||
+        SyntaxErrors.Any() ||
+        SemanticErrors.Any() ||
+        InternalError != null;
+
+    public string? FailureStage => StageOutcomes.LastOrDefault(o => !o.Succeeded)?.Stage;
+}
+
+public class CompilationStageOutcome
+{
+    public CompilationStageOutcome(
+        string stage,
+        bool succeeded,
+        int errorCount,
+        string summary,
+        string? detail = null,
+        Exception? exception = null)
+    {
+        Stage = stage;
+        Succeeded = succeeded;
+        ErrorCount = errorCount;
+        Summary = summary;
+        Detail = detail;
+        Exception = exception;
+    }
+
+    public string Stage { get; }
+    public bool Succeeded { get; }
+    public int ErrorCount { get; }
+    public string Summary { get; }
+    public string? Detail { get; }
+    public Exception? Exception { get; }
 }

@@ -1,9 +1,0 @@
-Operaciones
-
-Operaciones aritméticas:
-    int x = 10 + 5;
-    int y = x * 2;
-    int z = y / 3;
-
-Operaciones lógicas:
-    boolean resultado = (x > y) && (z < 10);

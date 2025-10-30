@@ -1,0 +1,102 @@
+// ========================================
+// TEST 15: CASOS LÍMITE Y EDGE CASES
+// ========================================
+
+output("=== CASO 1: VALORES EXTREMOS ===");
+integer max = 2147483647;
+integer min = -2147483648;
+output("Máximo integer: " + max);
+output("Mínimo integer: " + min);
+
+output("=== CASO 2: FLOAT PRECISIÓN ===");
+float pequeño = 0.0001;
+float grande = 999999.99;
+output("Float pequeño: " + pequeño);
+output("Float grande: " + grande);
+
+output("=== CASO 3: STRINGS VACÍOS ===");
+string vacio = "";
+string espacios = "   ";
+output("String vacío: '" + vacio + "'");
+output("String con espacios: '" + espacios + "'");
+
+output("=== CASO 4: CHAINSAWS VACÍOS ===");
+chainsaw<integer> arrayVacio = [];
+integer tamañoVacio = length(arrayVacio);
+output("Tamaño de chainsaw vacío: " + tamañoVacio);
+
+output("=== CASO 5: CHAINSAWS DE UN ELEMENTO ===");
+chainsaw<integer> unElemento = [42];
+integer tam1 = length(unElemento);
+integer valor1 = unElemento[0];
+output("Chainsaw de 1 elemento, tamaño: " + tam1);
+output("Valor único: " + valor1);
+
+output("=== CASO 6: OPERACIONES CON CERO ===");
+integer ceroMas = 0 + 10;
+integer ceroMenos = 10 - 0;
+integer ceroMult = 0 * 100;
+output("0 + 10 = " + ceroMas);
+output("10 - 0 = " + ceroMenos);
+output("0 * 100 = " + ceroMult);
+
+// División por cero (causará error en runtime)
+// integer divCero = 10 / 0;
+
+output("=== CASO 7: OPERACIONES LÓGICAS EXTREMAS ===");
+bool siempreTrue = true || false;
+bool siempreFalse = false && true;
+output("true || false: " + siempreTrue);
+output("false && true: " + siempreFalse);
+
+output("=== CASO 8: BUCLES CON 0 ITERACIONES ===");
+integer contador = 0;
+for (integer i = 10; i < 5; i = i + 1) ying
+    contador = contador + 1;
+yang
+output("Iteraciones ejecutadas: " + contador);
+
+output("=== CASO 9: CONDICIONALES SIEMPRE TRUE/FALSE ===");
+if (true) ying
+    output("Este bloque siempre se ejecuta");
+yang
+
+if (false) ying
+    output("Este bloque nunca se ejecuta");
+yang else ying
+    output("El else siempre se ejecuta");
+yang
+
+output("=== CASO 10: FUNCIONES SIN ANIDACIÓN ===");
+
+integer duplicar(integer n) ying
+    return n * 2;
+yang
+
+integer resultadoFuncion = duplicar(21);
+output("Duplicar 21: " + resultadoFuncion);
+
+output("=== CASO 11: VERIFICACIONES COMBINADAS ===");
+integer x = 10;
+
+bool condicionesCumplidas = (x > 5) && (x > 8) && (x == 10);
+
+if (condicionesCumplidas) ying
+    output("Todas las condiciones son verdaderas");
+yang
+
+output("=== CASO 12: MÚLTIPLES OPERADORES ===");
+integer complejo = ((10 + 5) * (20 - 10)) / 5;
+output("Expresión compleja: " + complejo);
+
+bool logicoComplejo = ((10 > 5) && (20 < 30)) || (false);
+output("Lógica compleja: " + logicoComplejo);
+
+output("=== CASO 13: CONCATENACIÓN MÚLTIPLE ===");
+string parte1 = "Hola";
+string parte2 = "desde";
+string parte3 = "KaizenLang";
+string completa = parte1 + " " + parte2 + " " + parte3 + "!";
+output(completa);
+
+output("=== PRUEBA COMPLETADA ===");

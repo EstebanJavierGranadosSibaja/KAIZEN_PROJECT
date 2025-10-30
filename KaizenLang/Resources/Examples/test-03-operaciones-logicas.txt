@@ -1,0 +1,65 @@
+// ========================================
+// TEST 03: OPERACIONES LÓGICAS Y COMPARACIÓN
+// ========================================
+
+output("=== OPERACIONES DE COMPARACIÓN ===");
+integer a = 10;
+integer b = 20;
+integer c = 10;
+
+bool mayorQue = a > b;
+bool menorQue = a < b;
+bool mayorIgual = a >= c;
+bool menorIgual = b <= 100;
+bool igual = a == c;
+bool diferente = a != b;
+
+output("a = " + a + ", b = " + b + ", c = " + c);
+output("a > b: " + mayorQue);
+output("a < b: " + menorQue);
+output("a >= c: " + mayorIgual);
+output("b <= 100: " + menorIgual);
+output("a == c: " + igual);
+output("a != b: " + diferente);
+
+output("=== OPERACIONES LÓGICAS (AND) ===");
+bool verdadero = true;
+bool falso = false;
+
+bool and1 = verdadero && verdadero;
+bool and2 = verdadero && falso;
+bool and3 = falso && falso;
+
+output("true && true: " + and1);
+output("true && false: " + and2);
+output("false && false: " + and3);
+
+output("=== OPERACIONES LÓGICAS (OR) ===");
+bool or1 = verdadero || verdadero;
+bool or2 = verdadero || falso;
+bool or3 = falso || falso;
+
+output("true || true: " + or1);
+output("true || false: " + or2);
+output("false || false: " + or3);
+
+output("=== OPERACIONES LÓGICAS (NOT) ===");
+bool not1 = !verdadero;
+bool not2 = !falso;
+
+output("!true: " + not1);
+output("!false: " + not2);
+
+output("=== EXPRESIONES LÓGICAS COMPLEJAS ===");
+integer edad = 25;
+bool tieneCarnet = true;
+
+bool puedeConducir = (edad >= 18) && tieneCarnet;
+output("Edad >= 18 y tiene carnet: " + puedeConducir);
+
+integer nota = 85;
+bool aprobado = (nota >= 70) || (nota == 100);
+output("Nota >= 70 o nota == 100: " + aprobado);
+
+bool complejo = ((a > 5) && (b < 30)) || (c == 10);
+output("((a > 5) && (b < 30)) || (c == 10): " + complejo);

@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace ParadigmasLang;
 
 public partial class Interpreter
@@ -132,30 +134,156 @@ public partial class Interpreter
             return token;
         switch (expectedType)
         {
-            case "integer":
+            case TypeWords.INTEGER:
                 if (int.TryParse(token, out var i))
                     return i;
                 break;
-            case "float":
-            case "double":
+            case TypeWords.FLOAT:
+            case TypeWords.DOUBLE:
                 if (double.TryParse(token, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var d))
                     return d;
                 break;
-            case "bool":
+            case TypeWords.BOOL:
                 if (bool.TryParse(token, out var b))
                     return b;
                 var low = token.ToLowerInvariant();
-                if (low == "1" || low == "true")
+                if (low == "1" || low == LiteralWords.TRUE)
                     return true;
-                if (low == "0" || low == "false")
+                if (low == "0" || low == LiteralWords.FALSE)
                     return false;
                 break;
-            case "string":
+            case TypeWords.STRING:
                 return token;
             default:
                 return token;
         }
         return token;
+    }
+
+    private object? CoerceValueToDeclaredType(object? value, string declaredType)
+    {
+        if (value == null)
+            return null;
+        if (string.IsNullOrWhiteSpace(declaredType))
+            return value;
+
+        var trimmed = declaredType.Trim();
+        var lower = trimmed.ToLowerInvariant();
+
+        // Do not coerce composite collection wrappers
+        if (lower.StartsWith(TypeWords.CHAINSAW, System.StringComparison.OrdinalIgnoreCase) ||
+            lower.StartsWith(TypeWords.HOGYOKU, System.StringComparison.OrdinalIgnoreCase))
+            return value;
+
+        var primitive = ExtractPrimitiveType(trimmed);
+        var primitiveLower = primitive.Trim().ToLowerInvariant();
+
+        if (primitiveLower.StartsWith(TypeWords.CHAINSAW, System.StringComparison.OrdinalIgnoreCase) ||
+            primitiveLower.StartsWith(TypeWords.HOGYOKU, System.StringComparison.OrdinalIgnoreCase))
+            return value;
+
+        try
+        {
+            switch (primitiveLower)
+            {
+                case TypeWords.INTEGER:
+                    if (value is int)
+                        return value;
+                    if (value is bool boolVal)
+                        return boolVal ? 1 : 0;
+                    if (value is double doubleVal)
+                        return (int)System.Math.Truncate(doubleVal);
+                    if (value is float floatVal)
+                        return (int)System.Math.Truncate(floatVal);
+                    if (value is decimal decimalVal)
+                        return (int)System.Math.Truncate(decimalVal);
+                    if (value is long or short)
+                        return Convert.ToInt32(value, System.Globalization.CultureInfo.InvariantCulture);
+                    if (value is string strInt)
+                    {
+                        if (int.TryParse(strInt, out var parsedInt))
+                            return parsedInt;
+                        if (double.TryParse(strInt, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var parsedDoubleFromString))
+                            return (int)System.Math.Truncate(parsedDoubleFromString);
+                    }
+                    break;
+
+                case TypeWords.FLOAT:
+                case TypeWords.DOUBLE:
+                    if (value is double || value is float)
+                        return Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture);
+                    if (value is int or long or short or decimal)
+                        return Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture);
+                    if (value is string strDouble && double.TryParse(strDouble, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var parsedDouble))
+                        return parsedDouble;
+                    break;
+
+                case TypeWords.BOOL:
+                    if (value is bool)
+                        return value;
+                    if (value is int intVal)
+                        return intVal != 0;
+                    if (value is double boolDouble)
+                        return System.Math.Abs(boolDouble) > double.Epsilon;
+                    if (value is string strBool)
+                    {
+                        if (bool.TryParse(strBool, out var parsedBool))
+                            return parsedBool;
+                        var lowered = strBool.Trim().ToLowerInvariant();
+                        if (lowered == "1" || lowered == LiteralWords.TRUE)
+                            return true;
+                        if (lowered == "0" || lowered == LiteralWords.FALSE)
+                            return false;
+                    }
+                    break;
+
+                case TypeWords.STRING:
+                    return value.ToString() ?? string.Empty;
+            }
+        }
+        catch
+        {
+            // If conversion fails, fall back to original value.
+        }
+
+        return value;
+    }
+
+    private (string fullType, string primitiveType) ExtractTypeInfo(Node? typeNode)
+    {
+        if (typeNode == null)
+            return (string.Empty, string.Empty);
+
+        if (typeNode.Children == null || typeNode.Children.Count == 0)
+            return (typeNode.Type, typeNode.Type);
+
+        var childInfos = typeNode.Children.Select(ExtractTypeInfo).ToList();
+        var fullChildren = childInfos.Select(info => info.fullType);
+        var primitive = childInfos.Last().primitiveType;
+        var fullType = string.Format("{0}<{1}>", typeNode.Type, string.Join(",", fullChildren));
+        return (fullType, primitive);
+    }
+
+    private static string ExtractPrimitiveType(string declaredType)
+    {
+        if (string.IsNullOrWhiteSpace(declaredType))
+            return declaredType;
+
+        var trimmed = declaredType.Trim();
+        var lt = trimmed.IndexOf('<');
+        if (lt >= 0)
+        {
+            var gt = trimmed.LastIndexOf('>');
+            if (gt > lt)
+            {
+                var inner = trimmed.Substring(lt + 1, gt - lt - 1).Trim();
+                if (inner.Contains(','))
+                    return inner.Split(',').Last().Trim();
+                return inner;
+            }
+        }
+
+        return trimmed;
     }
 
     public List<string> Execute(Node root)
@@ -190,6 +318,15 @@ public partial class Interpreter
             case "Expression":
                 return ExecuteExpression(node);
 
+            case "UnaryExpression":
+                return ExecuteUnaryExpression(node);
+
+            case "Parentheses":
+                // Evaluate the expression inside the parentheses
+                if (node.Children.Count > 0)
+                    return ExecuteNode(node.Children[0]);
+                return null;
+
             case "If":
                 return ExecuteIf(node);
 
@@ -215,21 +352,32 @@ public partial class Interpreter
 
             // Tipos básicos
             case "INT":
-                return int.Parse(node.Children[0].Type);
+                // Parsear como int para mantener el tipo integer
+                if (int.TryParse(node.Children[0].Type, out var intValue))
+                    return intValue;
+                // Si es muy grande, intentar long
+                if (long.TryParse(node.Children[0].Type, out var longValue))
+                    return longValue;
+                throw new Exception($"No se pudo parsear el entero: {node.Children[0].Type}");
 
             case "FLOAT":
-                return float.Parse(node.Children[0].Type);
+                // Parsear como double para mantener precisión completa
+                // El tipo semántico "float" o "double" se maneja en la tabla de símbolos
+                if (double.TryParse(node.Children[0].Type, System.Globalization.NumberStyles.Float,
+                    System.Globalization.CultureInfo.InvariantCulture, out var doubleValue))
+                    return doubleValue;
+                throw new Exception($"No se pudo parsear el número decimal: {node.Children[0].Type}");
 
             case "STRING":
                 return node.Children[0].Type;
 
             case "LITERAL":
                 var literal = node.Children[0].Type;
-                if (literal == "true")
+                if (literal == LiteralWords.TRUE)
                     return true;
-                if (literal == "false")
+                if (literal == LiteralWords.FALSE)
                     return false;
-                if (literal == "null")
+                if (literal == LiteralWords.NULL)
                     return null;
                 return literal;
 
@@ -239,9 +387,9 @@ public partial class Interpreter
                 if (symbol == null)
                 {
                     // Antes de lanzar una excepción, verificar si es una función predefinida
-                    if (varName == "output")
+                    if (varName == ReservedWords.OUTPUT)
                     {
-                        return "output"; // Devolver un identificador especial para la función 'output'
+                        return ReservedWords.OUTPUT; // Devolver un identificador especial para la función 'output'
                     }
                     throw new Exception($"Variable o función '{varName}' no está declarada");
                 }

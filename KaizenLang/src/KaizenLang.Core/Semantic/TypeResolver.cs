@@ -25,17 +25,17 @@ namespace ParadigmasLang
 
             switch (expr.Type)
             {
-                case "INT": return "integer";
-                case "FLOAT": return "float";
-                case "STRING": return "string";
+                case "INT": return TypeWords.INTEGER;
+                case "FLOAT": return TypeWords.FLOAT;
+                case "STRING": return TypeWords.STRING;
                 case "LITERAL":
                     if (expr.Children.Count > 0)
                     {
                         var lit = expr.Children[0].Type;
-                        if (lit == "true" || lit == "false") return "bool";
-                        if (lit == "null") return "null";
+                        if (lit == LiteralWords.TRUE || lit == LiteralWords.FALSE) return TypeWords.BOOL;
+                        if (lit == LiteralWords.NULL) return LiteralWords.NULL;
                     }
-                    return "string";
+                    return TypeWords.STRING;
                 case "IDENTIFIER":
                 case "Identifier":
                     var name = ExtractIdentifierName(expr);
@@ -56,7 +56,7 @@ namespace ParadigmasLang
                         return string.IsNullOrEmpty(sig.ReturnType) ? null : sig.ReturnType;
                     if (_builtins.ContainsKey(fname))
                     {
-                        if (string.Equals(fname, "input", StringComparison.OrdinalIgnoreCase)) return "string";
+                        if (string.Equals(fname, ReservedWords.INPUT, StringComparison.OrdinalIgnoreCase)) return TypeWords.STRING;
                         return null;
                     }
                     _diagnostics.Report(expr, $"Function '{fname}' no definida");
@@ -67,30 +67,38 @@ namespace ParadigmasLang
                     return null;
                 case "ArrayLiteral":
                     var elements = expr.FindChild("Elements");
-                    if (elements == null || elements.Children.Count == 0) return "array";
+                    if (elements == null || elements.Children.Count == 0) return TypeWords.CHAINSAW;
                     string? eltType = null;
+                    var sawNullLiteral = false;
                     foreach (var el in elements.Children)
                     {
                         var et = Resolve(el);
                         if (et == null) return null;
+                        if (SemanticUtils.IsNullLiteralType(et))
+                        {
+                            sawNullLiteral = true;
+                            continue;
+                        }
                         if (eltType == null) eltType = et;
                         else if (!string.Equals(eltType, et, StringComparison.OrdinalIgnoreCase))
                             return null;
                     }
-                    return "array<" + (eltType ?? "?") + ">";
+                    if (eltType == null)
+                        eltType = sawNullLiteral ? LiteralWords.NULL : "?";
+                    return $"{TypeWords.CHAINSAW}<{eltType}>";
                 case "IndexAccess":
                     if (expr.Children != null && expr.Children.Count >= 1)
                     {
                         var target = expr.Children[0];
                         var ttype = Resolve(target);
                         if (string.IsNullOrEmpty(ttype)) return null;
-                        if (ttype.StartsWith("array<", StringComparison.OrdinalIgnoreCase))
+                        if (ttype.StartsWith($"{TypeWords.CHAINSAW}<", StringComparison.OrdinalIgnoreCase))
                         {
                             var inner = ExtractInnerType(ttype);
                             if (!string.IsNullOrEmpty(inner)) return inner;
                             return null;
                         }
-                        if (ttype.StartsWith("array<array<", StringComparison.OrdinalIgnoreCase))
+                        if (ttype.StartsWith($"{TypeWords.CHAINSAW}<{TypeWords.CHAINSAW}<", StringComparison.OrdinalIgnoreCase))
                         {
                             var inner = ExtractInnerType(ttype);
                             if (!string.IsNullOrEmpty(inner)) return inner;
@@ -110,24 +118,24 @@ namespace ParadigmasLang
                         var right = Resolve(expr.Children[2]);
                         if (string.IsNullOrEmpty(left) || string.IsNullOrEmpty(right)) return null;
                         var opSymbol = GetOperatorSymbol(op);
-                        var arithOps = new[] { "+", "-", "*", "/" };
+                        var arithOps = new[] { OperatorWords.ADD, OperatorWords.SUBTRACT, OperatorWords.MULTIPLY, OperatorWords.DIVIDE };
                         if (Array.Exists(arithOps, o => o == opSymbol))
                         {
-                            if (string.Equals(left, "integer", StringComparison.OrdinalIgnoreCase) && string.Equals(right, "integer", StringComparison.OrdinalIgnoreCase))
-                                return "integer";
-                            if ((string.Equals(left, "integer", StringComparison.OrdinalIgnoreCase) && string.Equals(right, "float", StringComparison.OrdinalIgnoreCase)) ||
-                                (string.Equals(left, "float", StringComparison.OrdinalIgnoreCase) && string.Equals(right, "integer", StringComparison.OrdinalIgnoreCase)) ||
-                                (string.Equals(left, "float", StringComparison.OrdinalIgnoreCase) && string.Equals(right, "float", StringComparison.OrdinalIgnoreCase)))
-                                return "float";
+                            if (string.Equals(left, TypeWords.INTEGER, StringComparison.OrdinalIgnoreCase) && string.Equals(right, TypeWords.INTEGER, StringComparison.OrdinalIgnoreCase))
+                                return TypeWords.INTEGER;
+                            if ((string.Equals(left, TypeWords.INTEGER, StringComparison.OrdinalIgnoreCase) && string.Equals(right, TypeWords.FLOAT, StringComparison.OrdinalIgnoreCase)) ||
+                                (string.Equals(left, TypeWords.FLOAT, StringComparison.OrdinalIgnoreCase) && string.Equals(right, TypeWords.INTEGER, StringComparison.OrdinalIgnoreCase)) ||
+                                (string.Equals(left, TypeWords.FLOAT, StringComparison.OrdinalIgnoreCase) && string.Equals(right, TypeWords.FLOAT, StringComparison.OrdinalIgnoreCase)))
+                                return TypeWords.FLOAT;
                             return null;
                         }
-                        var cmpOps = new[] { ">", "<", ">=", "<=", "==", "!=" };
-                        if (Array.Exists(cmpOps, o => o == opSymbol)) return "bool";
-                        var boolOps = new[] { "&&", "||" };
+                        var cmpOps = new[] { OperatorWords.GREATER, OperatorWords.LESS, OperatorWords.GREATER_EQUAL, OperatorWords.LESS_EQUAL, OperatorWords.EQUAL, OperatorWords.NOT_EQUAL };
+                        if (Array.Exists(cmpOps, o => o == opSymbol)) return TypeWords.BOOL;
+                        var boolOps = new[] { OperatorWords.AND, OperatorWords.OR };
                         if (Array.Exists(boolOps, o => o == opSymbol))
                         {
-                            if (string.Equals(left, "bool", StringComparison.OrdinalIgnoreCase) && string.Equals(right, "bool", StringComparison.OrdinalIgnoreCase))
-                                return "bool";
+                            if (string.Equals(left, TypeWords.BOOL, StringComparison.OrdinalIgnoreCase) && string.Equals(right, TypeWords.BOOL, StringComparison.OrdinalIgnoreCase))
+                                return TypeWords.BOOL;
                             return null;
                         }
                     }

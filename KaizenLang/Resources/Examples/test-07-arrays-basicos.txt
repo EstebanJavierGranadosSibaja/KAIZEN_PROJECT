@@ -1,0 +1,80 @@
+// ========================================
+// TEST 07: ARRAYS BÁSICOS
+// ========================================
+
+output("=== DECLARACIÓN DE CHAINSAWS ===");
+
+// Chainsaw de integers
+chainsaw<integer> numeros = [1, 2, 3, 4, 5];
+output("Chainsaw de enteros declarado");
+
+// Chainsaw de strings
+chainsaw<string> nombres = ["Ana", "Luis", "Pedro", "María"];
+output("Chainsaw de strings declarado");
+
+// Chainsaw de floats
+chainsaw<float> precios = [10.5, 20.99, 5.75, 30.0];
+output("Chainsaw de floats declarado");
+
+// Chainsaw de booleans
+chainsaw<bool> estados = [true, false, true, true];
+output("Chainsaw de booleans declarado");
+
+output("=== ACCESO A ELEMENTOS ===");
+integer primero = numeros[0];
+integer segundo = numeros[1];
+integer ultimo = numeros[4];
+
+output("Primer elemento: " + primero);
+output("Segundo elemento: " + segundo);
+output("Último elemento: " + ultimo);
+
+string nombre1 = nombres[0];
+string nombre2 = nombres[1];
+
+output("Primer nombre: " + nombre1);
+output("Segundo nombre: " + nombre2);
+
+output("=== CHAINSAWS CON LENGTH ===");
+integer tam = length(numeros);
+output("Tamaño del array: " + tam);
+
+integer tamNombres = length(nombres);
+output("Cantidad de nombres: " + tamNombres);
+
+output("=== RECORRER CHAINSAW CON FOR ===");
+for (integer i = 0; i < length(numeros); i = i + 1) ying
+    integer valor = numeros[i];
+    output("Posición " + i + ": " + valor);
+yang
+
+output("=== RECORRER CHAINSAW DE STRINGS ===");
+for (integer j = 0; j < length(nombres); j = j + 1) ying
+    string persona = nombres[j];
+    output("Nombre " + j + ": " + persona);
+yang
+
+output("=== OPERACIONES CON CHAINSAWS ===");
+integer suma = 0;
+
+for (integer k = 0; k < length(numeros); k = k + 1) ying
+    suma = suma + numeros[k];
+yang
+
+output("Suma de elementos: " + suma);
+
+output("=== BUSCAR EN CHAINSAW ===");
+string buscar = "Pedro";
+integer posicionEsperada = 2;
+bool encontrado = nombres[posicionEsperada] == buscar;
+
+if (encontrado) ying
+    output("Encontrado '" + buscar + "' en posición " + posicionEsperada);
+yang else ying
+    output("No se encontró '" + buscar + "'");
+yang
+
+output("=== CHAINSAW VACÍO ===");
+chainsaw<integer> vacio = [];
+integer tamVacio = length(vacio);
+output("Tamaño de chainsaw vacío: " + tamVacio);

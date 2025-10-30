@@ -1,0 +1,2 @@
+// Test simple para debugear output
+output("Hola mundo");

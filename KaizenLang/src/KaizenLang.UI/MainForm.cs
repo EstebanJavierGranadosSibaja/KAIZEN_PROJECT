@@ -82,6 +82,17 @@ namespace KaizenLang.UI
 
             // Barra de estado mejorada
             SetupEnhancedStatusBar();
+
+            // Editor/output additional configuration
+            codeRichTextBox.ScrollBars = RichTextBoxScrollBars.Both;
+            codeRichTextBox.AcceptsTab = true;
+
+            outputRichTextBox.ReadOnly = true;
+            outputRichTextBox.ShortcutsEnabled = true;
+            outputRichTextBox.ScrollBars = RichTextBoxScrollBars.Vertical;
+
+            ThemeManager.ThemeChanged += ThemeManagerOnThemeChanged;
+            RefreshEditorVisuals();
         }
 
         private void ApplyVisualEffects()
@@ -391,10 +402,17 @@ namespace KaizenLang.UI
         /// </summary>
         private void DisplayResult(string output, bool success)
         {
+            var theme = ThemeManager.CurrentTheme;
+
+            outputRichTextBox.ReadOnly = false;
             outputRichTextBox.Clear();
-            outputRichTextBox.SelectionColor = ThemeManager.CurrentTheme.Foreground;
+            var foreground = success ? theme.SecondaryForeground : theme.Error;
+            outputRichTextBox.SelectionColor = foreground;
             outputRichTextBox.AppendText(output);
-            outputRichTextBox.SelectionColor = outputRichTextBox.ForeColor; // reset color
+            outputRichTextBox.SelectionColor = outputRichTextBox.ForeColor;
+            outputRichTextBox.ReadOnly = true;
+            outputRichTextBox.SelectionStart = outputRichTextBox.TextLength;
+            outputRichTextBox.ScrollToCaret();
         }
 
         /// <summary>
@@ -447,9 +465,9 @@ void saludar(string nombre) ying
     output(""Hola "" + nombre + ""!"");
 yang
 
-// EJEMPLO 7: Arrays y matrices
-array<integer> numeros = [1, 2, 3, 4, 5];
-matrix<integer> tabla = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+// EJEMPLO 7: Chainsaw y Hogyoku
+chainsaw<integer> numeros = [1, 2, 3, 4, 5];
+hogyoku<integer> tabla = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
 
 // EJEMPLO 8: Funciones builtin
 string name = input();
@@ -460,7 +478,7 @@ integer len = length(numeros);
 integer resultado = (10 + 5) * 2;
 bool comparacion = (resultado > 25) && (numero < 100);
 
-// EJEMPLO 10: Acceso a arrays y matrices
+// EJEMPLO 10: Acceso a chainsaw y hogyoku
 integer primero = numeros[0];
 integer elemento = tabla[0][1];
 
@@ -469,12 +487,93 @@ saludar(""KaizenLang"");";                codeRichTextBox.Text = exampleCode;
                 // Aplicar syntax highlighting manualmente (forzado para el ejemplo inicial)
                 SyntaxHighlighter.ApplySyntaxHighlighting(codeRichTextBox, true);
 
-                DisplayResult("✅ Syntax highlighting para KaizenLang aplicado correctamente!\n\nPuedes ver:\n- Comentarios en verde e itálica (//)\n- Palabras clave en bold (if, else, for, while, ying, yang)\n- Tipos en bold (integer, string, bool, array<>, matrix<>)\n- Funciones builtin (input, output, length)\n- Cadenas de texto coloreadas\n- Números resaltados\n- Operadores y símbolos destacados", true);
+                DisplayResult("✅ Syntax highlighting para KaizenLang aplicado correctamente!\n\nPuedes ver:\n- Comentarios en verde e itálica (//)\n- Palabras clave en bold (if, else, for, while, ying, yang)\n- Tipos en bold (integer, string, bool, chainsaw<>, hogyoku<>)\n- Funciones builtin (input, output, length)\n- Cadenas de texto coloreadas\n- Números resaltados\n- Operadores y símbolos destacados", true);
             }
             catch (Exception ex)
             {
                 DisplayResult($"❌ Error al cargar ejemplo de syntax highlighting: {ex.Message}", false);
             }
+        }
+
+        private void ThemeManagerOnThemeChanged(object? sender, EventArgs e)
+        {
+            RefreshEditorVisuals();
+        }
+
+        private void RefreshEditorVisuals()
+        {
+            if (codeSectionLayout == null || outputSectionLayout == null)
+                return;
+
+            var theme = ThemeManager.CurrentTheme;
+
+            codeSectionLayout.BackColor = BlendColor(theme.PanelBackground, theme.Background, 0.15f);
+            codeSectionLayout.Padding = new Padding(12, 14, 12, 14);
+
+            outputSectionLayout.BackColor = BlendColor(theme.SecondaryBackground, theme.Background, 0.08f);
+            outputSectionLayout.Padding = new Padding(12, 14, 12, 14);
+
+            if (codeHeaderLabel != null)
+                codeHeaderLabel.Font = ChooseFont(12.5f, FontStyle.Bold, "Segoe UI Semibold", "Segoe UI", "Calibri", "Verdana");
+
+            if (codeSubtitleLabel != null)
+            {
+                codeSubtitleLabel.Font = ChooseFont(9.75f, FontStyle.Regular, "Segoe UI", "Calibri", "Verdana");
+                codeSubtitleLabel.ForeColor = ControlPaint.Light(theme.Foreground, 0.35f);
+            }
+
+            if (outputHeaderLabel != null)
+                outputHeaderLabel.Font = ChooseFont(11.5f, FontStyle.Bold, "Segoe UI Semibold", "Segoe UI", "Calibri", "Verdana");
+
+            if (outputSubtitleLabel != null)
+            {
+                outputSubtitleLabel.Font = ChooseFont(9.5f, FontStyle.Regular, "Segoe UI", "Calibri", "Verdana");
+                outputSubtitleLabel.ForeColor = ControlPaint.Light(theme.Foreground, 0.35f);
+            }
+
+            if (codeRichTextBox != null)
+            {
+                codeRichTextBox.Font = ChooseFont(13f, FontStyle.Regular, "Cascadia Code", "JetBrains Mono", "Fira Code", "Consolas");
+                codeRichTextBox.ForeColor = theme.TextBoxForeground;
+                codeRichTextBox.BackColor = BlendColor(theme.TextBoxBackground, theme.PanelBackground, 0.05f);
+            }
+
+            if (outputRichTextBox != null)
+            {
+                outputRichTextBox.Font = ChooseFont(10.5f, FontStyle.Regular, "Segoe UI", "Inter", "Calibri", "Arial");
+                outputRichTextBox.ForeColor = theme.SecondaryForeground;
+                outputRichTextBox.BackColor = BlendColor(theme.SecondaryBackground, theme.Background, 0.12f);
+            }
+        }
+
+        private static Font ChooseFont(float size, FontStyle style, params string[] candidates)
+        {
+            foreach (var candidate in candidates)
+            {
+                try
+                {
+                    using (var test = new Font(candidate, size, style, GraphicsUnit.Point))
+                    {
+                        if (string.Equals(test.Name, candidate, StringComparison.OrdinalIgnoreCase))
+                            return new Font(candidate, size, style, GraphicsUnit.Point);
+                    }
+                }
+                catch
+                {
+                    // Ignore invalid fonts and continue with the next candidate
+                }
+            }
+
+            return new Font(FontFamily.GenericMonospace, size, style, GraphicsUnit.Point);
+        }
+
+        private static Color BlendColor(Color source, Color target, float amount)
+        {
+            amount = Math.Clamp(amount, 0f, 1f);
+            int r = (int)Math.Round(source.R + (target.R - source.R) * amount);
+            int g = (int)Math.Round(source.G + (target.G - source.G) * amount);
+            int b = (int)Math.Round(source.B + (target.B - source.B) * amount);
+            return Color.FromArgb(r, g, b);
         }
     }
 }

@@ -34,8 +34,8 @@ public partial class Parser
     {
         // Accept declarations of the form:
         //  TYPE IDENTIFIER
-        //  array < TYPE > IDENTIFIER
-        //  matrix < TYPE > IDENTIFIER
+    //  chainsaw < TYPE > IDENTIFIER
+    //  hogyoku < TYPE > IDENTIFIER
         if (pos + 1 >= tokens.Count)
             return false;
 
@@ -43,9 +43,9 @@ public partial class Parser
         if (tokens[pos].Type == "TYPE" && tokens[pos + 1].Type == "IDENTIFIER")
             return true;
 
-        // composite types like array<integer> or matrix<integer> are tokenized as:
-        // IDENTIFIER('array'|'matrix') DELIMITER('<') TYPE DELIMITER('>') IDENTIFIER
-        if (tokens[pos].Type == "IDENTIFIER" && (tokens[pos].Value == "array" || tokens[pos].Value == "matrix"))
+    // composite types like chainsaw<integer> or hogyoku<integer> are tokenized as:
+    // IDENTIFIER('chainsaw'|'hogyoku') DELIMITER('<') TYPE DELIMITER('>') IDENTIFIER
+    if (tokens[pos].Type == "IDENTIFIER" && TypeWords.CompositeWrappers.Contains(tokens[pos].Value))
         {
             if (pos + 4 < tokens.Count
                 && (tokens[pos + 1].Type == "DELIMITER" || tokens[pos + 1].Type == "OPERATOR") && tokens[pos + 1].Value == DelimiterWords.ANGLE_OPEN
@@ -55,7 +55,7 @@ public partial class Parser
             {
                 return true;
             }
-            // Also treat a bare 'array NAME' or 'matrix NAME' sequence as an attempted declaration
+            // Also treat a bare 'chainsaw NAME' or 'hogyoku NAME' sequence as an attempted declaration
             // so that the parser can produce a clearer error (missing element type) instead of
             // parsing it as an expression.
             if (pos + 1 < tokens.Count && tokens[pos + 1].Type == "IDENTIFIER")
@@ -99,8 +99,8 @@ public partial class Parser
         var parameters = new Node("Parameters");
         while (tokens[pos].Type != "DELIMITER" || tokens[pos].Value != DelimiterWords.PAREN_CLOSE)
         {
-            // support either base TYPE or composite 'array<type>' / 'matrix<type>'
-            if (tokens[pos].Type == "TYPE" || (tokens[pos].Type == "IDENTIFIER" && (tokens[pos].Value == "array" || tokens[pos].Value == "matrix")))
+            // support either base TYPE or composite 'chainsaw<type>' / 'hogyoku<type>'
+            if (tokens[pos].Type == "TYPE" || (tokens[pos].Type == "IDENTIFIER" && TypeWords.CompositeWrappers.Contains(tokens[pos].Value)))
             {
                 Node typeNode = new Node("Unknown");
 
@@ -112,10 +112,10 @@ public partial class Parser
                 }
                 else
                 {
-                    // composite type starting with 'array' or 'matrix'
+                    // composite type starting with 'chainsaw' or 'hogyoku'
                     var wrapper = tokens[pos];
                     typeNode = new Node(wrapper.Value) { Line = wrapper.Line, Column = wrapper.Column };
-                    pos++; // consume 'array' or 'matrix'
+                    pos++; // consume 'chainsaw' or 'hogyoku'
                     if (!(pos < tokens.Count && (tokens[pos].Type == "DELIMITER" || tokens[pos].Type == "OPERATOR") && tokens[pos].Value == DelimiterWords.ANGLE_OPEN))
                     {
                         parameters.Children.Add(ErrorNode("Se esperaba '<' en tipo compuesto", pos));

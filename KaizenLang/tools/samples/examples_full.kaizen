@@ -40,9 +40,9 @@ void saludar(string nombre) ying
     output("Hola " + nombre + "!");
 yang
 
-// EJEMPLO 7: Arrays y matrices
-array<integer> numeros = [1, 2, 3, 4, 5];
-matrix<integer> tabla = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+// EJEMPLO 7: Chainsaw y Hogyoku
+chainsaw<integer> numeros = [1, 2, 3, 4, 5];
+hogyoku<integer> tabla = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
 
 // EJEMPLO 8: Funciones builtin
 string name = input();
@@ -53,7 +53,7 @@ integer len = length(numeros);
 integer resultado = (10 + 5) * 2;
 bool comparacion = (resultado > 25) && (numero < 100);
 
-// EJEMPLO 10: Acceso a arrays y matrices
+// EJEMPLO 10: Acceso a chainsaw y hogyoku
 integer primero = numeros[0];
 integer elemento = tabla[0][1];
 

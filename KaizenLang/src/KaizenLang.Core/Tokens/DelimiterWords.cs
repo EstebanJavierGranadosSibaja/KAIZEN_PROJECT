@@ -29,8 +29,8 @@ public static class DelimiterWords
 
     // Todos los delimitadores (para compatibilidad con código existente)
     public static readonly HashSet<string> Words = new HashSet<string>(
-        // Include angle brackets in tokens so the parser can recognize
-        // `array<type>` and `matrix<type>` style type syntax. We keep
+    // Include angle brackets in tokens so the parser can recognize
+    // `chainsaw<type>` and `hogyoku<type>` style type syntax. We keep
         // angle brackets as single-char delimiters (they are also valid
         // comparison operators but are reused here in a type context).
         SingleCharDelimiters.Concat(new[] { ANGLE_OPEN, ANGLE_CLOSE }).Concat(MultiCharDelimiters)

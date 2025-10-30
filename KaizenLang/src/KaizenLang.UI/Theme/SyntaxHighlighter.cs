@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using ParadigmasLang;
 
 namespace KaizenLang.UI.Theme
 {
@@ -16,7 +17,7 @@ namespace KaizenLang.UI.Theme
         private static readonly Regex _commentRegex = new Regex(@"//.*", RegexOptions.Multiline);
         private static readonly Regex _stringRegex = new Regex(@"""(?:\\""|[^""])*""", RegexOptions.Multiline);
         private static readonly Regex _numberRegex = new Regex(@"\b\d+\.?\d*\b", RegexOptions.Multiline);
-        private static readonly Regex _genericTypeRegex = new Regex(@"\b(array|matrix)\s*<\s*(\w+)\s*>", RegexOptions.IgnoreCase);
+    private static readonly Regex _genericTypeRegex = new Regex(@"\b(chainsaw|hogyoku)\s*<\s*(\w+)\s*>", RegexOptions.IgnoreCase);
         private static readonly Regex _functionRegex = new Regex(@"\b[a-zA-Z_][a-zA-Z0-9_]*\s*(?=\()", RegexOptions.Multiline);
 
         // Lista de operadores como regex compilado
@@ -197,13 +198,13 @@ namespace KaizenLang.UI.Theme
             var keywords = new[]
             {
                 // Palabras clave de control
-                "if", "else", "while", "for", "do", "return",
+                ReservedWords.IF, ReservedWords.ELSE, ReservedWords.WHILE, ReservedWords.FOR, ReservedWords.DO, ReservedWords.RETURN,
                 // Valores literales
-                "true", "false",
+                LiteralWords.TRUE, LiteralWords.FALSE,
                 // Funciones builtin
-                "input", "output", "length",
+                ReservedWords.INPUT, ReservedWords.OUTPUT, "length",
                 // Bloques KaizenLang específicos
-                "ying", "yang"
+                DelimiterWords.BLOCK_START, DelimiterWords.BLOCK_END
             };
 
             foreach (var keyword in keywords)
@@ -227,9 +228,9 @@ namespace KaizenLang.UI.Theme
             var types = new[]
             {
                 // Tipos básicos de KaizenLang
-                "integer", "string", "bool", "float", "double", "char", "void",
+                TypeWords.INTEGER, TypeWords.STRING, TypeWords.BOOL, TypeWords.FLOAT, TypeWords.DOUBLE, "char", ReservedWords.VOID,
                 // Tipos compuestos
-                "array", "matrix"
+                TypeWords.CHAINSAW, TypeWords.HOGYOKU
             };
 
             foreach (var type in types)
@@ -284,7 +285,22 @@ namespace KaizenLang.UI.Theme
                 if (!IsRangeInComment(match.Index, funcName.Length, commentRanges))
                 {
                     // Verificar que no sea una palabra clave
-                    var keywords = new HashSet<string> { "if", "else", "while", "for", "do", "return", "true", "false", "input", "output", "length", "ying", "yang" };
+                    var keywords = new HashSet<string>
+                    {
+                        ReservedWords.IF,
+                        ReservedWords.ELSE,
+                        ReservedWords.WHILE,
+                        ReservedWords.FOR,
+                        ReservedWords.DO,
+                        ReservedWords.RETURN,
+                        LiteralWords.TRUE,
+                        LiteralWords.FALSE,
+                        ReservedWords.INPUT,
+                        ReservedWords.OUTPUT,
+                        "length",
+                        DelimiterWords.BLOCK_START,
+                        DelimiterWords.BLOCK_END
+                    };
                     if (!keywords.Contains(funcName.ToLower()))
                     {
                         richTextBox.Select(match.Index, funcName.Length);

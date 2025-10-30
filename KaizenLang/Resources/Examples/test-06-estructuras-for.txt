@@ -1,0 +1,59 @@
+// ========================================
+// TEST 06: ESTRUCTURA FOR
+// ========================================
+
+output("=== TEST FOR BÁSICO ===");
+for (integer i = 1; i <= 5; i = i + 1) ying
+    output("Iteración: " + i);
+yang
+
+output("=== TEST FOR DE 0 A 10 ===");
+for (integer n = 0; n <= 10; n = n + 1) ying
+    output("Número: " + n);
+yang
+
+output("=== TEST FOR CUENTA REGRESIVA ===");
+for (integer j = 10; j >= 1; j = j - 1) ying
+    output("Cuenta regresiva: " + j);
+yang
+output("¡Despegue!");
+
+output("=== TEST FOR CON SALTOS DE 2 ===");
+for (integer par = 0; par <= 20; par = par + 2) ying
+    output("Número par: " + par);
+yang
+
+output("=== TEST FOR CON SALTOS DE 5 ===");
+for (integer cinco = 5; cinco <= 50; cinco = cinco + 5) ying
+    output("Múltiplo de 5: " + cinco);
+yang
+
+output("=== TEST FOR CON OPERACIONES ===");
+integer sumaTotal = 0;
+
+for (integer k = 1; k <= 10; k = k + 1) ying
+    sumaTotal = sumaTotal + k;
+    output("Suma parcial: " + sumaTotal);
+yang
+
+output("Suma total: " + sumaTotal);
+
+output("=== TEST FOR CON MULTIPLICACIÓN ===");
+for (integer m = 1; m <= 10; m = m + 1) ying
+    integer resultado = 7 * m;
+    output("7 x " + m + " = " + resultado);
+yang
+
+output("=== TEST FOR CON POTENCIAS ===");
+integer base = 2;
+integer potenciaActual = 1;
+
+for (integer exp = 0; exp <= 5; exp = exp + 1) ying
+    output("2^" + exp + " = " + potenciaActual);
+    potenciaActual = potenciaActual * base;
+yang
+
+output("=== TEST FOR CON CONDICIONES ===");
+for (integer num = 11; num <= 20; num = num + 1) ying
+    output("Mayor que 10: " + num);
+yang

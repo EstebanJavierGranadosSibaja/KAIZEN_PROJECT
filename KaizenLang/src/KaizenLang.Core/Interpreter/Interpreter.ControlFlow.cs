@@ -113,23 +113,77 @@ public partial class Interpreter
     private object? ExecuteFunctionCall(Node node)
     {
         // Expected shape: FunctionCall -> FunctionName, Arguments
-        var fnameNode = node.FindChild("FunctionName") ?? node.FindChild("FunctionName");
-        string fname = string.Empty;
-        if (fnameNode != null)
+    var fnameNode = node.FindChild("FunctionName");
+    string fname = SemanticUtils.ExtractIdentifierName(fnameNode) ?? string.Empty;
+    var callArgsNode = node.FindChild("Arguments");
+
+        // Built-in: output
+        if (string.Equals(fname, ReservedWords.OUTPUT, System.StringComparison.OrdinalIgnoreCase))
         {
-            // FunctionName -> Identifier -> <name>
-            if (fnameNode.Children.Count > 0)
+            var outputValues = new List<string>();
+            if (callArgsNode != null && callArgsNode.Children.Count > 0)
             {
-                var id = fnameNode.Children[0];
-                if (id.Children.Count > 0)
-                    fname = id.Children[0].Type;
-                else
-                    fname = id.Type;
+                foreach (var arg in callArgsNode.Children)
+                {
+                    var val = ExecuteNode(arg);
+                    outputValues.Add(val?.ToString() ?? "null");
+                }
             }
+            output.Add(string.Join(" ", outputValues));
+            return null;
+        }
+
+        // Built-in: input
+        if (string.Equals(fname, ReservedWords.INPUT, System.StringComparison.OrdinalIgnoreCase))
+        {
+            string? prompt = null;
+            if (callArgsNode != null && callArgsNode.Children.Count > 0)
+            {
+                var firstArgNode = callArgsNode.Children[0];
+                if (firstArgNode.Type == "IDENTIFIER")
+                {
+                    string varName;
+                    if (firstArgNode.Children.Count > 0)
+                        varName = firstArgNode.Children[0].Type;
+                    else
+                        varName = firstArgNode.Type;
+
+                    var tokenLine = ReadNextInputToken(null);
+                    if (tokenLine == null)
+                        return null;
+
+                    var symbol = currentScope.LookupVariable(varName);
+                    object? finalVal = tokenLine;
+                    if (symbol != null)
+                    {
+                        var targetType = ExtractPrimitiveType(symbol.Type);
+                        finalVal = ConvertTokenToType(tokenLine, targetType);
+                        currentScope.SetVariableValue(varName, finalVal);
+                        output.Add($"Variable '{varName}' asignada con valor: {finalVal?.ToString() ?? "null"}");
+                    }
+                    else
+                    {
+                        return tokenLine;
+                    }
+
+                    return finalVal;
+                }
+
+                var firstArg = ExecuteNode(firstArgNode);
+                prompt = firstArg?.ToString();
+            }
+
+            var token = ReadNextInputToken(prompt);
+            return token;
+        }
+
+        if (string.Equals(fname, "length", System.StringComparison.OrdinalIgnoreCase))
+        {
+            return ExecuteLengthBuiltin(callArgsNode);
         }
 
         // If user-defined function exists, invoke it
-    if (!string.IsNullOrEmpty(fname) && functions.ContainsKey(fname))
+        if (!string.IsNullOrEmpty(fname) && functions.ContainsKey(fname))
         {
             var fnNode = functions[fname];
             var oldScope = currentScope;
@@ -145,9 +199,9 @@ public partial class Interpreter
 
                 // Bind parameters: function node structure: Function -> Type, Identifier, Parameters, Body
                 var paramsNode = fnNode.FindChild("Parameters");
-                var argsNode = node.FindChild("Arguments");
-                if (paramsNode != null && argsNode != null)
+                if (paramsNode != null && callArgsNode != null)
                 {
+                    var argsNode = callArgsNode;
                     for (int i = 0; i < paramsNode.Children.Count; i++)
                     {
                         var p = paramsNode.Children[i];
@@ -170,34 +224,39 @@ public partial class Interpreter
                         if (!string.IsNullOrEmpty(paramName))
                         {
                             // Determine declared type if available
-                            string declaredType = "";
+                            string declaredType = string.Empty;
+                            string primitiveParamType = string.Empty;
                             if (p.Children.Count > 0)
                             {
                                 var typeNode = p.Children[0];
-                                declaredType = typeNode.Type ?? "";
+                                var typeInfo = ExtractTypeInfo(typeNode);
+                                declaredType = !string.IsNullOrEmpty(typeInfo.fullType) ? typeInfo.fullType : (typeNode.Type ?? string.Empty);
+                                primitiveParamType = !string.IsNullOrEmpty(typeInfo.primitiveType) ? typeInfo.primitiveType : declaredType;
                             }
 
                             // Attempt simple coercion based on declaredType
                             object? coercedValue = argValue;
                             try
                             {
-                                if (!string.IsNullOrEmpty(declaredType) && argValue != null)
+                                if (!string.IsNullOrEmpty(primitiveParamType) && argValue != null)
                                 {
-                                    switch (declaredType.ToLower())
+                                    var declaredTypeLower = primitiveParamType.ToLowerInvariant();
+                                    switch (declaredTypeLower)
                                     {
-                                        case "integer":
+                                        case TypeWords.INTEGER:
                                             coercedValue = Convert.ToInt32(argValue);
                                             break;
-                                        case "float":
+                                        case TypeWords.FLOAT:
+                                        case TypeWords.DOUBLE:
                                         case "real":
                                             coercedValue = Convert.ToDouble(argValue);
                                             break;
-                                        case "string":
+                                        case TypeWords.STRING:
                                         case "texto":
                                             coercedValue = Convert.ToString(argValue);
                                             break;
+                                        case TypeWords.BOOL:
                                         case "boolean":
-                                        case "bool":
                                             coercedValue = Convert.ToBoolean(argValue);
                                             break;
                                         default:
@@ -213,9 +272,9 @@ public partial class Interpreter
                             }
 
                             // Declare parameter in current scope and set value
-                            currentScope.DeclareVariable(paramName, declaredType ?? "", 0);
-                            currentScope.SetVariableValue(paramName, coercedValue!);
-                            output.Add($"[DBG] Param '{paramName}' = {coercedValue} (declared: {declaredType})");
+                            currentScope.DeclareVariable(paramName, declaredType ?? string.Empty, 0);
+                            currentScope.SetVariableValue(paramName, coercedValue);
+                            output.Add($"[DBG] Param '{paramName}' = {coercedValue?.ToString() ?? "null"} (declared: {declaredType})");
                             ParadigmasLang.Logging.Logger.Debug($"Param '{paramName}' = {coercedValue} (declared: {declaredType})");
                         }
                     }

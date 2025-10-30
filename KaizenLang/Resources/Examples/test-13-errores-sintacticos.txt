@@ -1,0 +1,42 @@
+// ========================================
+// TEST 13: ERRORES SINTÁCTICOS (Para Probar Validación)
+// ========================================
+// NOTA: Estos ejemplos DEBEN fallar en compilación
+
+// ERROR 1: Falta punto y coma
+// integer x = 10
+
+// ERROR 2: Falta paréntesis en condición
+// if x > 5 ying
+//     output("Mayor");
+// yang
+
+// ERROR 3: Falta ying al abrir bloque
+// if (x > 5)
+//     output("Mayor");
+// yang
+
+// ERROR 4: Falta yang al cerrar bloque
+// if (x > 5) ying
+//     output("Mayor");
+
+// ERROR 5: Falta identificador en declaración
+// integer = 10;
+
+// ERROR 6: Falta inicializador
+// integer y;
+
+// ERROR 7: Operador inválido
+// integer z = 10 $ 5;
+
+// ERROR 8: Paréntesis no balanceados
+// integer result = ((10 + 5) * 2;
+
+// ERROR 9: Corchetes no balanceados en array
+// chainsaw<integer> nums = [1, 2, 3;
+
+// ERROR 10: Falta coma en array
+// chainsaw<integer> nums = [1 2 3];
+
+output("Este archivo está comentado para no causar errores");
+output("Descomenta las líneas para probar validación de errores");

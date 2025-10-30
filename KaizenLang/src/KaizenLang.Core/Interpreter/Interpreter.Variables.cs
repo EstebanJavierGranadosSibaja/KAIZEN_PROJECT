@@ -12,11 +12,11 @@ public partial class Interpreter
             // Support both parser shapes:
             // - typeNode.Type == "string" (no children)
             // - typeNode.Children[0].Type == "string"
-            string type;
-            if (typeNode.Children.Count > 0)
-                type = typeNode.Children[0].Type;
-            else
-                type = typeNode.Type;
+            var (declaredType, primitiveType) = ExtractTypeInfo(typeNode);
+            if (string.IsNullOrEmpty(declaredType))
+                declaredType = typeNode.Type;
+            if (string.IsNullOrEmpty(primitiveType))
+                primitiveType = typeNode.Type;
 
             string name = string.Empty;
             if (nameNode.Children.Count > 0)
@@ -24,10 +24,10 @@ public partial class Interpreter
             else
                 name = nameNode.Type;
 
-            if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(type))
+            if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(declaredType))
                 return null;
 
-            if (!currentScope.DeclareVariable(name, type, 0))
+            if (!currentScope.DeclareVariable(name, declaredType, 0))
             {
                 throw new Exception($"Variable '{name}' ya está declarada");
             }
@@ -41,14 +41,15 @@ public partial class Interpreter
                 // If initialization came from input (string token) and we know the declared type, try to convert
                 if (rawValue is string rawStr)
                 {
-                    finalValue = ConvertTokenToType(rawStr, type);
+                    finalValue = ConvertTokenToType(rawStr, primitiveType);
                 }
-                currentScope.SetVariableValue(name, finalValue!);
-                output.Add($"Variable '{name}' declarada e inicializada con valor: {finalValue}");
+                finalValue = CoerceValueToDeclaredType(finalValue, declaredType);
+                currentScope.SetVariableValue(name, finalValue);
+                output.Add($"Variable '{name}' declarada e inicializada con valor: {finalValue?.ToString() ?? "null"}");
             }
             else
             {
-                output.Add($"Variable '{name}' de tipo '{type}' declarada");
+                output.Add($"Variable '{name}' de tipo '{declaredType}' declarada");
             }
         }
         return null;
@@ -91,16 +92,19 @@ public partial class Interpreter
                 object? finalValue = rawValue;
                 // Try to find the declared type of variable
                 var symbol = currentScope.LookupVariable(varName);
+                var symbolType = symbol?.Type ?? string.Empty;
+                var primitiveSymbolType = ExtractPrimitiveType(symbolType);
                 if (rawValue is string rawStr && symbol != null)
                 {
-                    finalValue = ConvertTokenToType(rawStr, symbol.Type);
+                    finalValue = ConvertTokenToType(rawStr, primitiveSymbolType);
                 }
-                if (!currentScope.SetVariableValue(varName, finalValue!))
+                finalValue = CoerceValueToDeclaredType(finalValue, symbolType);
+                if (!currentScope.SetVariableValue(varName, finalValue))
                 {
                     throw new Exception($"Variable '{varName}' no está declarada");
                 }
 
-                output.Add($"Variable '{varName}' asignada con valor: {finalValue}");
+                output.Add($"Variable '{varName}' asignada con valor: {finalValue?.ToString() ?? "null"}");
             }
         }
         return null;

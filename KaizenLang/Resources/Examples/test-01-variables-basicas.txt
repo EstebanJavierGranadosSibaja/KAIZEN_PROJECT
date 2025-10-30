@@ -1,0 +1,58 @@
+// ========================================
+// TEST 01: VARIABLES BÁSICAS Y TIPOS
+// ========================================
+// Prueba declaración de variables con todos los tipos simples
+
+// Tipo integer
+integer edad = 25;
+integer temperatura = -10;
+integer grande = 1000000;
+
+output("=== INTEGERS ===");
+output("Edad: " + edad);
+output("Temperatura: " + temperatura);
+output("Grande: " + grande);
+
+// Tipo float
+float precio = 19.99;
+float pi = 3.14159;
+float negativo = -2.5;
+
+output("=== FLOATS ===");
+output("Precio: " + precio);
+output("Pi: " + pi);
+output("Negativo: " + negativo);
+
+// Tipo double
+double precision = 3.141592653589793;
+double cientifica = 299792458.0;
+
+output("=== DOUBLES ===");
+output("Precisión: " + precision);
+output("Científica: " + cientifica);
+
+// Tipo bool
+bool activo = true;
+bool completado = false;
+
+output("=== BOOLEANS ===");
+output("Activo: " + activo);
+output("Completado: " + completado);
+
+// Tipo string
+string nombre = "Ana García";
+string mensaje = "Hola, KaizenLang!";
+string vacio = "";
+
+output("=== STRINGS ===");
+output("Nombre: " + nombre);
+output("Mensaje: " + mensaje);
+output("Vacío: '" + vacio + "'");
+
+// Caracteres individuales con string
+string letra = "A";
+string simbolo = "@";
+
+output("=== CARACTERES ===");
+output("Letra: " + letra);
+output("Símbolo: " + simbolo);

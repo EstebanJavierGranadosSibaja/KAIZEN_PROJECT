@@ -10,4 +10,4 @@ public class Lexer
     }
 }
 
-// Token se encuentra ahora en src/KaizenLang/Tokens/Token.cs
+// Token se encuentra ahora en src/KaizenLang.Core/Tokens/Token.cs

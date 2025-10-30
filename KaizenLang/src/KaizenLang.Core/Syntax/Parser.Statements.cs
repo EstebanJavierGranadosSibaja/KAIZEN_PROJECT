@@ -102,14 +102,14 @@ public partial class Parser
     {
         // Support both simple and composite types for variable declarations:
         // - TYPE IDENTIFIER
-        // - array < TYPE > IDENTIFIER
-        // - matrix < TYPE > IDENTIFIER
+    // - chainsaw < TYPE > IDENTIFIER
+    // - hogyoku < TYPE > IDENTIFIER
 
         Node typeNode;
         Node nameNode;
 
-        // Composite type (array/matrix) with explicit element type: array < TYPE > NAME
-        if (tokens[pos].Type == "IDENTIFIER" && (tokens[pos].Value == "array" || tokens[pos].Value == "matrix")
+        // Composite type (chainsaw/hogyoku) with explicit element type: chainsaw < TYPE > NAME
+        if (tokens[pos].Type == "IDENTIFIER" && TypeWords.CompositeWrappers.Contains(tokens[pos].Value)
             && pos + 4 < tokens.Count
             && (tokens[pos + 1].Type == "DELIMITER" || tokens[pos + 1].Type == "OPERATOR") && tokens[pos + 1].Value == DelimiterWords.ANGLE_OPEN
             && tokens[pos + 2].Type == "TYPE"
@@ -121,21 +121,21 @@ public partial class Parser
             var inner = new Node(tokens[pos + 2].Value) { Line = tokens[pos + 2].Line, Column = tokens[pos + 2].Column };
             typeNode.Children.Add(inner);
 
-            // consume array/matrix, '<', inner type, '>'
+            // consume chainsaw/hogyoku, '<', inner type, '>'
             pos += 4;
 
             var nameToken = tokens[pos];
             nameNode = new Node("Identifier", new List<Node> { new Node(nameToken.Value) }) { Line = nameToken.Line, Column = nameToken.Column };
             pos++; // consume identifier
         }
-        else if (tokens[pos].Type == "IDENTIFIER" && (tokens[pos].Value == "array" || tokens[pos].Value == "matrix")
+        else if (tokens[pos].Type == "IDENTIFIER" && TypeWords.CompositeWrappers.Contains(tokens[pos].Value)
             && pos + 1 < tokens.Count && tokens[pos + 1].Type == "IDENTIFIER")
         {
             // Explicit element type missing — produce a parse-level error so semantic phase
             // doesn't confuse the tokens as identifier usages. Advance pos to consume the
             // tokens that formed the attempted declaration to avoid parser infinite loop.
             var message = $"Declaración de {tokens[pos].Value} requiere tipo de elemento explícito";
-            // consume 'array' and the following identifier to avoid re-parsing the same tokens
+            // consume 'chainsaw'/'hogyoku' and the following identifier to avoid re-parsing the same tokens
             pos += 2;
             return ErrorNode(message, pos - 2);
         }

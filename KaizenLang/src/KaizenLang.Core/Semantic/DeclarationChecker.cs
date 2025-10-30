@@ -38,7 +38,7 @@ public class DeclarationChecker
             return;
         }
 
-        var varName = ExtractIdentifierName(nameNode);
+    var varName = SemanticUtils.ExtractIdentifierName(nameNode);
         if (string.IsNullOrEmpty(varName))
         {
             diagnostics.Report(node, "Variable declaration has empty name");
@@ -52,28 +52,28 @@ public class DeclarationChecker
             return;
         }
 
-        // determine declared type wrapper (e.g., 'array' or 'matrix') and element type
+    // determine declared type wrapper (e.g., 'chainsaw' or 'hogyoku') and element type
         var typeNode = node.Children[0];
-        string wrapperType = typeNode.Type ?? string.Empty; // e.g., 'array' or 'integer'
-        string declaredType = string.Empty; // primary declared type for non-collection (e.g., 'integer')
-        string declaredElem = string.Empty; // element type for array/matrix declarations
+    string wrapperType = typeNode.Type ?? string.Empty; // e.g., 'chainsaw' or 'integer'
+    string declaredType = string.Empty; // primary declared type for non-collection (e.g., 'integer')
+    string declaredElem = string.Empty; // element type for chainsaw/hogyoku declarations
         if (typeNode.Children.Count > 0)
         {
             declaredElem = typeNode.Children[0].Type ?? string.Empty;
         }
-        // If not a wrapper like array/matrix, declaredType is the wrapperType itself
-        if (!string.IsNullOrEmpty(wrapperType) && !wrapperType.StartsWith("array", StringComparison.OrdinalIgnoreCase) && !wrapperType.StartsWith("matrix", StringComparison.OrdinalIgnoreCase))
+    // If not a wrapper like chainsaw/hogyoku, declaredType is the wrapperType itself
+        if (!string.IsNullOrEmpty(wrapperType) && !wrapperType.StartsWith(TypeWords.CHAINSAW, StringComparison.OrdinalIgnoreCase) && !wrapperType.StartsWith(TypeWords.HOGYOKU, StringComparison.OrdinalIgnoreCase))
             declaredType = wrapperType;
 
         // Do not register the variable in the current scope yet: validate initializer first
         // If initializer present, validate identifiers used and types
         bool initializerHasErrors = false;
 
-        // Enforce strict typing: arrays/matrices must include an explicit element type
-        if ((wrapperType.StartsWith("array", StringComparison.OrdinalIgnoreCase) || wrapperType.StartsWith("matrix", StringComparison.OrdinalIgnoreCase))
+        // Enforce strict typing: chainsaw/hogyoku must include an explicit element type
+        if ((wrapperType.StartsWith(TypeWords.CHAINSAW, StringComparison.OrdinalIgnoreCase) || wrapperType.StartsWith(TypeWords.HOGYOKU, StringComparison.OrdinalIgnoreCase))
                 && string.IsNullOrEmpty(declaredElem))
         {
-            diagnostics.Report(node, "Declaración de array/matrix requiere tipo de elemento explícito");
+            diagnostics.Report(node, "Declaración de chainsaw/hogyoku requiere tipo de elemento explícito");
             // Do not proceed with registration or initializer checks for malformed declaration
             return;
         }
@@ -115,37 +115,40 @@ public class DeclarationChecker
             var initType = initializerHasErrors ? null : typeResolver.Resolve(initExpr);
             if (initType != null)
             {
-                // If declared as array<T> or matrix<T>
-                if (wrapperType.StartsWith("array", StringComparison.OrdinalIgnoreCase) || wrapperType.StartsWith("matrix", StringComparison.OrdinalIgnoreCase))
+                // If declared as chainsaw<T> or hogyoku<T>
+                if (wrapperType.StartsWith(TypeWords.CHAINSAW, StringComparison.OrdinalIgnoreCase) || wrapperType.StartsWith(TypeWords.HOGYOKU, StringComparison.OrdinalIgnoreCase))
                 {
                     if (!string.IsNullOrEmpty(declaredElem))
                     {
-                        if (wrapperType.StartsWith("matrix", StringComparison.OrdinalIgnoreCase))
+                        if (wrapperType.StartsWith(TypeWords.HOGYOKU, StringComparison.OrdinalIgnoreCase))
                         {
-                            var expected = $"array<array<{declaredElem}>>";
+                            var expected = $"{TypeWords.CHAINSAW}<{TypeWords.CHAINSAW}<{declaredElem}>>";
                             if (string.Equals(initType, expected, StringComparison.OrdinalIgnoreCase))
                             {
                                 // ok
                             }
-                            else if (initType.StartsWith("array<", StringComparison.OrdinalIgnoreCase))
+                            else if (initType.StartsWith($"{TypeWords.CHAINSAW}<", StringComparison.OrdinalIgnoreCase))
                             {
                                 var inner = TypeResolver.ExtractInnerType(initType);
-                                if (string.IsNullOrEmpty(inner) || !inner.StartsWith("array<", StringComparison.OrdinalIgnoreCase))
+                                if (string.IsNullOrEmpty(inner) || !inner.StartsWith($"{TypeWords.CHAINSAW}<", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    diagnostics.Report(node, $"Tipo incompatible en inicialización: se esperaba 'matrix<{declaredElem}>' pero se encontró '{initType}'");
+                                    diagnostics.Report(node, $"Tipo incompatible en inicialización: se esperaba 'hogyoku<{declaredElem}>' pero se encontró '{initType}'");
                                 }
                                 else
                                 {
                                     var innerElem = TypeResolver.ExtractInnerType(inner);
-                                    if (!string.Equals(innerElem, declaredElem, StringComparison.OrdinalIgnoreCase))
-                                        diagnostics.Report(node, $"Tipo incompatible en inicialización: se esperaba 'matrix<{declaredElem}>' pero se encontró '{initType}'");
+                                    if (!string.Equals(innerElem, declaredElem, StringComparison.OrdinalIgnoreCase) &&
+                                        !(SemanticUtils.IsNullLiteralType(innerElem) && SemanticUtils.SupportsNullAssignment(declaredElem)))
+                                        diagnostics.Report(node, $"Tipo incompatible en inicialización: se esperaba 'hogyoku<{declaredElem}>' pero se encontró '{initType}'");
                                 }
                             }
                         }
-                        else if (initType.StartsWith("array<") && !string.IsNullOrEmpty(declaredElem))
+                        else if (initType.StartsWith($"{TypeWords.CHAINSAW}<") && !string.IsNullOrEmpty(declaredElem))
                         {
                             var initElem = TypeResolver.ExtractInnerType(initType);
-                            if (!string.IsNullOrEmpty(initElem) && !string.Equals(initElem, declaredElem, StringComparison.OrdinalIgnoreCase))
+                            if (!string.IsNullOrEmpty(initElem) &&
+                                !string.Equals(initElem, declaredElem, StringComparison.OrdinalIgnoreCase) &&
+                                !(SemanticUtils.IsNullLiteralType(initElem) && SemanticUtils.SupportsNullAssignment(declaredElem)))
                                 diagnostics.Report(node, $"Tipo incompatible en inicialización: se esperaba '{declaredElem}' pero se encontró '{initElem}'");
                         }
                     }
@@ -165,22 +168,22 @@ public class DeclarationChecker
         if (!initializerHasErrors)
         {
             string effectiveType = declaredType;
-            if (wrapperType.StartsWith("array", StringComparison.OrdinalIgnoreCase))
+            if (wrapperType.StartsWith(TypeWords.CHAINSAW, StringComparison.OrdinalIgnoreCase))
             {
                 if (!string.IsNullOrEmpty(declaredElem))
-                    effectiveType = $"array<{declaredElem}>";
+                    effectiveType = $"{TypeWords.CHAINSAW}<{declaredElem}>";
                 else
-                    effectiveType = "array";
+                    effectiveType = TypeWords.CHAINSAW;
             }
-            else if (wrapperType.StartsWith("matrix", StringComparison.OrdinalIgnoreCase))
+            else if (wrapperType.StartsWith(TypeWords.HOGYOKU, StringComparison.OrdinalIgnoreCase))
             {
                 if (!string.IsNullOrEmpty(declaredElem))
-                    effectiveType = $"array<array<{declaredElem}>>";
+                    effectiveType = $"{TypeWords.CHAINSAW}<{TypeWords.CHAINSAW}<{declaredElem}>>";
                 else
-                    effectiveType = "array<array>";
+                    effectiveType = $"{TypeWords.CHAINSAW}<{TypeWords.CHAINSAW}>";
             }
 
-            var sym = current.LookupVariable(varName);
+        var sym = current.LookupVariable(varName);
             if (sym != null)
             {
                 sym.Type = effectiveType;
@@ -195,7 +198,7 @@ public class DeclarationChecker
     public void RegisterFunction(Node node)
     {
         var nameNode = node.FindChild("FunctionName") ?? node.FindChild("Identifier") ?? node.FindChild("IDENTIFIER");
-        var fnName = ExtractIdentifierName(nameNode);
+        var fnName = SemanticUtils.ExtractIdentifierName(nameNode);
         if (string.IsNullOrEmpty(fnName))
         {
             diagnostics.Report(node, "Function declaration missing name");
@@ -222,7 +225,7 @@ public class DeclarationChecker
             foreach (var p in paramsNode.Children)
             {
                 var idNode = p.FindChild("Identifier") ?? p.FindChild("IDENTIFIER");
-                var paramName = ExtractIdentifierName(idNode) ?? p.Value?.ToString();
+                var paramName = SemanticUtils.ExtractIdentifierName(idNode) ?? p.Value?.ToString();
                 if (string.IsNullOrEmpty(paramName))
                     continue;
                 var cur = scopes.Peek();
@@ -244,45 +247,8 @@ public class DeclarationChecker
         if (scopes.Count > 0) scopes.Pop();
     }
 
-    private string? ExtractIdentifierName(Node? idNode)
-    {
-        if (idNode == null)
-            return null;
-        if (idNode.Type == "Identifier" || idNode.Type == "IDENTIFIER")
-        {
-            if (idNode.Value != null)
-                return idNode.Value.ToString();
-            if (idNode.Children.Count > 0)
-                return idNode.Children[0].Value?.ToString() ?? idNode.Children[0].Type;
-        }
 
-        if (idNode.Type == "FunctionName")
-        {
-            if (idNode.Children.Count > 0)
-            {
-                var c = idNode.Children[0];
-                if (c.Value != null)
-                    return c.Value.ToString();
-                if (c.Children.Count > 0)
-                    return c.Children[0].Value?.ToString() ?? c.Children[0].Type;
-                return c.Type;
-            }
-        }
-
-        if (idNode.Value != null)
-            return idNode.Value.ToString();
-        return idNode.Children.FirstOrDefault()?.Value?.ToString() ?? idNode.Children.FirstOrDefault()?.Type;
-    }
-
-    private bool IsSymbolDefined(string name)
-    {
-        foreach (var scope in scopes)
-        {
-            if (scope.LookupVariable(name) != null)
-                return true;
-        }
-        return false;
-    }
+    private bool IsSymbolDefined(string name) => SemanticUtils.IsSymbolDefined(scopes, name);
 
     private void ValidateIdentifiersInExpression(Node? expr)
     {
@@ -290,7 +256,7 @@ public class DeclarationChecker
 
         if (expr.Type == "IDENTIFIER" || expr.Type == "Identifier")
         {
-            var name = ExtractIdentifierName(expr);
+            var name = SemanticUtils.ExtractIdentifierName(expr);
             if (!string.IsNullOrEmpty(name) && !IsSymbolDefined(name) && !functions.ContainsKey(name) && !builtins.ContainsKey(name))
             {
                 diagnostics.Report(expr, $"Variable '{name}' no declarada");
@@ -300,7 +266,7 @@ public class DeclarationChecker
 
         if (expr.Type == "FunctionCall")
         {
-            var fname = ExtractIdentifierName(expr.FindChild("FunctionName"));
+            var fname = SemanticUtils.ExtractIdentifierName(expr.FindChild("FunctionName"));
             if (!string.IsNullOrEmpty(fname) && !functions.ContainsKey(fname) && !builtins.ContainsKey(fname))
                 diagnostics.Report(expr, $"Function '{fname}' no definida");
 
@@ -324,18 +290,25 @@ public class DeclarationChecker
     // Promotion rules (widening): integer -> float -> double
     private bool CanAssign(string targetType, string sourceType)
     {
+        if (SemanticUtils.IsNullLiteralType(sourceType))
+        {
+            if (SemanticUtils.IsNullLiteralType(targetType))
+                return true;
+            return SemanticUtils.SupportsNullAssignment(targetType);
+        }
+
         if (string.Equals(targetType, sourceType, StringComparison.OrdinalIgnoreCase))
             return true;
 
-        if (string.Equals(sourceType, "integer", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(sourceType, TypeWords.INTEGER, StringComparison.OrdinalIgnoreCase))
         {
-            if (string.Equals(targetType, "float", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(targetType, "double", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(targetType, TypeWords.FLOAT, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(targetType, TypeWords.DOUBLE, StringComparison.OrdinalIgnoreCase))
                 return true;
         }
 
-        if (string.Equals(sourceType, "float", StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(targetType, "double", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(sourceType, TypeWords.FLOAT, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(targetType, TypeWords.DOUBLE, StringComparison.OrdinalIgnoreCase))
             return true;
 
         return false;

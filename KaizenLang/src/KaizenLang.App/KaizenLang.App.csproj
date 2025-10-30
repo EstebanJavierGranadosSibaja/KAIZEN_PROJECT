@@ -6,54 +6,53 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
-  <!-- Suppress WinForms platform compatibility warnings (CA1416) which are expected for this Windows-only UI project -->
-  <NoWarn>$(NoWarn);CA1416</NoWarn>
+    <!-- Suppress WinForms platform compatibility warnings (CA1416) which are expected for this Windows-only UI project -->
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
     <!-- Prevent SDK from generating assembly attributes that duplicate manual/generated ones -->
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <!-- Prevent SDK from generating target framework attribute if it's already present -->
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <ApplicationIcon>..\..\Resources\icon.ico</ApplicationIcon>
   </PropertyGroup>
+
   <!-- Exclude helper tools (like CompilationTester) from being compiled into the main executable -->
   <ItemGroup>
-    <Compile Remove="tools\**\*.cs" />
-    <EmbeddedResource Remove="tools\**\*" />
-    <None Remove="tools\**\*" />
+    <Compile Remove="..\..\tools\**\*.cs" />
+    <EmbeddedResource Remove="..\..\tools\**\*" />
+    <None Remove="..\..\tools\**\*" />
     <!-- Exclude tests from main project compile (tests are a separate project) -->
-    <Compile Remove="tests\**\*.cs" />
-    <EmbeddedResource Remove="tests\**\*" />
-    <None Remove="tests\**\*" />
-    <!-- Exclude files that are now part of the UI and Core libraries -->
-    <Compile Remove="src\KaizenLang.UI\**\*.cs" />
-    <Compile Remove="src\KaizenLang.Core\**\*.cs" />
+    <Compile Remove="..\..\tests\**\*.cs" />
+    <EmbeddedResource Remove="..\..\tests\**\*" />
+    <None Remove="..\..\tests\**\*" />
+    <!-- Exclude files that are part of the UI and Core libraries -->
+    <Compile Remove="..\KaizenLang.UI\**\*.cs" />
+    <Compile Remove="..\KaizenLang.Core\**\*.cs" />
   </ItemGroup>
 
   <!-- Post-build: copy the compiled DLL to the tester's bin folder so the tester can run independently -->
   <Target Name="CopyDllToTester" AfterTargets="Build">
     <PropertyGroup>
-      <TesterBin>$(MSBuildProjectDirectory)\tools\CompilationTester\bin\$(Configuration)\$(TargetFramework)</TesterBin>
+      <TesterBin>$(MSBuildProjectDirectory)\..\..\tools\CompilationTester\bin\$(Configuration)\$(TargetFramework)</TesterBin>
       <SourceDll>$(OutputPath)\KaizenLang.dll</SourceDll>
     </PropertyGroup>
     <MakeDir Directories="$(TesterBin)" Condition="!Exists('$(TesterBin)')" />
     <Copy SourceFiles="$(SourceDll)" DestinationFolder="$(TesterBin)" SkipUnchangedFiles="true" Condition="Exists('$(SourceDll)')" />
   </Target>
 
-  <!-- Cargar los recursos al la version compilada -->
   <ItemGroup>
-    <None Update="Resources\**\*">
+    <None Update="..\..\Resources\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <!-- Ensure the application icon is set and the .ico file is copied to output -->
-  <PropertyGroup>
-    <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
-  </PropertyGroup>
+
   <ItemGroup>
-    <None Include="Resources\icon.ico">
+    <None Include="..\..\Resources\icon.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="src\KaizenLang.UI\KaizenLang.UI.csproj" />
+    <ProjectReference Include="..\KaizenLang.UI\KaizenLang.UI.csproj" />
   </ItemGroup>
 
 </Project>

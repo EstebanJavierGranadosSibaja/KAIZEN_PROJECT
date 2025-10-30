@@ -21,12 +21,13 @@ public class SemanticAnalyzer
     private readonly Diagnostics diagnostics = new();
     private TypeResolver? typeResolver;
     private DeclarationChecker? declarationChecker;
+    private CollectionValidator? collectionValidator;
 
     // Known builtins with expected arity (-1 means variadic / flexible)
     private readonly Dictionary<string, int> builtins = new(StringComparer.OrdinalIgnoreCase)
     {
-        { "input", 0 }, // input() or input(prompt) -> treat as 0..1 but we'll accept 0 or 1
-        { "output", -1 }, // output(...) any number
+        { ReservedWords.INPUT, 0 }, // input() or input(prompt) -> treat as 0..1 but we'll accept 0 or 1
+        { ReservedWords.OUTPUT, -1 }, // output(...) any number
         { "print", -1 }, // print(...) familiar convenience alias
         { "length", 1 }, // length(collection) -> integer
     };
@@ -51,9 +52,9 @@ public class SemanticAnalyzer
         }
 
         // Provide return type info for builtins
-        if (functions.ContainsKey("input")) functions["input"].ReturnType = "string";
-        if (functions.ContainsKey("length")) functions["length"].ReturnType = "integer";
-        if (functions.ContainsKey("output")) functions["output"].ReturnType = "void";
+    if (functions.ContainsKey(ReservedWords.INPUT)) functions[ReservedWords.INPUT].ReturnType = TypeWords.STRING;
+    if (functions.ContainsKey("length")) functions["length"].ReturnType = TypeWords.INTEGER;
+    if (functions.ContainsKey(ReservedWords.OUTPUT)) functions[ReservedWords.OUTPUT].ReturnType = ReservedWords.VOID;
         if (functions.ContainsKey("print")) functions["print"].ReturnType = "void";
 
     // Create a TypeResolver for expression type queries
@@ -61,6 +62,9 @@ public class SemanticAnalyzer
 
         // Create a DeclarationChecker to handle variable/function registration
     declarationChecker = new DeclarationChecker(scopes, functions, builtins, typeResolver, diagnostics, VisitNode);
+
+    // Create a CollectionValidator for chainsaw/hogyoku checks
+    collectionValidator = new CollectionValidator(typeResolver, diagnostics);
 
         // Walk top-level nodes
         foreach (var child in ast.Children)
@@ -97,7 +101,7 @@ public class SemanticAnalyzer
                 foreach (var p in paramsNode.Children)
                 {
                     var id = p.FindChild("Identifier") ?? p.FindChild("IDENTIFIER");
-                    var pname = ExtractIdentifierName(id) ?? id?.Type;
+                    var pname = SemanticUtils.ExtractIdentifierName(id) ?? id?.Type;
                     var typeNode = p.Children.Count > 0 ? p.Children[0] : null;
                         var ptype = typeNode != null && typeNode.Children.Count>0 ? typeNode.Children[0].Type : typeNode?.Type ?? string.Empty;
                         if (!string.IsNullOrEmpty(pname))
@@ -126,6 +130,7 @@ public class SemanticAnalyzer
         {
             case "VariableDeclaration":
                 declarationChecker?.RegisterVariable(node);
+                collectionValidator?.CheckCollectionInitializer(node);
                 break;
             case "Function":
             case "FunctionDeclaration":
@@ -175,14 +180,14 @@ public class SemanticAnalyzer
         {
             case "VariableDeclaration":
                 declarationChecker?.RegisterVariable(node);
-                // Additional semantic checks for array/matrix initializers
-                CheckCollectionInitializer(node);
+                // Additional semantic checks for chainsaw/hogyoku initializers
+                collectionValidator?.CheckCollectionInitializer(node);
                 break;
             case "Assignment":
                 // LHS identifier must exist or be declared
                 var id = node.FindChild("Identifier") ?? node.FindChild("IDENTIFIER") ?? node.FindChild("IndexAccess");
-                var name = ExtractIdentifierName(id);
-                if (!string.IsNullOrEmpty(name) && !IsSymbolDefined(name))
+                var name = SemanticUtils.ExtractIdentifierName(id);
+                if (!string.IsNullOrEmpty(name) && !SemanticUtils.IsSymbolDefined(scopes, name))
                     diagnostics.Report(node, $"Variable '{name}' not declarada");
 
                 // Resolve RHS type and compare with declared LHS type when possible
@@ -212,8 +217,8 @@ public class SemanticAnalyzer
                 break;
             case "Identifier":
             case "IDENTIFIER":
-                var sname = ExtractIdentifierName(node);
-                if (!string.IsNullOrEmpty(sname) && !IsSymbolDefined(sname) && !functions.ContainsKey(sname))
+                var sname = SemanticUtils.ExtractIdentifierName(node);
+                if (!string.IsNullOrEmpty(sname) && !SemanticUtils.IsSymbolDefined(scopes, sname) && !functions.ContainsKey(sname))
                     diagnostics.Report(node, $"Variable '{sname}' not declared");
                 break;
             case "FunctionCall":
@@ -227,132 +232,13 @@ public class SemanticAnalyzer
         }
     }
 
-    // Check variable declaration initializers for arrays/matrices
-    private void CheckCollectionInitializer(Node varDecl)
-    {
-        // Expect shape: VariableDeclaration -> Type, Identifier, (optional) Initializer
-        if (varDecl.Children.Count < 3)
-            return;
-
-        var typeNode = varDecl.Children[0];
-        // declaredType should be the wrapper name (e.g., "array" or "matrix")
-        string declaredType = typeNode.Type ?? string.Empty;
-        // element type (if present) is usually the first child of the type node
-        string elemType = string.Empty;
-        if (typeNode.Children.Count > 0)
-            elemType = typeNode.Children[0].Type ?? string.Empty;
-
-        // Only interested in array<T> or matrix<T> declared types
-        if (string.IsNullOrEmpty(declaredType))
-            return;
-
-        // Inspect initializer node
-    var initNode = varDecl.Children[2];
-    // initializer shape: may be wrapped inside a 'Value' node -> child, or Expression -> ArrayLiteral.
-    // Find first descendant node of type ArrayLiteral
-    Node? arrayLiteral = FindDescendant(initNode, "ArrayLiteral");
-        if (arrayLiteral == null)
-            return;
-
-        // If declared as matrix, ensure rows are arrays and all rows have same length
-        if (declaredType.IndexOf("matrix", StringComparison.OrdinalIgnoreCase) >= 0)
-        {
-            var elements = arrayLiteral.FindChild("Elements");
-            if (elements == null)
-                return;
-            int? expectedCols = null;
-            int rowIndex = 0;
-            foreach (var rowExpr in elements.Children)
-            {
-                // each row should be an ArrayLiteral
-                var rowArr = rowExpr.FindChild("ArrayLiteral") ?? (rowExpr.Type == "ArrayLiteral" ? rowExpr : null);
-                if (rowArr == null)
-                {
-                    diagnostics.Report(rowExpr, $"Matriz no rectangular: fila {rowIndex} no es una fila (se esperaba array)");
-                    rowIndex++;
-                    continue;
-                }
-
-                var rowEls = rowArr.FindChild("Elements");
-                int cols = rowEls?.Children.Count ?? 0;
-                if (expectedCols == null)
-                    expectedCols = cols;
-                    else if (expectedCols != cols)
-                    {
-                        diagnostics.Report(rowArr, $"Matriz no rectangular: longitudes de fila inconsistentes (esperado {expectedCols}, fila {rowIndex} tiene {cols})");
-                    }
-
-                // If element type is declared, validate each element literal type superficially
-                if (!string.IsNullOrEmpty(elemType) && rowEls != null)
-                {
-                    int col = 0;
-                    foreach (var elExpr in rowEls.Children)
-                    {
-                        // simple check: if element is INT/FLOAT/STRING/LITERAL
-                        var lit = elExpr.FindChild("INT") ?? elExpr.FindChild("FLOAT") ?? elExpr.FindChild("STRING") ?? elExpr.FindChild("LITERAL");
-                        if (lit != null)
-                        {
-                            var detected = lit.Type;
-                            // map node type to declared type names
-                            string detectedType = detected switch
-                            {
-                                "INT" => "integer",
-                                "FLOAT" => "float",
-                                "STRING" => "string",
-                                "LITERAL" => (lit.Children.Count>0 && (lit.Children[0].Type == "true" || lit.Children[0].Type=="false")) ? "bool" : "string",
-                                _ => ""
-                            };
-                                if (!string.IsNullOrEmpty(detectedType) && !string.Equals(detectedType, elemType, StringComparison.OrdinalIgnoreCase))
-                            {
-                                diagnostics.Report(elExpr, $"Tipo incompatible en inicialización de matriz/array: se esperaba '{elemType}' pero se encontró '{detectedType}' (fila {rowIndex}, col {col})");
-                            }
-                        }
-                        col++;
-                    }
-                }
-
-                rowIndex++;
-            }
-        }
-        else if (declaredType.IndexOf("array", StringComparison.OrdinalIgnoreCase) >= 0)
-        {
-            // For arrays, check each element matches elemType (if present)
-            var elements = arrayLiteral.FindChild("Elements");
-            if (elements == null)
-                return;
-            if (!string.IsNullOrEmpty(elemType))
-            {
-                int idx = 0;
-                foreach (var elExpr in elements.Children)
-                {
-                    var lit = elExpr.FindChild("INT") ?? elExpr.FindChild("FLOAT") ?? elExpr.FindChild("STRING") ?? elExpr.FindChild("LITERAL");
-                    if (lit != null)
-                    {
-                        var detected = lit.Type;
-                        string detectedType = detected switch
-                        {
-                            "INT" => "integer",
-                            "FLOAT" => "float",
-                            "STRING" => "string",
-                            "LITERAL" => (lit.Children.Count>0 && (lit.Children[0].Type == "true" || lit.Children[0].Type=="false")) ? "bool" : "string",
-                            _ => ""
-                        };
-                        if (!string.IsNullOrEmpty(detectedType) && !string.Equals(detectedType, elemType, StringComparison.OrdinalIgnoreCase))
-                        {
-                            diagnostics.Report(elExpr, $"Tipo incompatible en inicialización de array: se esperaba '{elemType}' pero se encontró '{detectedType}' (índice {idx})");
-                        }
-                    }
-                    idx++;
-                }
-            }
-        }
-    }
+    // Collection initialization validation moved to CollectionValidator
 
     private void ValidateFunctionCall(Node fnCallNode)
     {
         // Expected shape: FunctionCall -> FunctionName, Arguments
         var fnameNode = fnCallNode.FindChild("FunctionName");
-        var fname = ExtractIdentifierName(fnameNode) ?? fnameNode?.Children.FirstOrDefault()?.Type;
+    var fname = SemanticUtils.ExtractIdentifierName(fnameNode) ?? fnameNode?.Children.FirstOrDefault()?.Type;
 
         if (string.IsNullOrEmpty(fname))
         {
@@ -394,48 +280,6 @@ public class SemanticAnalyzer
         }
     }
 
-    private string? ExtractIdentifierName(Node? idNode)
-    {
-        if (idNode == null)
-            return null;
-        // Many identifier nodes in the AST are shaped as: Identifier -> IDENTIFIER (with Value)
-        if (idNode.Type == "Identifier" || idNode.Type == "IDENTIFIER")
-        {
-            if (idNode.Value != null)
-                return idNode.Value.ToString();
-            if (idNode.Children.Count > 0)
-                return idNode.Children[0].Value?.ToString() ?? idNode.Children[0].Type;
-        }
-
-        // FunctionName nodes might have child which is identifier
-        if (idNode.Type == "FunctionName")
-        {
-            if (idNode.Children.Count > 0)
-            {
-                var c = idNode.Children[0];
-                if (c.Value != null)
-                    return c.Value.ToString();
-                if (c.Children.Count > 0)
-                    return c.Children[0].Value?.ToString() ?? c.Children[0].Type;
-                return c.Type;
-            }
-        }
-
-        // Fallbacks
-        if (idNode.Value != null)
-            return idNode.Value.ToString();
-        return idNode.Children.FirstOrDefault()?.Value?.ToString() ?? idNode.Children.FirstOrDefault()?.Type;
-    }
-
-    private bool IsSymbolDefined(string name)
-    {
-        foreach (var scope in scopes)
-        {
-            if (scope.LookupVariable(name) != null)
-                return true;
-        }
-        return false;
-    }
 
     private void PushScope()
     {
@@ -455,26 +299,13 @@ public class SemanticAnalyzer
         return $"{message} (l{node.Line}:c{node.Column})";
     }
 
-    // Helper: find descendant node with given type (depth-first)
-
-    // Helper: find descendant node with given type (depth-first)
-    private Node? FindDescendant(Node root, string type)
-    {
-        if (root == null) return null;
-        if (root.Type == type) return root;
-        foreach (var c in root.Children)
-        {
-            var found = FindDescendant(c, type);
-            if (found != null) return found;
-        }
-        return null;
-    }
+    // Helpers moved to SemanticUtils and CollectionValidator
 
     private class SymbolInfo
     {
         public string Name { get; set; } = string.Empty;
         public SymbolKind Kind { get; set; }
-        // Declared type for variables (e.g., "integer", "string", "array", etc.)
+    // Declared type for variables (e.g., "integer", "string", "chainsaw", etc.)
         public string Type { get; set; } = string.Empty;
         public bool IsInitialized { get; set; }
     }
@@ -485,20 +316,27 @@ public class SemanticAnalyzer
     // Promotion rules (widening): integer -> float -> double
     private bool CanAssign(string targetType, string sourceType)
     {
+        if (SemanticUtils.IsNullLiteralType(sourceType))
+        {
+            if (SemanticUtils.IsNullLiteralType(targetType))
+                return true;
+            return SemanticUtils.SupportsNullAssignment(targetType);
+        }
+
         if (string.Equals(targetType, sourceType, StringComparison.OrdinalIgnoreCase))
             return true;
 
         // integer -> float or double
-        if (string.Equals(sourceType, "integer", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(sourceType, TypeWords.INTEGER, StringComparison.OrdinalIgnoreCase))
         {
-            if (string.Equals(targetType, "float", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(targetType, "double", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(targetType, TypeWords.FLOAT, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(targetType, TypeWords.DOUBLE, StringComparison.OrdinalIgnoreCase))
                 return true;
         }
 
         // float -> double
-        if (string.Equals(sourceType, "float", StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(targetType, "double", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(sourceType, TypeWords.FLOAT, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(targetType, TypeWords.DOUBLE, StringComparison.OrdinalIgnoreCase))
             return true;
 
         return false;
@@ -512,8 +350,8 @@ public class SemanticAnalyzer
         // If this node is an identifier node, check it's defined
         if (expr.Type == "IDENTIFIER" || expr.Type == "Identifier" || expr.Type == "Identifier" )
         {
-            var name = ExtractIdentifierName(expr);
-                if (!string.IsNullOrEmpty(name) && !IsSymbolDefined(name) && !functions.ContainsKey(name) && !builtins.ContainsKey(name))
+            var name = SemanticUtils.ExtractIdentifierName(expr);
+                if (!string.IsNullOrEmpty(name) && !SemanticUtils.IsSymbolDefined(scopes, name) && !functions.ContainsKey(name) && !builtins.ContainsKey(name))
             {
                 diagnostics.Report(expr, $"Variable '{name}' no declarada");
             }
@@ -523,7 +361,7 @@ public class SemanticAnalyzer
         // If function call, validate function name and arguments
         if (expr.Type == "FunctionCall")
         {
-            var fname = ExtractIdentifierName(expr.FindChild("FunctionName"));
+            var fname = SemanticUtils.ExtractIdentifierName(expr.FindChild("FunctionName"));
             if (!string.IsNullOrEmpty(fname) && !functions.ContainsKey(fname) && !builtins.ContainsKey(fname))
                 diagnostics.Report(expr, $"Function '{fname}' no definida");
 

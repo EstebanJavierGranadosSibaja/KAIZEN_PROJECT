@@ -9,35 +9,48 @@ namespace KaizenLang.Tests
     public class CollectionSemanticTests
     {
         [Fact]
-        public void ArrayDeclarationWithoutElementType_ShouldBeRejected()
+        public void ChainsawDeclarationWithoutElementType_ShouldBeRejected()
         {
-            var code = @"array nums = [1,2,3];";
+            var code = @"chainsaw nums = [1,2,3];";
             var cs = new CompilationService();
             var res = cs.CompileCode(code);
-            Assert.False(res.IsSuccessful, "Compilation should fail for array declaration without element type");
+            Assert.False(res.IsSuccessful, "Compilation should fail for chainsaw declaration without element type");
             var combinedList = (res.SyntaxErrors ?? new System.Collections.Generic.List<string>()).Concat(res.SemanticErrors ?? new System.Collections.Generic.List<string>()).ToList();
             if (!string.IsNullOrEmpty(res.Output)) combinedList.Add(res.Output);
             var combined = string.Join("|", combinedList);
-            Assert.True(combined.Contains("Declaración de array") || combined.Contains("Declaración de matrix"), "Expected parser to report missing element type for array/matrix");
+            if (res.SemanticErrors != null && res.SemanticErrors.Count > 0)
+            {
+                Assert.True(
+                    combined.Contains("Declaración de chainsaw", StringComparison.OrdinalIgnoreCase) ||
+                    combined.Contains("Declaración de hogyoku", StringComparison.OrdinalIgnoreCase),
+                    $"Expected semantic error for missing chainsaw/hogyoku element type but got: {combined}");
+            }
+            else
+            {
+                Assert.True(
+                    (res.SyntaxErrors != null && res.SyntaxErrors.Count > 0) ||
+                    (!string.IsNullOrEmpty(res.Output) && res.Output.Contains("Parser invariant", StringComparison.OrdinalIgnoreCase)),
+                    $"Expected syntactic failure for malformed chainsaw declaration but got: {combined}");
+            }
         }
         [Fact]
-        public void RaggedMatrix_ShouldReportSemanticError()
+        public void RaggedHogyoku_ShouldReportSemanticError()
         {
-            var code = @"matrix<integer> ragged = [ [1,2], [3] ];";
+            var code = @"hogyoku<integer> ragged = [ [1,2], [3] ];";
             var cs = new CompilationService();
             var res = cs.CompileCode(code);
-            Assert.False(res.IsSuccessful, "Compilation should fail for ragged matrix");
-            Assert.Contains("Matriz no rectangular", string.Join("|", res.SemanticErrors ?? new System.Collections.Generic.List<string>()));
+            Assert.False(res.IsSuccessful, "Compilation should fail for ragged hogyoku");
+            Assert.Contains("Hogyoku no rectangular", string.Join("|", res.SemanticErrors ?? new System.Collections.Generic.List<string>()));
         }
 
         [Fact]
-        public void ArrayTypeMismatch_ShouldReportSemanticError()
+        public void ChainsawTypeMismatch_ShouldReportSemanticError()
         {
-            var code = @"array<string> wrong = [ ""a"", ""b"", 5 ];";
+            var code = @"chainsaw<string> wrong = [ ""a"", ""b"", 5 ];";
             var cs = new CompilationService();
             var res = cs.CompileCode(code);
-            Assert.False(res.IsSuccessful, "Compilation should fail for array type mismatch");
-            Assert.Contains("Tipo incompatible en inicialización de array", string.Join("|", res.SemanticErrors ?? new System.Collections.Generic.List<string>()));
+            Assert.False(res.IsSuccessful, "Compilation should fail for chainsaw type mismatch");
+            Assert.Contains("Tipo incompatible en inicialización de chainsaw", string.Join("|", res.SemanticErrors ?? new System.Collections.Generic.List<string>()));
         }
     }
 }

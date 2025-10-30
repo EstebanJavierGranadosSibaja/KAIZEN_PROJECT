@@ -1,0 +1,56 @@
+// ========================================
+// TEST 14: ERRORES SEMÁNTICOS (Para Probar Validación)
+// ========================================
+// NOTA: Estos ejemplos DEBEN fallar en análisis semántico
+
+// ERROR 1: Variable no declarada
+// output(variableNoExiste);
+
+// ERROR 2: Tipo incompatible en asignación
+// integer x = "texto";
+
+// ERROR 3: Operación entre tipos incompatibles
+// integer a = 10;
+// string b = "texto";
+// integer c = a + b;
+
+// ERROR 4: Función no definida
+// integer result = funcionNoExiste(10);
+
+// ERROR 5: Aridad incorrecta
+// integer suma(integer a, integer b) ying
+//     return a + b;
+// yang
+// integer x = suma(10);
+
+// ERROR 6: Tipo de retorno incorrecto
+// integer obtenerNumero() ying
+//     return "texto";
+// yang
+
+// ERROR 7: Falta return en función no-void
+// integer calcular(integer x) ying
+//     integer y = x + 10;
+// yang
+
+// ERROR 8: Chainsaw con elementos heterogéneos
+// chainsaw<integer> nums = [1, 2, "tres", 4];
+
+// ERROR 9: Hogyoku no rectangular
+// hogyoku<integer> mat = [[1, 2, 3], [4, 5]];
+
+// ERROR 10: Variable duplicada
+// integer x = 10;
+// integer x = 20;
+
+// ERROR 11: Acceso a índice no numérico
+// chainsaw<integer> nums = [1, 2, 3];
+// integer val = nums["texto"];
+
+// ERROR 12: Comparación de tipos incompatibles
+// integer a = 10;
+// string b = "10";
+// bool igual = (a == b);
+
+output("Este archivo está comentado para no causar errores");
+output("Descomenta las líneas para probar validación semántica");

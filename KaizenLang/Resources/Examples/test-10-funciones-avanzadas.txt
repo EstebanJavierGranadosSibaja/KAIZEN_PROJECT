@@ -1,0 +1,85 @@
+// ========================================
+// TEST 10: FUNCIONES AVANZADAS (SIN ANIDACIÓN)
+// ========================================
+
+output("=== FUNCIONES ARITMÉTICAS ===");
+
+integer duplicar(integer n) ying
+    return n * 2;
+yang
+
+integer cuadrado(integer n) ying
+    return n * n;
+yang
+
+integer duplicado = duplicar(6);
+integer cuadradoResultado = cuadrado(5);
+
+output("Duplicar 6: " + duplicado);
+output("Cuadrado de 5: " + cuadradoResultado);
+
+output("=== FUNCIONES CON ACUMULACIÓN ===");
+
+integer acumuladoGlobal = 0;
+
+integer acumular(integer valor) ying
+    acumuladoGlobal = acumuladoGlobal + valor;
+    return acumuladoGlobal;
+yang
+
+integer primerAcumulo = acumular(10);
+integer segundoAcumulo = acumular(5);
+
+output("Acumulado tras 10: " + primerAcumulo);
+output("Acumulado tras 5: " + segundoAcumulo);
+
+output("=== FUNCIONES CON BOOLEANS ===");
+
+bool esPar(integer numero) ying
+    return ((numero / 2) * 2) == numero;
+yang
+
+bool esMayorQue(integer valor, integer comparador) ying
+    return valor > comparador;
+yang
+
+bool parDe12 = esPar(12);
+bool parDe9 = esPar(9);
+bool mayorComparacion = esMayorQue(15, 8);
+
+output("12 es par: " + parDe12);
+output("9 es par: " + parDe9);
+output("15 es mayor que 8: " + mayorComparacion);
+
+output("=== FUNCIONES CON STRINGS ===");
+
+string unirSaludo(string nombre) ying
+    return "Hola " + nombre;
+yang
+
+string saludoAna = unirSaludo("Ana");
+string saludoLuis = unirSaludo("Luis");
+
+output(saludoAna);
+output(saludoLuis);
+
+output("=== FUNCIONES QUE COMBINAN OPERACIONES ===");
+
+integer combinar(integer a, integer b, integer c) ying
+    return (a + b) - c;
+yang
+
+integer combinado = combinar(20, 5, 3);
+output("(20 + 5) - 3 = " + combinado);
+
+output("=== FUNCIONES CON CONVERSIÓN LÓGICA ===");
+
+bool sonIguales(integer x, integer y) ying
+    return x == y;
+yang
+
+bool iguales = sonIguales(42, 42);
+bool distintos = sonIguales(10, 7);
+
+output("42 == 42: " + iguales);
+output("10 == 7: " + distintos);

@@ -28,7 +28,9 @@ namespace KaizenLang.UI.Theme
             button.Padding = new Padding(20, 10, 20, 10);
 
             // Crear región redondeada para el botón
-            CreateRoundedButtonRegion(button);            // Variables para controlar el estado
+            CreateRoundedButtonRegion(button);
+
+            // Variables para controlar el estado
             bool isPressed = false;
             bool isHovered = false;
 
@@ -97,7 +99,6 @@ namespace KaizenLang.UI.Theme
                 {
                     g.DrawPath(borderPen, path);
                 }
-
                 // Borde interno más claro para efecto bisel
                 var innerBorderRect = new Rectangle(rect.X + 1, rect.Y + 1, rect.Width - 2, rect.Height - 2);
                 using (var innerBorderPen = new Pen(Color.FromArgb(30, Color.White), 1f))
@@ -113,7 +114,9 @@ namespace KaizenLang.UI.Theme
                 using (var path = CreateRoundedRectanglePath(innerRect, 7))
                 {
                     g.FillPath(highlightBrush, path);
-                }                // Dibujar el contenido del botón (icono + texto)
+                }
+
+                // Dibujar el contenido del botón (icono + texto)
                 DrawButtonContent(g, button, rect, isPressed);
             };
 
@@ -193,8 +196,9 @@ namespace KaizenLang.UI.Theme
             };
 
             // Configurar el RichTextBox
+            var originalMargin = richTextBox.Margin;
             richTextBox.BorderStyle = BorderStyle.None;
-            richTextBox.Margin = new Padding(1);
+            richTextBox.Margin = Padding.Empty;
             richTextBox.Font = new Font("Consolas", 12F, FontStyle.Regular);
             richTextBox.WordWrap = false;
             richTextBox.AcceptsTab = true;
@@ -244,6 +248,19 @@ namespace KaizenLang.UI.Theme
             var size = richTextBox.Size;
             var dock = richTextBox.Dock;
             var anchor = richTextBox.Anchor;
+            var tableParent = parent as TableLayoutPanel;
+            int tableRow = 0;
+            int tableColumn = 0;
+            int rowSpan = 1;
+            int columnSpan = 1;
+
+            if (tableParent != null)
+            {
+                tableRow = tableParent.GetRow(richTextBox);
+                tableColumn = tableParent.GetColumn(richTextBox);
+                rowSpan = tableParent.GetRowSpan(richTextBox);
+                columnSpan = tableParent.GetColumnSpan(richTextBox);
+            }
 
             parent?.Controls.Remove(richTextBox);
             container.Controls.Add(richTextBox);
@@ -253,8 +270,18 @@ namespace KaizenLang.UI.Theme
             container.Size = size;
             container.Dock = dock;
             container.Anchor = anchor;
+            container.Margin = originalMargin;
 
-            parent?.Controls.Add(container);
+            if (tableParent != null)
+            {
+                tableParent.Controls.Add(container, tableColumn, tableRow);
+                tableParent.SetRowSpan(container, rowSpan);
+                tableParent.SetColumnSpan(container, columnSpan);
+            }
+            else
+            {
+                parent?.Controls.Add(container);
+            }
 
             // Eventos para redibujado
             richTextBox.Enter += (s, e) => container.Invalidate();

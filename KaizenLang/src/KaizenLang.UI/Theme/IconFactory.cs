@@ -50,7 +50,10 @@ namespace KaizenLang.UI.Theme
                         }
 
                         // Convert SkiaSharp bitmap to System.Drawing.Bitmap
-                        return skBitmap.ToBitmap();
+                        using var image = SKImage.FromBitmap(skBitmap);
+                        using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+                        using var stream = new MemoryStream(data.ToArray());
+                        return new Bitmap(stream);
                     }
                 }
             }
