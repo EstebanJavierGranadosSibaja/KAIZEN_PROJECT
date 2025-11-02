@@ -12,9 +12,6 @@ namespace ParadigmasLang;
 // - Register function signatures and verify call arity (including builtins)
 public class SemanticAnalyzer
 {
-    // Tracks current nesting depth of control blocks (if/while/for/do-while).
-    // If depth >= 1 and we encounter another control block, that's an illegal nested block.
-    private int controlDepth = 0;
 
     private readonly Stack<SymbolTable> scopes = new();
     private readonly Dictionary<string, FunctionSignature> functions = new(StringComparer.OrdinalIgnoreCase);
@@ -36,7 +33,6 @@ public class SemanticAnalyzer
     {
     diagnostics.Clear();
         // Reset per-analysis state
-        controlDepth = 0;
         scopes.Clear();
         functions.Clear();
 
@@ -157,22 +153,8 @@ public class SemanticAnalyzer
             || string.Equals(node.Type, "For", StringComparison.OrdinalIgnoreCase)
             || string.Equals(node.Type, "DoWhile", StringComparison.OrdinalIgnoreCase))
         {
-            var newDepth = controlDepth + 1;
-            if (newDepth > 1)
-            {
-                // Message contains 'nested', 'anid' and 'nivel' so tests matching any substring will find it
-                var msg = FormattedError(node, $"Bloque de control anidado no permitido (nested / anid / nivel) (nivel {newDepth})");
-                diagnostics.ReportMessage(msg);
-                // Still continue analyzing to collect more errors
-            }
-
-            // Enter control block
-            controlDepth = newDepth;
             foreach (var c in node.Children)
                 VisitNode(c);
-            // Exit control block
-            controlDepth = Math.Max(0, controlDepth - 1);
-
             return;
         }
 

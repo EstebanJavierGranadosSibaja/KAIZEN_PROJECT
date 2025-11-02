@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -7,6 +8,9 @@ namespace KaizenLang.UI;
 
 public class CompilationService
 {
+    private static readonly bool VerboseOutput =
+        string.Equals(Environment.GetEnvironmentVariable("KAIZEN_VERBOSE_OUTPUT"), "1", StringComparison.Ordinal);
+
     private readonly Stopwatch compilationTimer;
     private readonly StringBuilder outputBuilder;
 
@@ -26,7 +30,7 @@ public class CompilationService
 
         if (string.IsNullOrWhiteSpace(source))
         {
-            AppendError("[ERROR] No hay codigo para compilar.");
+            AppendError("error: no hay código para compilar.");
             var emptyResult = new CompilationResult
             {
                 IsSuccessful = false,
@@ -56,11 +60,14 @@ public class CompilationService
         catch (Exception ex)
         {
             compilationTimer.Stop();
-            AppendError("[ERROR] Error interno del compilador.");
+            AppendError("error: falla interna del compilador.");
             AppendError(ex.Message ?? "Error no especificado.");
             if (!string.IsNullOrWhiteSpace(ex.StackTrace))
             {
-                AppendError(ex.StackTrace!);
+                if (VerboseOutput)
+                {
+                    AppendError(ex.StackTrace!);
+                }
             }
 
             stageOutcomes.Add(new CompilationStageOutcome(
@@ -120,7 +127,7 @@ public class CompilationService
         CompilationResult result,
         List<CompilationStageOutcome> stageOutcomes)
     {
-        AppendPhaseHeader("FASE 1: ANALISIS LEXICO");
+    AppendPhaseHeader("FASE 1: ANALISIS LEXICO");
 
         try
         {
@@ -134,13 +141,10 @@ public class CompilationService
 
             if (invalidTokens.Any())
             {
-                AppendError("[ERROR] Se encontraron tokens invalidos:");
                 foreach (var invalidToken in invalidTokens)
                 {
-                    AppendError($"   - '{invalidToken.Value}' (linea {invalidToken.Line}, columna {invalidToken.Column})");
+                    AppendError($"error léxico: token inválido '{invalidToken.Value}' en la línea {invalidToken.Line}, columna {invalidToken.Column}.");
                 }
-                AppendError(string.Empty);
-                AppendError("[ERROR] Compilacion detenida.");
 
                 result.LexicalErrors = invalidTokens;
                 stageOutcomes.Add(new CompilationStageOutcome(
@@ -153,15 +157,18 @@ public class CompilationService
                 return false;
             }
 
-            AppendSuccess("[OK] Analisis lexico completado.");
-            AppendInfo("Estadisticas de tokens:");
-            AppendInfo($"   Total de tokens: {tokens.Count}");
-            AppendInfo($"   Palabras reservadas: {reservedTokens.Count}");
-            AppendInfo($"   Identificadores: {identifierTokens.Count}");
-            AppendInfo($"   Literales: {literalTokens.Count}");
+            if (VerboseOutput)
+            {
+                AppendSuccess("[OK] Analisis lexico completado.");
+                AppendInfo("Estadisticas de tokens:");
+                AppendInfo($"   Total de tokens: {tokens.Count}");
+                AppendInfo($"   Palabras reservadas: {reservedTokens.Count}");
+                AppendInfo($"   Identificadores: {identifierTokens.Count}");
+                AppendInfo($"   Literales: {literalTokens.Count}");
 
-            ShowTokenSample(tokens);
-            AppendNewLine();
+                ShowTokenSample(tokens);
+                AppendNewLine();
+            }
 
             stageOutcomes.Add(new CompilationStageOutcome(
                 "Analisis lexico",
@@ -204,13 +211,10 @@ public class CompilationService
             var syntaxErrors = ast.GetAllErrors();
             if (syntaxErrors.Any())
             {
-                AppendError("[ERROR] Se encontraron errores sintacticos:");
                 foreach (var error in syntaxErrors)
                 {
-                    AppendError($"   - {error}");
+                    AppendError($"error sintáctico: {error}");
                 }
-                AppendError(string.Empty);
-                AppendError("[ERROR] Compilacion detenida.");
 
                 result.SyntaxErrors = syntaxErrors;
                 ast = null;
@@ -224,16 +228,19 @@ public class CompilationService
                 return false;
             }
 
-            AppendSuccess("[OK] Analisis sintactico completado.");
-            AppendSuccess("[OK] Se genero el arbol de sintaxis abstracta.");
-
             var nodeCount = CountNodes(ast);
             var depth = CalculateDepth(ast);
 
-            AppendInfo("Estadisticas del AST:");
-            AppendInfo($"   Nodos totales: {nodeCount}");
-            AppendInfo($"   Profundidad maxima: {depth}");
-            AppendNewLine();
+            if (VerboseOutput)
+            {
+                AppendSuccess("[OK] Analisis sintactico completado.");
+                AppendSuccess("[OK] Se genero el arbol de sintaxis abstracta.");
+
+                AppendInfo("Estadisticas del AST:");
+                AppendInfo($"   Nodos totales: {nodeCount}");
+                AppendInfo($"   Profundidad maxima: {depth}");
+                AppendNewLine();
+            }
 
             stageOutcomes.Add(new CompilationStageOutcome(
                 "Analisis sintactico",
@@ -245,7 +252,7 @@ public class CompilationService
         }
         catch (Exception ex)
         {
-            AppendError("[ERROR] Fallo el analisis sintactico.");
+            AppendError("error: fallo el análisis sintáctico.");
             AppendError(ex.Message ?? "Error no especificado.");
             stageOutcomes.Add(new CompilationStageOutcome(
                 "Analisis sintactico",
@@ -265,7 +272,7 @@ public class CompilationService
         CompilationResult result,
         List<CompilationStageOutcome> stageOutcomes)
     {
-        AppendPhaseHeader("FASE 3: ANALISIS SEMANTICO");
+    AppendPhaseHeader("FASE 3: ANALISIS SEMANTICO");
 
         try
         {
@@ -274,13 +281,10 @@ public class CompilationService
 
             if (semanticErrors.Any())
             {
-                AppendError("[ERROR] Se encontraron errores semanticos:");
                 foreach (var error in semanticErrors)
                 {
-                    AppendError($"   - {error}");
+                    AppendError($"error semántico: {error}");
                 }
-                AppendError(string.Empty);
-                AppendError("[ERROR] Compilacion detenida.");
 
                 result.SemanticErrors = semanticErrors;
 
@@ -293,9 +297,12 @@ public class CompilationService
                 return false;
             }
 
-            AppendSuccess("[OK] Analisis semantico completado.");
-            AppendSuccess("[OK] Validaciones de tipos y alcance superadas.");
-            AppendNewLine();
+            if (VerboseOutput)
+            {
+                AppendSuccess("[OK] Analisis semantico completado.");
+                AppendSuccess("[OK] Validaciones de tipos y alcance superadas.");
+                AppendNewLine();
+            }
 
             stageOutcomes.Add(new CompilationStageOutcome(
                 "Analisis semantico",
@@ -307,7 +314,7 @@ public class CompilationService
         }
         catch (Exception ex)
         {
-            AppendError("[ERROR] Fallo el analisis semantico.");
+            AppendError("error: fallo el análisis semántico.");
             AppendError(ex.Message ?? "Error no especificado.");
             stageOutcomes.Add(new CompilationStageOutcome(
                 "Analisis semantico",
@@ -323,6 +330,11 @@ public class CompilationService
 
     private void ShowCompilationDetails(List<Token> tokens, Node ast, CompilationResult result)
     {
+        if (!VerboseOutput)
+        {
+            return;
+        }
+
         AppendSectionHeader("DETALLES DE COMPILACION");
 
         AppendInfo("AST (vista truncada si es necesario):");
@@ -396,6 +408,11 @@ public class CompilationService
 
     private void AppendStageSummary(IEnumerable<CompilationStageOutcome> outcomes)
     {
+        if (!VerboseOutput)
+        {
+            return;
+        }
+
         AppendSectionHeader("RESUMEN DE ETAPAS");
         if (!outcomes.Any())
         {
@@ -464,47 +481,92 @@ public class CompilationService
 
     private void AppendHeader()
     {
-        outputBuilder.AppendLine("[INIT] PROCESO DE COMPILACION");
-        outputBuilder.AppendLine(new string('=', 35));
-        outputBuilder.AppendLine();
+        if (VerboseOutput)
+        {
+            outputBuilder.AppendLine("[INIT] PROCESO DE COMPILACION");
+            outputBuilder.AppendLine(new string('=', 35));
+            outputBuilder.AppendLine();
+        }
     }
 
     private void AppendPhaseHeader(string phase)
     {
+        if (!VerboseOutput)
+        {
+            return;
+        }
+
         outputBuilder.AppendLine($"== {phase}");
         outputBuilder.AppendLine(new string('-', 35));
     }
 
     private void AppendSectionHeader(string section)
     {
+        if (!VerboseOutput)
+        {
+            return;
+        }
+
         outputBuilder.AppendLine($"== {section}");
         outputBuilder.AppendLine(new string('=', 35));
     }
 
-    private void AppendSuccess(string message) => outputBuilder.AppendLine(message);
+    private void AppendSuccess(string message)
+    {
+        if (VerboseOutput)
+        {
+            outputBuilder.AppendLine(message);
+        }
+    }
 
-    private void AppendInfo(string message) => outputBuilder.AppendLine(message);
+    private void AppendInfo(string message)
+    {
+        if (VerboseOutput)
+        {
+            outputBuilder.AppendLine(message);
+        }
+    }
 
     private void AppendError(string message) => outputBuilder.AppendLine(message);
 
-    private void AppendNewLine() => outputBuilder.AppendLine();
+    private void AppendNewLine()
+    {
+        if (VerboseOutput)
+        {
+            outputBuilder.AppendLine();
+        }
+    }
 
     private void AppendSuccessMessage()
     {
-        AppendSectionHeader("COMPILACION EXITOSA");
-        AppendSuccess("Analisis lexico: OK");
-        AppendSuccess("Analisis sintactico: OK");
-        AppendSuccess("Analisis semantico: OK");
-        AppendSuccess($"Tiempo de compilacion: {compilationTimer.ElapsedMilliseconds} ms");
-        AppendNewLine();
-        AppendSuccess("El codigo esta listo para ejecutarse.");
+        if (VerboseOutput)
+        {
+            AppendSectionHeader("COMPILACION EXITOSA");
+            AppendSuccess("Analisis lexico: OK");
+            AppendSuccess("Analisis sintactico: OK");
+            AppendSuccess("Analisis semantico: OK");
+            AppendSuccess($"Tiempo de compilacion: {compilationTimer.ElapsedMilliseconds} ms");
+            AppendNewLine();
+            AppendSuccess("El codigo esta listo para ejecutarse.");
+        }
+        else
+        {
+            outputBuilder.AppendLine($"Compilation succeeded in {compilationTimer.ElapsedMilliseconds} ms.");
+        }
     }
 
     private void AppendFailureMessage()
     {
-        AppendSectionHeader("COMPILACION INCOMPLETA");
-        AppendError("Se detectaron errores. Revise la informacion anterior.");
-        AppendNewLine();
+        if (VerboseOutput)
+        {
+            AppendSectionHeader("COMPILACION INCOMPLETA");
+            AppendError("Se detectaron errores. Revise la informacion anterior.");
+            AppendNewLine();
+        }
+        else
+        {
+            outputBuilder.AppendLine($"Compilation failed in {compilationTimer.ElapsedMilliseconds} ms.");
+        }
     }
 }
 

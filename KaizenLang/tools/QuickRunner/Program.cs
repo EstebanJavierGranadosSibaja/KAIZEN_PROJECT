@@ -4,19 +4,17 @@ ParadigmasLang.Logging.Logger.Info("QuickRunner: compiling and running function-
 
 var source = @"void saludar() ying
     output(""¡Hola desde una función!"");
-yang
+
 
 saludar();
 
 integer sumar(integer a, integer b) ying
     return a + b;
-yang
+var exec = new ExecutionService();
 
 integer resultado = sumar(5, 3);
 output(""El resultado de la suma es: "" + resultado);
 ";
-
-var exec = new ExecutionService();
 exec.InputProvider = (prompt) => {
     // For tests we don't need interactive input; return null
     return null;

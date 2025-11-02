@@ -38,7 +38,7 @@ public class DeclarationChecker
             return;
         }
 
-    var varName = SemanticUtils.ExtractIdentifierName(nameNode);
+        var varName = SemanticUtils.ExtractIdentifierName(nameNode);
         if (string.IsNullOrEmpty(varName))
         {
             diagnostics.Report(node, "Variable declaration has empty name");
@@ -52,18 +52,34 @@ public class DeclarationChecker
             return;
         }
 
-    // determine declared type wrapper (e.g., 'chainsaw' or 'hogyoku') and element type
-        var typeNode = node.Children[0];
-    string wrapperType = typeNode.Type ?? string.Empty; // e.g., 'chainsaw' or 'integer'
-    string declaredType = string.Empty; // primary declared type for non-collection (e.g., 'integer')
-    string declaredElem = string.Empty; // element type for chainsaw/hogyoku declarations
-        if (typeNode.Children.Count > 0)
+        // determine declared type wrapper (e.g., 'chainsaw' or 'hogyoku') and element type
+        if (node.Children == null || node.Children.Count == 0)
         {
-            declaredElem = typeNode.Children[0].Type ?? string.Empty;
+            diagnostics.Report(node, "Variable declaration missing type");
+            return;
         }
-    // If not a wrapper like chainsaw/hogyoku, declaredType is the wrapperType itself
-        if (!string.IsNullOrEmpty(wrapperType) && !wrapperType.StartsWith(TypeWords.CHAINSAW, StringComparison.OrdinalIgnoreCase) && !wrapperType.StartsWith(TypeWords.HOGYOKU, StringComparison.OrdinalIgnoreCase))
+
+        var typeNode = node.Children[0];
+        if (typeNode == null)
+        {
+            diagnostics.Report(node, "Variable declaration has malformed type node");
+            return;
+        }
+
+        var wrapperType = typeNode.Type ?? string.Empty; // e.g., 'chainsaw' or 'integer'
+        var declaredType = string.Empty; // primary declared type for non-collection (e.g., 'integer')
+        var declaredElem = string.Empty; // element type for chainsaw/hogyoku declarations
+
+        if (typeNode.Children != null && typeNode.Children.Count > 0)
+            declaredElem = typeNode.Children[0].Type ?? string.Empty;
+
+        // If not a wrapper like chainsaw/hogyoku, declaredType is the wrapperType itself
+        if (!string.IsNullOrEmpty(wrapperType)
+            && !wrapperType.StartsWith(TypeWords.CHAINSAW, StringComparison.OrdinalIgnoreCase)
+            && !wrapperType.StartsWith(TypeWords.HOGYOKU, StringComparison.OrdinalIgnoreCase))
+        {
             declaredType = wrapperType;
+        }
 
         // Do not register the variable in the current scope yet: validate initializer first
         // If initializer present, validate identifiers used and types

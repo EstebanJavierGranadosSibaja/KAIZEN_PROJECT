@@ -86,6 +86,7 @@ Esta carpeta contiene 15 archivos de prueba diseñados para validar todas las fu
 - Función `input()` para leer datos
 - Función `output()` para mostrar datos
 - Concatenación de strings
+- Para pruebas automatizadas se puede usar `inputs/test-11-input.txt`
 - **Resultado esperado:** Solicita y muestra datos del usuario
 
 #### **Test 12: Programa Completo** (`test-12-programa-completo.txt`)
@@ -102,6 +103,13 @@ Esta carpeta contiene 15 archivos de prueba diseñados para validar todas las fu
 - Recursión con caso base
 - Anidamiento profundo
 - **Resultado esperado:** Maneja edge cases correctamente
+
+#### **Test 16: Stress Integral** (`test-16-stress-integral.txt`)
+- Tres niveles de bucles anidados con validaciones internas
+- Recursión profunda y recursión acumulativa
+- Chainsaws y hogyokus con iteraciones y sumatorias
+- Condiciones anidadas que combinan aritmética y lógica
+- **Resultado esperado:** Todas las operaciones completan sin errores y muestran los acumuladores finales
 
 ---
 
@@ -184,6 +192,7 @@ dotnet test tools/Tests/Tests.csproj --logger "console;verbosity=detailed"
 - [ ] **Test 11**: Input/Output - Interacción con usuario
 - [ ] **Test 12**: Programa completo - Integración
 - [ ] **Test 15**: Casos límite - Edge cases
+- [ ] **Test 16**: Stress integral - Control y recursión intensivos
 
 ### Tests de Validación
 - [ ] **Test 13**: Errores sintácticos detectados
@@ -336,6 +345,7 @@ Antes de entregar el proyecto, verificar:
 - [ ] No hay crashes o excepciones no manejadas
 - [ ] Output es legible y correcto
 - [ ] Syntax highlighting funciona en el IDE
+- [ ] Stress test (`test-16-stress-integral.txt`) ejecuta sin degradar el rendimiento
 
 ---
 
