@@ -2,7 +2,7 @@ using System;
 using Xunit;
 using System.Linq;
 using ParadigmasLang;
-using KaizenLang.UI;
+using KaizenLang.UI.Services;
 
 namespace KaizenLang.Tests
 {

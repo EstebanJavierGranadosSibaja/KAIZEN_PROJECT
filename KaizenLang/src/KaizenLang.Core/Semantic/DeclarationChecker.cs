@@ -30,7 +30,6 @@ public class DeclarationChecker
 
     public void RegisterVariable(Node node)
     {
-        // Expected structure: VariableDeclaration -> Type, Identifier
         var nameNode = node.FindChild("Identifier") ?? node.FindChild("IDENTIFIER");
         if (nameNode == null)
         {
@@ -52,7 +51,6 @@ public class DeclarationChecker
             return;
         }
 
-        // determine declared type wrapper (e.g., 'chainsaw' or 'hogyoku') and element type
         if (node.Children == null || node.Children.Count == 0)
         {
             diagnostics.Report(node, "Variable declaration missing type");
@@ -66,14 +64,13 @@ public class DeclarationChecker
             return;
         }
 
-        var wrapperType = typeNode.Type ?? string.Empty; // e.g., 'chainsaw' or 'integer'
-        var declaredType = string.Empty; // primary declared type for non-collection (e.g., 'integer')
-        var declaredElem = string.Empty; // element type for chainsaw/hogyoku declarations
+        var wrapperType = typeNode.Type ?? string.Empty;
+        var declaredType = string.Empty;
+        var declaredElem = string.Empty;
 
         if (typeNode.Children != null && typeNode.Children.Count > 0)
             declaredElem = typeNode.Children[0].Type ?? string.Empty;
 
-        // If not a wrapper like chainsaw/hogyoku, declaredType is the wrapperType itself
         if (!string.IsNullOrEmpty(wrapperType)
             && !wrapperType.StartsWith(TypeWords.CHAINSAW, StringComparison.OrdinalIgnoreCase)
             && !wrapperType.StartsWith(TypeWords.HOGYOKU, StringComparison.OrdinalIgnoreCase))
@@ -81,16 +78,12 @@ public class DeclarationChecker
             declaredType = wrapperType;
         }
 
-        // Do not register the variable in the current scope yet: validate initializer first
-        // If initializer present, validate identifiers used and types
         bool initializerHasErrors = false;
 
-        // Enforce strict typing: chainsaw/hogyoku must include an explicit element type
         if ((wrapperType.StartsWith(TypeWords.CHAINSAW, StringComparison.OrdinalIgnoreCase) || wrapperType.StartsWith(TypeWords.HOGYOKU, StringComparison.OrdinalIgnoreCase))
                 && string.IsNullOrEmpty(declaredElem))
         {
             diagnostics.Report(node, "Declaración de chainsaw/hogyoku requiere tipo de elemento explícito");
-            // Do not proceed with registration or initializer checks for malformed declaration
             return;
         }
 
@@ -99,7 +92,6 @@ public class DeclarationChecker
             var initWrapper = node.Children[2];
             var initExpr = initWrapper.Children.Count > 0 ? initWrapper.Children[0] : initWrapper;
 
-            // 0) Quick malformed-initializer detection (literal followed by identifier without operator)
             if (initExpr != null && initExpr.Children != null && initExpr.Children.Count >= 2)
             {
                 for (int i = 0; i < initExpr.Children.Count - 1; i++)
@@ -123,15 +115,12 @@ public class DeclarationChecker
                 }
             }
 
-            // 1) Walk initializer to find identifier usages and ensure they are declared
             if (!initializerHasErrors)
                 ValidateIdentifiersInExpression(initExpr);
 
-            // 2) Resolve initializer type and compare to declared type (only if no identifier errors)
             var initType = initializerHasErrors ? null : typeResolver.Resolve(initExpr);
             if (initType != null)
             {
-                // If declared as chainsaw<T> or hogyoku<T>
                 if (wrapperType.StartsWith(TypeWords.CHAINSAW, StringComparison.OrdinalIgnoreCase) || wrapperType.StartsWith(TypeWords.HOGYOKU, StringComparison.OrdinalIgnoreCase))
                 {
                     if (!string.IsNullOrEmpty(declaredElem))
@@ -141,7 +130,6 @@ public class DeclarationChecker
                             var expected = $"{TypeWords.CHAINSAW}<{TypeWords.CHAINSAW}<{declaredElem}>>";
                             if (string.Equals(initType, expected, StringComparison.OrdinalIgnoreCase))
                             {
-                                // ok
                             }
                             else if (initType.StartsWith($"{TypeWords.CHAINSAW}<", StringComparison.OrdinalIgnoreCase))
                             {
@@ -180,7 +168,6 @@ public class DeclarationChecker
             }
         }
 
-        // Only register variable if initializer did not have fatal errors
         if (!initializerHasErrors)
         {
             string effectiveType = declaredType;
@@ -199,16 +186,15 @@ public class DeclarationChecker
                     effectiveType = $"{TypeWords.CHAINSAW}<{TypeWords.CHAINSAW}>";
             }
 
-        var sym = current.LookupVariable(varName);
+            var sym = current.LookupVariable(varName);
             if (sym != null)
             {
                 sym.Type = effectiveType;
                 if (node.Children.Count > 2)
-                    current.SetVariableValue(varName, new object()); // mark initialized
+                    current.SetVariableValue(varName, new object());
             }
         }
 
-        // NOTE: collection initializer validation (shape/element checks) remains in the SemanticAnalyzer
     }
 
     public void RegisterFunction(Node node)
@@ -234,7 +220,6 @@ public class DeclarationChecker
 
         functions[fnName] = new FunctionSignature { Name = fnName, Arity = arity, IsBuiltin = false };
 
-        // New scope for function body: register parameters as variables
         scopes.Push(new SymbolTable());
         if (paramsNode != null)
         {
@@ -302,8 +287,6 @@ public class DeclarationChecker
         }
     }
 
-    // Determine if a value of sourceType can be assigned to a variable of targetType
-    // Promotion rules (widening): integer -> float -> double
     private bool CanAssign(string targetType, string sourceType)
     {
         if (SemanticUtils.IsNullLiteralType(sourceType))

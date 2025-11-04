@@ -17,7 +17,6 @@ internal class Tokenizer
     {
         var tokens = new List<Token>();
 
-        // Usar solo los tipos definidos en TypeWords
         var validTypes = new HashSet<string>(TypeWords.Words);
 
         while (!stream.EOF)
@@ -36,7 +35,7 @@ internal class Tokenizer
             {
                 var word = stream.ReadWhile(c => char.IsLetterOrDigit(c) || c == '_');
                 var tokenLine = stream.Line;
-                var tokenColumn = stream.Column - word.Length; // approximate start column
+                var tokenColumn = stream.Column - word.Length;
                 if (DelimiterWords.MultiCharDelimiters.Contains(word))
                 {
                     tokens.Add(new Token("DELIMITER", word, tokenLine, tokenColumn));
@@ -57,7 +56,6 @@ internal class Tokenizer
                 var startLine = stream.Line;
                 var startCol = stream.Column;
                 var number = stream.ReadWhile(c => char.IsDigit(c));
-                // If after digits we have a dot, parse float
                 if (stream.Peek() == '.')
                 {
                     stream.Read();
@@ -66,11 +64,9 @@ internal class Tokenizer
                 }
                 else
                 {
-                    // Check if following characters are letters or '_' (e.g. '2323abc')
                     var nextChar = stream.Peek();
                     if (nextChar != null && (char.IsLetter(nextChar.Value) || nextChar == '_'))
                     {
-                        // Consume the rest of the run (letters/digits/_ ) to produce a helpful error token
                         var rest = stream.ReadWhile(c => char.IsLetterOrDigit(c) || c == '_');
                         var full = number + rest;
                         tokens.Add(new Token("INVALID", $"Token inválido: secuencia numérica seguida de identificador '{full}'", startLine, startCol));
@@ -87,18 +83,15 @@ internal class Tokenizer
             {
                 var startLine = stream.Line;
                 var startCol = stream.Column;
-                stream.Read(); // skip opening quote
-                // Read characters until the next unescaped quote
+                stream.Read();
                 var str = stream.ReadWhile(c => c != '"');
-                // If next char is closing quote, consume it and add token
                 if (!stream.EOF && stream.Peek() == '"')
                 {
-                    stream.Read(); // consume closing quote
+                    stream.Read();
                     tokens.Add(new Token("STRING", str, startLine, startCol));
                 }
                 else
                 {
-                    // Unterminated string
                     tokens.Add(new Token("INVALID", $"Cadena sin cierre", startLine, startCol));
                 }
                 continue;
@@ -108,11 +101,11 @@ internal class Tokenizer
             {
                 var startLine = stream.Line;
                 var startCol = stream.Column;
-                stream.Read(); // skip opening '
+                stream.Read();
                 var first = stream.Read();
                 if (first != null && stream.Peek() == '\'')
                 {
-                    stream.Read(); // skip closing '
+                    stream.Read();
                     tokens.Add(new Token("CHAR", first?.ToString() ?? string.Empty, startLine, startCol));
                 }
                 else
@@ -122,10 +115,8 @@ internal class Tokenizer
                 continue;
             }
 
-            // Comentarios
             if (ch == '/' && stream.Peek(1) == '/')
             {
-                // line comment
                 stream.Read();
                 stream.Read();
                 while (!stream.EOF && stream.Peek() != '\n')
@@ -143,7 +134,7 @@ internal class Tokenizer
                 if (!stream.EOF)
                 {
                     stream.Read();
-                    stream.Read(); // skip */
+                    stream.Read();
                 }
                 else
                 {
@@ -152,7 +143,6 @@ internal class Tokenizer
                 continue;
             }
 
-            // Operadores multi-char
             bool matched = false;
             foreach (var op in OperatorWords.Words.OrderByDescending(x => x.Length))
             {
@@ -166,7 +156,6 @@ internal class Tokenizer
                 }
                 if (candidate == op)
                 {
-                    // consume op.Length chars
                     for (int i = 0; i < op.Length; i++)
                         stream.Read();
                     tokens.Add(new Token("OPERATOR", op, stream.Line, stream.Column - op.Length));
@@ -185,7 +174,6 @@ internal class Tokenizer
                 continue;
             }
 
-            // unrecognized
             var invalidChar = stream.Read();
             tokens.Add(new Token("INVALID", $"Carácter no reconocido '{invalidChar}'", stream.Line, stream.Column));
         }

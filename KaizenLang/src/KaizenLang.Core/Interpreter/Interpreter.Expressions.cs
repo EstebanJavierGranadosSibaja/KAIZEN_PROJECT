@@ -72,7 +72,8 @@ public partial class Interpreter
                             var targetType = ExtractPrimitiveType(symbol.Type);
                             finalVal = ConvertTokenToType(tokenLine, targetType);
                                 currentScope.SetVariableValue(varName, finalVal);
-                            output.Add($"Variable '{varName}' asignada con valor: {finalVal}");
+                            if (VerboseMode)
+                                output.Add($"Variable '{varName}' asignada con valor: {finalVal}");
                         }
                         else
                         {
@@ -153,7 +154,8 @@ public partial class Interpreter
                     var targetType = ExtractPrimitiveType(symbol.Type);
                     finalVal = ConvertTokenToType(tokenLine, targetType);
                                 currentScope.SetVariableValue(varName, finalVal);
-                                output.Add($"Variable '{varName}' asignada con valor: {finalVal}");
+                                if (VerboseMode)
+                                    output.Add($"Variable '{varName}' asignada con valor: {finalVal}");
                             }
                             else
                             {

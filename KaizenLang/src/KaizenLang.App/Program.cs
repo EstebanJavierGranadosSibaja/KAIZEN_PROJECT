@@ -1,5 +1,5 @@
 using KaizenLang.UI;
-using KaizenLang.UI.Theme;
+using KaizenLang.UI.Theming;
 
 namespace KaizenLang.App;
 
@@ -14,7 +14,7 @@ public static class Program
             Application.SetCompatibleTextRenderingDefault(false);
 
             // Inicializar y configurar el tema
-            var theme = new KaizenLang.UI.Theme.Theme();
+            var theme = new Theme();
             theme.DarkTheme();
             ThemeManager.SetTheme(theme);
 

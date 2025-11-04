@@ -7,15 +7,15 @@ public partial class Interpreter
     private SymbolTable globalScope;
     private SymbolTable currentScope;
     private List<string> output;
-    // Map function name -> Function AST node (user-defined functions are stored at runtime)
     private Dictionary<string, Node> functions;
     private readonly Func<string?, string?>? inputProvider;
     private readonly Queue<string> inputBuffer = new Queue<string>();
     private readonly object inputLock = new object();
 
+    public bool VerboseMode { get; set; } = false;
+
     public Interpreter() : this(null) { }
 
-    // Allow passing an input provider callback (used by UI to prompt user)
     public Interpreter(Func<string?, string?>? inputProvider)
     {
         this.inputProvider = inputProvider;

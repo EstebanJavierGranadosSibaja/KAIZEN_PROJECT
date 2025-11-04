@@ -14,7 +14,6 @@ public class CollectionValidator
         this.diagnostics = diagnostics;
     }
 
-    // Validate collection initializer shapes and superficial element types
     public void CheckCollectionInitializer(Node varDecl)
     {
         if (varDecl.Children.Count < 3)
@@ -128,7 +127,7 @@ public class CollectionValidator
             if (string.Equals(expected, TypeWords.FLOAT, StringComparison.OrdinalIgnoreCase) && string.Equals(actual, TypeWords.INTEGER, StringComparison.OrdinalIgnoreCase))
                 return true;
             if (string.Equals(expected, TypeWords.DOUBLE, StringComparison.OrdinalIgnoreCase))
-                return true; // allow integer/double/float combinations for double
+                return true;
         }
 
         return false;

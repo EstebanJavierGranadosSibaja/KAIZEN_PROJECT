@@ -11,11 +11,11 @@ public partial class Interpreter
 
             if (conditionBool && node.Children.Count > 1)
             {
-                return ExecuteNode(node.Children[1]); // then block
+                return ExecuteNode(node.Children[1]);
             }
             else if (!conditionBool && node.Children.Count > 2)
             {
-                return ExecuteNode(node.Children[2]); // else block
+                return ExecuteNode(node.Children[2]);
             }
         }
         return null;
@@ -29,7 +29,7 @@ public partial class Interpreter
             var bodyNode = node.Children[1];
 
             int iterations = 0;
-            const int maxIterations = 1000; // Prevenir bucles infinitos
+            const int maxIterations = 10000; // Prevenir bucles infinitos
 
             while (iterations < maxIterations)
             {
@@ -53,13 +53,11 @@ public partial class Interpreter
     {
         if (node.Children.Count >= 4)
         {
-            // Crear nuevo scope para el for
             var oldScope = currentScope;
             currentScope = new SymbolTable(currentScope);
 
             try
             {
-                // init
                 ExecuteNode(node.Children[0]);
 
                 int iterations = 0;
@@ -67,16 +65,13 @@ public partial class Interpreter
 
                 while (iterations < maxIterations)
                 {
-                    // condition
                     var condition = ExecuteNode(node.Children[1]);
                     if (!Convert.ToBoolean(condition))
                         break;
 
-                    // body
                     if (node.Children.Count > 3)
                         ExecuteNode(node.Children[3]);
 
-                    // increment
                     ExecuteNode(node.Children[2]);
                     iterations++;
                 }
@@ -96,7 +91,6 @@ public partial class Interpreter
 
     private object? ExecuteFunction(Node node)
     {
-        // Por ahora, solo registrar la función
         if (node.Children.Count >= 2)
         {
             var nameNode = node.Children[1];
@@ -104,7 +98,8 @@ public partial class Interpreter
             {
                 var functionName = nameNode.Children[0].Type;
                 functions[functionName] = node;
-                output.Add($"Función '{functionName}' definida");
+                if (VerboseMode)
+                    output.Add($"Función '{functionName}' definida");
             }
         }
         return null;
@@ -112,12 +107,10 @@ public partial class Interpreter
 
     private object? ExecuteFunctionCall(Node node)
     {
-        // Expected shape: FunctionCall -> FunctionName, Arguments
     var fnameNode = node.FindChild("FunctionName");
     string fname = SemanticUtils.ExtractIdentifierName(fnameNode) ?? string.Empty;
     var callArgsNode = node.FindChild("Arguments");
 
-        // Built-in: output
         if (string.Equals(fname, ReservedWords.OUTPUT, System.StringComparison.OrdinalIgnoreCase))
         {
             var outputValues = new List<string>();
@@ -133,7 +126,6 @@ public partial class Interpreter
             return null;
         }
 
-        // Built-in: input
         if (string.Equals(fname, ReservedWords.INPUT, System.StringComparison.OrdinalIgnoreCase))
         {
             string? prompt = null;
@@ -159,7 +151,8 @@ public partial class Interpreter
                         var targetType = ExtractPrimitiveType(symbol.Type);
                         finalVal = ConvertTokenToType(tokenLine, targetType);
                         currentScope.SetVariableValue(varName, finalVal);
-                        output.Add($"Variable '{varName}' asignada con valor: {finalVal?.ToString() ?? "null"}");
+                        if (VerboseMode)
+                            output.Add($"Variable '{varName}' asignada con valor: {finalVal?.ToString() ?? "null"}");
                     }
                     else
                     {
@@ -182,22 +175,25 @@ public partial class Interpreter
             return ExecuteLengthBuiltin(callArgsNode);
         }
 
-        // If user-defined function exists, invoke it
         if (!string.IsNullOrEmpty(fname) && functions.ContainsKey(fname))
         {
             var fnNode = functions[fname];
             var oldScope = currentScope;
             try
             {
-                output.Add($"[DBG] Invoking function '{fname}'");
-                ParadigmasLang.Logging.Logger.Debug($"Invoking function '{fname}'");
-                // Prepare a new scope for function execution
+                if (VerboseMode)
+                {
+                    output.Add($"[DBG] Invoking function '{fname}'");
+                    ParadigmasLang.Logging.Logger.Debug($"Invoking function '{fname}'");
+                }
                 currentScope = new SymbolTable(oldScope);
 
-                output.Add($"[DBG] Bound new scope for function '{fname}'");
-                ParadigmasLang.Logging.Logger.Debug($"Bound new scope for function '{fname}'");
+                if (VerboseMode)
+                {
+                    output.Add($"[DBG] Bound new scope for function '{fname}'");
+                    ParadigmasLang.Logging.Logger.Debug($"Bound new scope for function '{fname}'");
+                }
 
-                // Bind parameters: function node structure: Function -> Type, Identifier, Parameters, Body
                 var paramsNode = fnNode.FindChild("Parameters");
                 if (paramsNode != null && callArgsNode != null)
                 {
@@ -223,7 +219,6 @@ public partial class Interpreter
 
                         if (!string.IsNullOrEmpty(paramName))
                         {
-                            // Determine declared type if available
                             string declaredType = string.Empty;
                             string primitiveParamType = string.Empty;
                             if (p.Children.Count > 0)
@@ -234,7 +229,6 @@ public partial class Interpreter
                                 primitiveParamType = !string.IsNullOrEmpty(typeInfo.primitiveType) ? typeInfo.primitiveType : declaredType;
                             }
 
-                            // Attempt simple coercion based on declaredType
                             object? coercedValue = argValue;
                             try
                             {
@@ -260,28 +254,31 @@ public partial class Interpreter
                                             coercedValue = Convert.ToBoolean(argValue);
                                             break;
                                         default:
-                                            // For arrays/matrices or unknown types, leave as-is
                                             break;
                                     }
                                 }
                             }
                             catch
                             {
-                                // If coercion fails, report semantic warning and keep original value
-                                output.Add($"Advertencia: no se pudo convertir el argumento para el parámetro '{paramName}' al tipo '{declaredType}'. Usando valor tal cual.");
+                                if (VerboseMode)
+                                    output.Add($"Advertencia: no se pudo convertir el argumento para el parámetro '{paramName}' al tipo '{declaredType}'. Usando valor tal cual.");
                             }
 
-                            // Declare parameter in current scope and set value
                             currentScope.DeclareVariable(paramName, declaredType ?? string.Empty, 0);
                             currentScope.SetVariableValue(paramName, coercedValue);
-                            output.Add($"[DBG] Param '{paramName}' = {coercedValue?.ToString() ?? "null"} (declared: {declaredType})");
-                            ParadigmasLang.Logging.Logger.Debug($"Param '{paramName}' = {coercedValue} (declared: {declaredType})");
+                            if (VerboseMode)
+                            {
+                                output.Add($"[DBG] Param '{paramName}' = {coercedValue?.ToString() ?? "null"} (declared: {declaredType})");
+                                ParadigmasLang.Logging.Logger.Debug($"Param '{paramName}' = {coercedValue} (declared: {declaredType})");
+                            }
                         }
                     }
                 }
-                output.Add($"[DBG] Executing body of '{fname}'");
-                ParadigmasLang.Logging.Logger.Debug($"Executing body of '{fname}'");
-                // Execute function body and capture return via exception
+                if (VerboseMode)
+                {
+                    output.Add($"[DBG] Executing body of '{fname}'");
+                    ParadigmasLang.Logging.Logger.Debug($"Executing body of '{fname}'");
+                }
                 var body = fnNode.FindChild("Block") ?? fnNode.Children.FirstOrDefault(c => c.Type == "Body");
                 object? result = null;
                 try
@@ -292,12 +289,18 @@ public partial class Interpreter
                 catch (ReturnException rex)
                 {
                     result = rex.Value;
-                    output.Add($"[DBG] Function '{fname}' returned: {result}");
-                    ParadigmasLang.Logging.Logger.Debug($"Function '{fname}' returned: {result}");
+                    if (VerboseMode)
+                    {
+                        output.Add($"[DBG] Function '{fname}' returned: {result}");
+                        ParadigmasLang.Logging.Logger.Debug($"Function '{fname}' returned: {result}");
+                    }
                 }
 
-                output.Add($"[DBG] Finished invocation of '{fname}' (returning)");
-                ParadigmasLang.Logging.Logger.Debug($"Finished invocation of '{fname}' (returning)");
+                if (VerboseMode)
+                {
+                    output.Add($"[DBG] Finished invocation of '{fname}' (returning)");
+                    ParadigmasLang.Logging.Logger.Debug($"Finished invocation of '{fname}' (returning)");
+                }
 
                 return result;
             }
@@ -308,7 +311,6 @@ public partial class Interpreter
             }
         }
 
-        // Not found: leave to higher-level builtins handling or error
         throw new Exception($"Function '{fname}' not found at runtime");
     }
 
@@ -318,7 +320,6 @@ public partial class Interpreter
         object? val = null;
         if (node.Children.Count > 0)
             val = ExecuteNode(node.Children[0]);
-        // Unwind using ReturnException which is caught by the caller that set up the function scope
         throw new ReturnException(val);
     }
 

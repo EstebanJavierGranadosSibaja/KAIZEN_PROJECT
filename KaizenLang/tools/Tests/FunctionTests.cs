@@ -3,7 +3,7 @@ using System.IO;
 using Xunit;
 using ParadigmasLang.Logging;
 using ParadigmasLang;
-using KaizenLang.UI;
+using KaizenLang.UI.Services;
 
 namespace KaizenLang.Tests
 {

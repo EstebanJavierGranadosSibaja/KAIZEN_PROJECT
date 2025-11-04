@@ -1,7 +1,7 @@
 using System;
 using Xunit;
 using ParadigmasLang;
-using KaizenLang.UI;
+using KaizenLang.UI.Services;
 
 namespace KaizenLang.Tests;
 

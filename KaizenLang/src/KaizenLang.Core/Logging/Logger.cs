@@ -6,7 +6,6 @@ namespace ParadigmasLang.Logging
 
     public static class Logger
     {
-        // Default level can be adjusted by setting ENV PARADIGMAS_LOG_LEVEL to Debug/Info/Warning/Error/None
         private static LogLevel _level = LogLevel.Info;
 
         static Logger()

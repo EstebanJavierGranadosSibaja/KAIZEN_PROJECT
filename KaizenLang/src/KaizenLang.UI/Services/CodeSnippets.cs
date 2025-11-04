@@ -1,4 +1,4 @@
-namespace KaizenLang.UI
+namespace KaizenLang.UI.Services
 {
     public static class CodeSnippets
     {

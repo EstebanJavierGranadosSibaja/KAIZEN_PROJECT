@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using KaizenLang.UI;
+using KaizenLang.UI.Services;
 using ParadigmasLang;
 
 class Program

@@ -1,4 +1,3 @@
-// Archivo duplicado eliminado. Mantener solo una definición de Lexer y Token en el proyecto.
 namespace ParadigmasLang;
 
 public class Lexer
@@ -10,4 +9,3 @@ public class Lexer
     }
 }
 
-// Token se encuentra ahora en src/KaizenLang.Core/Tokens/Token.cs

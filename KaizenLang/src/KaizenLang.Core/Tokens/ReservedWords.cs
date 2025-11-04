@@ -2,7 +2,6 @@ namespace ParadigmasLang;
 
 public static class ReservedWords
 {
-    // Constantes para palabras reservadas
     public const string OUTPUT = "output";
     public const string INPUT = "input";
     public const string VOID = "void";

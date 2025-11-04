@@ -3,7 +3,9 @@ using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using KaizenLang.UI.Theme;
+using KaizenLang.UI.Theming;
+using KaizenLang.UI.Components;
+using KaizenLang.UI.Services;
 
 namespace KaizenLang.UI
 {
@@ -15,6 +17,11 @@ namespace KaizenLang.UI
         private ToolStripStatusLabel? statusIcon;
         private ToolStripStatusLabel? lineColumnLabel;
         private ToolStripStatusLabel? timeLabel;
+        private LineNumberPanel? lineNumberPanel;
+        private SidebarPanel? sidebarInfo;
+        private string? currentFilePath;
+        private bool isModified;
+
         public MainForm()
         {
             InitializeComponent();
@@ -24,24 +31,15 @@ namespace KaizenLang.UI
             executionService.InputProvider = prompt => Prompt.Show("Entrada requerida", prompt);
 
             InitializeCustomComponents();
+            SetupEnhancedFeatures();
+            SetupKeyboardShortcuts();
 
-            // Configurar ícono de la aplicación (si existe en carpeta Resources)
-            try
-            {
-                var iconPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "icon.ico");
-                if (System.IO.File.Exists(iconPath))
-                {
-                    this.Icon = new Icon(iconPath);
-                }
-            }
-            catch
-            {
-                // Ignorar fallo al cargar ícono
-            }
+            // Configurar ícono de la aplicación
+            LoadApplicationIcon();
 
             this.ApplyCurrentThemeRecursive();
 
-            // Cargar ejemplo con syntax highlighting para demostrar la funcionalidad
+            // Cargar ejemplo con resaltado de sintaxis para mostrar la funcio
             this.Load += (s, e) => TestSyntaxHighlighting();
         }
 
@@ -70,20 +68,59 @@ namespace KaizenLang.UI
                     UpdateStatus(result.IsSuccessful ? "Ejecución completada" : "Error en ejecución", result.IsSuccessful);
                 });
 
+            // Menú Archivo
+            nuevoToolStripMenuItem.Click += (s, e) => NewFile();
+            abrirToolStripMenuItem.Click += (s, e) => OpenFile();
+            guardarToolStripMenuItem.Click += (s, e) => SaveFile();
+            guardarComoToolStripMenuItem.Click += (s, e) => SaveFileAs();
+
             // Items de menú -> snippets de código
             reservedWordsToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.ReservedWords);
-            ifToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.IfStatement);
-            whileToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.WhileLoop);
-            forToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.ForLoop);
-            functionsToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.FunctionDeclaration);
-            dataTypesToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.DataTypes);
-            operationsToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.Operations);
-            semanticsToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.Semantics);
+
+            // IF
+            ifSimpleToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.IfSimple);
+            ifElseToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.IfElse);
+            ifComparacionToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.IfComparacion);
+            ifBooleanoToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.IfBooleano);
+            ifStringToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.IfString);
+
+            // WHILE
+            whileContadorToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.WhileContador);
+            whileSumaToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.WhileSuma);
+            whileCondicionToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.WhileCondicion);
+            whileMenuToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.WhileMenu);
+
+            // FOR
+            forContadorToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.ForContador);
+            forSumaToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.ForSuma);
+            forTablaToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.ForTabla);
+            forParesToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.ForPares);
+            forDescendenteToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.ForDescendente);
+
+            // FUNCTIONS
+            functionSimpleToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.FunctionSimple);
+            functionConParametrosToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.FunctionConParametros);
+            functionMultiplicarToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.FunctionMultiplicar);
+            functionEsParToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.FunctionEsPar);
+            functionMaximoToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.FunctionMaximo);
+
+            // OPERATIONS
+            operationsAritmeticasToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.OperationsAritmeticas);
+            operationsComparacionToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.OperationsComparacion);
+            operationsLogicasToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.OperationsLogicas);
+
+            // INPUT/OUTPUT
+            inputOutputBasicoToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.InputOutputBasico);
+            inputOutputCalculadoraToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.InputOutputCalculadora);
+
+            // DATA TYPES
+            dataTypesBasicoToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.DataTypesBasico);
+            dataTypesConversionesToolStripMenuItem.Click += (s, e) => InsertCodeSnippet(CodeSnippets.DataTypesConversiones);
 
             // Barra de estado mejorada
             SetupEnhancedStatusBar();
 
-            // Editor/output additional configuration
+            // Ajustes extra para editor y salida
             codeRichTextBox.ScrollBars = RichTextBoxScrollBars.Both;
             codeRichTextBox.AcceptsTab = true;
 
@@ -103,9 +140,9 @@ namespace KaizenLang.UI
             EnhancedVisualEffects.MakeButtonModern(compileButton, theme.ButtonBackground, true);
             EnhancedVisualEffects.MakeButtonModern(executeButton, theme.ButtonBackground, true);
 
-            // Mejorar la apariencia de los RichTextBox con efectos reales y syntax highlighting
-            EnhancedVisualEffects.MakeRichTextBoxModern(codeRichTextBox, true);  // Habilitar syntax highlighting para código
-            EnhancedVisualEffects.MakeRichTextBoxModern(outputRichTextBox, false); // Sin highlighting para salida
+            // Mejorar la apariencia de los RichTextBox con efectos reales y resalte de sintaxis
+            EnhancedVisualEffects.MakeRichTextBoxModern(codeRichTextBox, true);  // dejo resaltado de sintaxis
+            EnhancedVisualEffects.MakeRichTextBoxModern(outputRichTextBox, false); // sin resaltado en salida
 
             // Aplicar efectos de profundidad a paneles
             ApplyPanelEffects();
@@ -185,13 +222,13 @@ namespace KaizenLang.UI
             languageStructuresToolStripMenuItem.Image = IconFactory.GetIcon("examples", 16, 16);
             reservedWordsToolStripMenuItem.Image = IconFactory.GetIcon("keywords", 16, 16);
             syntaxToolStripMenuItem.Image = IconFactory.GetIcon("syntax", 16, 16);
-            semanticsToolStripMenuItem.Image = IconFactory.GetIcon("semantics", 16, 16);
             dataTypesToolStripMenuItem.Image = IconFactory.GetIcon("datatypes", 16, 16);
 
             // Configurar iconos de submenús
             controlToolStripMenuItem.Image = IconFactory.GetIcon("control", 16, 16);
             functionsToolStripMenuItem.Image = IconFactory.GetIcon("functions", 16, 16);
             operationsToolStripMenuItem.Image = IconFactory.GetIcon("operations", 16, 16);
+            inputOutputToolStripMenuItem.Image = IconFactory.GetIcon("input", 16, 16);
 
             // Configurar iconos de los botones principales
             SetupButtonIcons();
@@ -574,6 +611,231 @@ saludar(""KaizenLang"");";                codeRichTextBox.Text = exampleCode;
             int g = (int)Math.Round(source.G + (target.G - source.G) * amount);
             int b = (int)Math.Round(source.B + (target.B - source.B) * amount);
             return Color.FromArgb(r, g, b);
+        }
+
+        private void LoadApplicationIcon()
+        {
+            try
+            {
+                var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                var possiblePaths = new[]
+                {
+                    Path.Combine(baseDir, "Resources", "icon.ico"),
+                    Path.Combine(baseDir, "..", "..", "Resources", "icon.ico"),
+                    Path.Combine(baseDir, "..", "..", "..", "..", "..", "Resources", "icon.ico"),
+                    Path.Combine(Directory.GetCurrentDirectory(), "Resources", "icon.ico"),
+                    Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "Resources", "icon.ico")
+                };
+
+                foreach (var iconPath in possiblePaths)
+                {
+                    var fullPath = Path.GetFullPath(iconPath);
+                    if (File.Exists(fullPath))
+                    {
+                        this.Icon = new Icon(fullPath);
+                        return;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"No se pudo cargar el ícono de la aplicación: {ex.Message}");
+            }
+        }
+
+        private void SetupEnhancedFeatures()
+        {
+            // Agregar números de línea al editor
+            lineNumberPanel = new LineNumberPanel();
+            lineNumberPanel.AttachToTextBox(codeRichTextBox);
+
+            var theme = ThemeManager.CurrentTheme;
+            lineNumberPanel.BackColor = theme.TextBoxBackground;
+            lineNumberPanel.ForeColor = Color.FromArgb(100, 100, 100);
+
+            if (codeSectionLayout != null && codeSectionLayout.Controls.Contains(codeRichTextBox))
+            {
+                var codePanel = new Panel
+                {
+                    Dock = DockStyle.Fill
+                };
+
+                codeRichTextBox.Dock = DockStyle.Fill;
+
+                codePanel.Controls.Add(codeRichTextBox);
+                codePanel.Controls.Add(lineNumberPanel);
+
+                int rowIndex = codeSectionLayout.GetRow(codeRichTextBox);
+                int colIndex = codeSectionLayout.GetColumn(codeRichTextBox);
+
+                codeSectionLayout.Controls.Remove(codeRichTextBox);
+                codeSectionLayout.Controls.Add(codePanel, colIndex, rowIndex);
+            }
+
+            // Configurar el sidebar con información
+            if (sidebarPanel != null)
+            {
+                sidebarInfo = new SidebarPanel();
+                sidebarInfo.UpdateTheme(theme);
+                sidebarPanel.Controls.Add(sidebarInfo);
+            }
+
+            // Detectar cambios en el código
+            codeRichTextBox.TextChanged += (s, e) =>
+            {
+                isModified = true;
+                UpdateTitle();
+            };
+        }
+
+        private void SetupKeyboardShortcuts()
+        {
+            this.KeyPreview = true;
+            this.KeyDown += (s, e) =>
+            {
+                // F5 - Ejecutar
+                if (e.KeyCode == Keys.F5)
+                {
+                    e.Handled = true;
+                    executeButton.PerformClick();
+                }
+                // F6 - Compilar
+                else if (e.KeyCode == Keys.F6)
+                {
+                    e.Handled = true;
+                    compileButton.PerformClick();
+                }
+                // Ctrl+N - Nuevo
+                else if (e.Control && e.KeyCode == Keys.N)
+                {
+                    e.Handled = true;
+                    NewFile();
+                }
+                // Ctrl+O - Abrir
+                else if (e.Control && e.KeyCode == Keys.O)
+                {
+                    e.Handled = true;
+                    OpenFile();
+                }
+                // Ctrl+S - Guardar
+                else if (e.Control && e.KeyCode == Keys.S)
+                {
+                    e.Handled = true;
+                    SaveFile();
+                }
+            };
+        }
+
+        private void NewFile()
+        {
+            if (isModified)
+            {
+                var result = MessageBox.Show(
+                    "¿Desea guardar los cambios antes de crear un nuevo archivo?",
+                    "Cambios sin guardar",
+                    MessageBoxButtons.YesNoCancel,
+                    MessageBoxIcon.Question);
+
+                if (result == DialogResult.Yes)
+                {
+                    SaveFile();
+                }
+                else if (result == DialogResult.Cancel)
+                {
+                    return;
+                }
+            }
+
+            codeRichTextBox.Clear();
+            outputRichTextBox.Clear();
+            currentFilePath = null;
+            isModified = false;
+            UpdateTitle();
+            UpdateStatus("Nuevo archivo creado", true);
+        }
+
+        private void OpenFile()
+        {
+            using (var openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.Filter = "KaizenLang Files (*.kz)|*.kz|Text Files (*.txt)|*.txt|All Files (*.*)|*.*";
+                openFileDialog.Title = "Abrir archivo KaizenLang";
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        var content = File.ReadAllText(openFileDialog.FileName);
+                        codeRichTextBox.Text = content;
+                        currentFilePath = openFileDialog.FileName;
+                        isModified = false;
+                        UpdateTitle();
+                        UpdateStatus($"Archivo cargado: {Path.GetFileName(currentFilePath)}", true);
+
+                        // Aplicar syntax highlighting
+                        SyntaxHighlighter.ApplySyntaxHighlighting(codeRichTextBox, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error al abrir el archivo:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
+        private void SaveFile()
+        {
+            if (string.IsNullOrEmpty(currentFilePath))
+            {
+                SaveFileAs();
+            }
+            else
+            {
+                try
+                {
+                    File.WriteAllText(currentFilePath, codeRichTextBox.Text);
+                    isModified = false;
+                    UpdateTitle();
+                    UpdateStatus($"Archivo guardado: {Path.GetFileName(currentFilePath)}", true);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error al guardar el archivo:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private void SaveFileAs()
+        {
+            using (var saveFileDialog = new SaveFileDialog())
+            {
+                saveFileDialog.Filter = "KaizenLang Files (*.kz)|*.kz|Text Files (*.txt)|*.txt|All Files (*.*)|*.*";
+                saveFileDialog.Title = "Guardar archivo KaizenLang";
+                saveFileDialog.DefaultExt = "kz";
+
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        File.WriteAllText(saveFileDialog.FileName, codeRichTextBox.Text);
+                        currentFilePath = saveFileDialog.FileName;
+                        isModified = false;
+                        UpdateTitle();
+                        UpdateStatus($"Archivo guardado: {Path.GetFileName(currentFilePath)}", true);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error al guardar el archivo:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
+        private void UpdateTitle()
+        {
+            var fileName = string.IsNullOrEmpty(currentFilePath) ? "Sin título" : Path.GetFileName(currentFilePath);
+            var modified = isModified ? "*" : "";
+            this.Text = $"KaizenLang IDE - {fileName}{modified}";
         }
     }
 }

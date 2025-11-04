@@ -7,7 +7,7 @@ public partial class Parser
     private Node ParseIf(List<Token> tokens, ref int pos)
     {
         var ifNode = new Node("If");
-        pos++; // Consumir 'if'
+        pos++;
 
         if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == DelimiterWords.PAREN_OPEN)
             pos++;
@@ -25,7 +25,7 @@ public partial class Parser
         Node thenBranch;
         if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == DelimiterWords.BLOCK_START)
         {
-            pos++; // Consumir 'ying'
+            pos++;
             thenBranch = ParseBlock(tokens, ref pos);
         }
         else
@@ -43,10 +43,9 @@ public partial class Parser
         }
         ifNode.Children.Add(thenBranch);
 
-        // Manejo del 'else'
         if (pos < tokens.Count && Match(tokens, pos, "RESERVED", ReservedWords.ELSE))
         {
-            pos++; // Consumir 'else'
+            pos++;
             Node elseBranch;
 
             if (pos < tokens.Count && Match(tokens, pos, "RESERVED", ReservedWords.IF))
@@ -55,7 +54,7 @@ public partial class Parser
             }
             else if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == DelimiterWords.BLOCK_START)
             {
-                pos++; // Consumir 'ying'
+                pos++;
                 elseBranch = ParseBlock(tokens, ref pos);
             }
             else
@@ -78,27 +77,24 @@ public partial class Parser
 
     private Node ParseFor(List<Token> tokens, ref int pos)
     {
-        pos++; // Consumir 'for'
+        pos++;
         if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == DelimiterWords.PAREN_OPEN)
             pos++;
         else
             return ErrorNode("Se esperaba '(' después de 'for'.", pos);
 
-        // La inicialización puede ser una sentencia que ya consuma el ';'.
-        Node? init = ParseStatement(tokens, ref pos); // La inicialización es una sentencia
+        Node? init = ParseStatement(tokens, ref pos);
         if (init == null)
         {
             init = new Node("Empty");
         }
 
-        // Consumir ';' si está presente. Si no está, comprobar si el token anterior fue ';' (ParseStatement lo consumió).
         if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == DelimiterWords.SEMICOLON)
         {
-            pos++; // Consumir el ';' que separa las partes del for
+            pos++;
         }
         else
         {
-            // Si el token anterior fue ';', asumimos que ParseStatement ya lo consumió
             if (!(pos > 0 && tokens[pos - 1].Type == "DELIMITER" && tokens[pos - 1].Value == DelimiterWords.SEMICOLON))
             {
                 return ErrorNode("Se esperaba ';' después de la inicialización del for.", pos);
@@ -118,7 +114,7 @@ public partial class Parser
         Node body;
         if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == DelimiterWords.BLOCK_START)
         {
-            pos++; // Consumir 'ying'
+            pos++;
             body = ParseBlock(tokens, ref pos);
         }
         else
@@ -136,7 +132,7 @@ public partial class Parser
 
     private Node ParseWhile(List<Token> tokens, ref int pos)
     {
-        pos++; // Consumir 'while'
+        pos++;
         if (tokens[pos].Type == "DELIMITER" && tokens[pos].Value == DelimiterWords.PAREN_OPEN)
             pos++;
         else
@@ -150,7 +146,7 @@ public partial class Parser
         Node body;
         if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == DelimiterWords.BLOCK_START)
         {
-            pos++; // Consumir 'ying'
+            pos++;
             body = ParseBlock(tokens, ref pos);
         }
         else
@@ -163,11 +159,11 @@ public partial class Parser
 
     private Node ParseDoWhile(List<Token> tokens, ref int pos)
     {
-        pos++; // Consumir 'do'
+        pos++;
         Node body;
         if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == DelimiterWords.BLOCK_START)
         {
-            pos++; // Consumir 'ying'
+            pos++;
             body = ParseBlock(tokens, ref pos);
         }
         else
@@ -177,7 +173,7 @@ public partial class Parser
 
         if (Match(tokens, pos, "RESERVED", ReservedWords.WHILE))
         {
-            pos++; // Consumir 'while'
+            pos++;
             if (tokens[pos].Type == "DELIMITER" && tokens[pos].Value == DelimiterWords.PAREN_OPEN)
                 pos++;
             else
@@ -216,7 +212,7 @@ public partial class Parser
         Node body;
         if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == DelimiterWords.BLOCK_START)
         {
-            pos++; // Consumir 'ying'
+            pos++;
             body = ParseBlock(tokens, ref pos);
         }
         else
@@ -231,7 +227,6 @@ public partial class Parser
     {
         var blockNode = new Node("Block");
 
-        // Asume que el 'ying' ya fue consumido
         while (pos < tokens.Count && !(tokens[pos].Type == "DELIMITER" && tokens[pos].Value == DelimiterWords.BLOCK_END))
         {
             var stmt = ParseStatement(tokens, ref pos);
@@ -244,27 +239,19 @@ public partial class Parser
             }
         }
 
-        // If we've reached the end of the token stream, allow implicit block end at EOF
-        // (do not add an error node) so snippet-style inputs that omit the closing
-        // 'yang' can still be parsed and subsequent top-level declarations are reachable.
         if (pos >= tokens.Count)
         {
             return blockNode;
         }
 
-        // If the next token is the explicit BLOCK_END, consume it
         if (tokens[pos].Type == "DELIMITER" && tokens[pos].Value == DelimiterWords.BLOCK_END)
         {
-            pos++; // Consumir 'yang'
+            pos++;
         }
         else
         {
-            // If the next token looks like the start of a top-level declaration (TYPE) or a function
-            // declaration, treat it as an implicit end of the block. This makes the parser forgiving
-            // for snippets used in tests that omit the 'yang' closing token.
             if (tokens[pos].Type == "TYPE" || IsFunctionDeclaration(tokens, pos))
             {
-                // do not consume token; caller will handle it
             }
             else
             {

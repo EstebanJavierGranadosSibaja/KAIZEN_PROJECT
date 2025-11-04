@@ -17,40 +17,32 @@ public partial class Parser
         if (IsFunctionDeclaration(tokens, pos))
             return ParseFunction(tokens, ref pos);
 
-        // Declaración de variable
         if (IsVariableDeclaration(tokens, pos))
             return ParseVariableDeclaration(tokens, ref pos);
 
-        // Asignación de variable existente: IDENTIFIER = valor
         if (IsAssignment(tokens, pos))
             return ParseAssignment(tokens, ref pos);
 
-        // Expresión o llamada a función que termina en ;
         if (IsExpressionStatement(tokens, pos))
             return ParseExpressionStatement(tokens, ref pos);
 
-        // Caso para manejar errores de tokens inesperados que no forman una sentencia válida
         if (tokens.Count > pos && tokens[pos].Type == "TYPE")
         {
-            // Esto podría ser una declaración mal formada, como "int;"
             if (pos + 1 < tokens.Count && tokens[pos + 1].Value == DelimiterWords.SEMICOLON)
             {
                 var error = ErrorNode($"Declaración de variable incompleta. Falta el nombre de la variable.", pos);
-                pos += 2; // Consumir 'tipo' y ';' para evitar bucle infinito
+                pos += 2;
                 return error;
             }
         }
 
-        return null; // No se pudo identificar la sentencia
+    return null;
     }
-
-    // Nueva función para manejar return
     private Node ParseReturn(List<Token> tokens, ref int pos)
     {
         var node = new Node("Return");
-        pos++; // Consumir 'return'
+    pos++;
 
-        // Si hay una expresión de retorno
         if (pos < tokens.Count && !(tokens[pos].Type == "DELIMITER" && tokens[pos].Value == DelimiterWords.SEMICOLON))
         {
             var expr = ParseExpression(tokens, ref pos);
@@ -64,8 +56,6 @@ public partial class Parser
 
         return node;
     }
-
-    // Nueva función para parsear expresiones que son sentencias
     private Node ParseExpressionStatement(List<Token> tokens, ref int pos)
     {
         var exprNode = ParseExpression(tokens, ref pos);
@@ -85,8 +75,8 @@ public partial class Parser
     {
         var varToken = tokens[pos];
         var varNode = new Node("Identifier", new List<Node> { new Node(varToken.Value) }) { Line = varToken.Line, Column = varToken.Column };
-        pos++; // Consumir identificador
-        pos++; // Consumir '='
+    pos++;
+    pos++;
         var valueNode = ParseExpression(tokens, ref pos);
         var assignmentNode = new Node("Assignment", new List<Node> { varNode, valueNode }) { Line = varNode.Line, Column = varNode.Column };
 
@@ -100,15 +90,10 @@ public partial class Parser
 
     private Node ParseVariableDeclaration(List<Token> tokens, ref int pos)
     {
-        // Support both simple and composite types for variable declarations:
-        // - TYPE IDENTIFIER
-    // - chainsaw < TYPE > IDENTIFIER
-    // - hogyoku < TYPE > IDENTIFIER
 
         Node typeNode;
         Node nameNode;
 
-        // Composite type (chainsaw/hogyoku) with explicit element type: chainsaw < TYPE > NAME
         if (tokens[pos].Type == "IDENTIFIER" && TypeWords.CompositeWrappers.Contains(tokens[pos].Value)
             && pos + 4 < tokens.Count
             && (tokens[pos + 1].Type == "DELIMITER" || tokens[pos + 1].Type == "OPERATOR") && tokens[pos + 1].Value == DelimiterWords.ANGLE_OPEN
@@ -120,22 +105,16 @@ public partial class Parser
             typeNode = new Node(wrapper.Value) { Line = wrapper.Line, Column = wrapper.Column };
             var inner = new Node(tokens[pos + 2].Value) { Line = tokens[pos + 2].Line, Column = tokens[pos + 2].Column };
             typeNode.Children.Add(inner);
-
-            // consume chainsaw/hogyoku, '<', inner type, '>'
             pos += 4;
 
             var nameToken = tokens[pos];
             nameNode = new Node("Identifier", new List<Node> { new Node(nameToken.Value) }) { Line = nameToken.Line, Column = nameToken.Column };
-            pos++; // consume identifier
+            pos++;
         }
         else if (tokens[pos].Type == "IDENTIFIER" && TypeWords.CompositeWrappers.Contains(tokens[pos].Value)
             && pos + 1 < tokens.Count && tokens[pos + 1].Type == "IDENTIFIER")
         {
-            // Explicit element type missing — produce a parse-level error so semantic phase
-            // doesn't confuse the tokens as identifier usages. Advance pos to consume the
-            // tokens that formed the attempted declaration to avoid parser infinite loop.
             var message = $"Declaración de {tokens[pos].Value} requiere tipo de elemento explícito";
-            // consume 'chainsaw'/'hogyoku' and the following identifier to avoid re-parsing the same tokens
             pos += 2;
             return ErrorNode(message, pos - 2);
         }
@@ -159,17 +138,15 @@ public partial class Parser
         {
             if (tokens[pos].Type == "OPERATOR" && tokens[pos].Value == OperatorWords.ASSIGN)
             {
-                pos++; // Consumir '='
+                pos++;
                 var valueNode = ParseExpression(tokens, ref pos);
                 declarationNode.Children.Add(new Node("Value", new List<Node> { valueNode }));
             }
             else if (tokens[pos].Type == "DELIMITER" && tokens[pos].Value == DelimiterWords.SEMICOLON)
             {
-                // Declaración sin inicialización, solo consumir el ';' al final
             }
             else
             {
-                // ❌ cualquier otra cosa es inválida
                 var invalidNode = new Node { Type = "InvalidDeclaration" };
                 invalidNode.Children.Add(new Node
                 {
@@ -183,7 +160,6 @@ public partial class Parser
 
         }
 
-        // Todas las declaraciones deben terminar con ;
         if (pos < tokens.Count && tokens[pos].Type == "DELIMITER" && tokens[pos].Value == DelimiterWords.SEMICOLON)
         {
             pos++;

@@ -4,12 +4,6 @@ using System.Linq;
 
 namespace ParadigmasLang;
 
-// Practical SemanticAnalyzer for basic checks required by tests and interpreter.
-// Responsibilities implemented:
-// - Maintain symbol tables (scoped): variables and functions
-// - Detect duplicate declarations in same scope
-// - Detect uses of undefined variables
-// - Register function signatures and verify call arity (including builtins)
 public class SemanticAnalyzer
 {
 
@@ -20,58 +14,36 @@ public class SemanticAnalyzer
     private DeclarationChecker? declarationChecker;
     private CollectionValidator? collectionValidator;
 
-    // Known builtins with expected arity (-1 means variadic / flexible)
     private readonly Dictionary<string, int> builtins = new(StringComparer.OrdinalIgnoreCase)
     {
-        { ReservedWords.INPUT, 0 }, // input() or input(prompt) -> treat as 0..1 but we'll accept 0 or 1
-        { ReservedWords.OUTPUT, -1 }, // output(...) any number
-        { "print", -1 }, // print(...) familiar convenience alias
-        { "length", 1 }, // length(collection) -> integer
+    { ReservedWords.INPUT, 0 },
+    { ReservedWords.OUTPUT, -1 },
+    { "print", -1 },
+    { "length", 1 },
     };
 
     public List<string> AnalyzeProgram(Node ast)
     {
     diagnostics.Clear();
-        // Reset per-analysis state
         scopes.Clear();
         functions.Clear();
-
-        // (No diagnostic prints in normal operation)
-
-        // Initialize global scope
     PushScope();
-
-        // Register builtins as functions
         foreach (var kv in builtins)
         {
             functions[kv.Key] = new FunctionSignature { Name = kv.Key, Arity = kv.Value, IsBuiltin = true };
         }
-
-        // Provide return type info for builtins
     if (functions.ContainsKey(ReservedWords.INPUT)) functions[ReservedWords.INPUT].ReturnType = TypeWords.STRING;
     if (functions.ContainsKey("length")) functions["length"].ReturnType = TypeWords.INTEGER;
     if (functions.ContainsKey(ReservedWords.OUTPUT)) functions[ReservedWords.OUTPUT].ReturnType = ReservedWords.VOID;
         if (functions.ContainsKey("print")) functions["print"].ReturnType = "void";
-
-    // Create a TypeResolver for expression type queries
     typeResolver = new TypeResolver(scopes, functions, builtins, diagnostics);
-
-        // Create a DeclarationChecker to handle variable/function registration
     declarationChecker = new DeclarationChecker(scopes, functions, builtins, typeResolver, diagnostics, VisitNode);
-
-    // Create a CollectionValidator for chainsaw/hogyoku checks
     collectionValidator = new CollectionValidator(typeResolver, diagnostics);
-
-        // Walk top-level nodes
         foreach (var child in ast.Children)
         {
             VisitTopLevel(child);
         }
-
-        // Final pass: validate all identifier usages across the AST to catch undeclared usages
         ValidateAllIdentifiers(ast);
-
-        // Return unique diagnostics
         return diagnostics.GetUnique();
     }
 
@@ -82,14 +54,12 @@ public class SemanticAnalyzer
             ValidateNodeWithScope(child);
     }
 
-    // Validate a node and its children, creating temporary scopes for function parameters
     private void ValidateNodeWithScope(Node node)
     {
         if (node == null) return;
 
         if (string.Equals(node.Type, "Function", StringComparison.OrdinalIgnoreCase) || string.Equals(node.Type, "FunctionDeclaration", StringComparison.OrdinalIgnoreCase))
         {
-            // Register parameters in a new temporary scope so body validation recognizes them
             PushScope();
             var paramsNode = node.FindChild("Parameters");
             if (paramsNode != null)
@@ -105,7 +75,6 @@ public class SemanticAnalyzer
                 }
             }
 
-            // Validate body under this scope
             var body = node.FindChild("Body") ?? node.FindChild("Block");
             if (body != null)
                 ValidateIdentifiersInExpression(body);
@@ -114,7 +83,6 @@ public class SemanticAnalyzer
             return;
         }
 
-        // Default: validate this node and recurse
         ValidateIdentifiersInExpression(node);
         foreach (var c in node.Children)
             ValidateNodeWithScope(c);
@@ -133,21 +101,16 @@ public class SemanticAnalyzer
                 declarationChecker?.RegisterFunction(node);
                 break;
             default:
-                // Other top-level constructs — analyze recursively to find usages
                 VisitNode(node);
                 break;
         }
     }
-
-    // RegisterVariable and RegisterFunction were moved to DeclarationChecker
 
     private void VisitNode(Node node)
     {
         if (node == null)
             return;
 
-        // Detect control blocks and enforce "only one level of nesting" rule.
-        // Parser emits control nodes with types: "If", "While", "For", "DoWhile".
         if (string.Equals(node.Type, "If", StringComparison.OrdinalIgnoreCase)
             || string.Equals(node.Type, "While", StringComparison.OrdinalIgnoreCase)
             || string.Equals(node.Type, "For", StringComparison.OrdinalIgnoreCase)
@@ -162,17 +125,14 @@ public class SemanticAnalyzer
         {
             case "VariableDeclaration":
                 declarationChecker?.RegisterVariable(node);
-                // Additional semantic checks for chainsaw/hogyoku initializers
                 collectionValidator?.CheckCollectionInitializer(node);
                 break;
             case "Assignment":
-                // LHS identifier must exist or be declared
                 var id = node.FindChild("Identifier") ?? node.FindChild("IDENTIFIER") ?? node.FindChild("IndexAccess");
                 var name = SemanticUtils.ExtractIdentifierName(id);
                 if (!string.IsNullOrEmpty(name) && !SemanticUtils.IsSymbolDefined(scopes, name))
                     diagnostics.Report(node, $"Variable '{name}' not declarada");
 
-                // Resolve RHS type and compare with declared LHS type when possible
                 var rhs = node.FindChild("Expression") ?? (node.Children.Count > 1 ? node.Children[1] : null);
                 if (rhs != null)
                 {
@@ -180,7 +140,6 @@ public class SemanticAnalyzer
                     var rhsType = typeResolver?.Resolve(rhsExpr);
                     if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(rhsType))
                     {
-                        // lookup var type
                         foreach (var scope in scopes)
                         {
                             var si = scope.LookupVariable(name);
@@ -207,18 +166,14 @@ public class SemanticAnalyzer
                 ValidateFunctionCall(node);
                 break;
             default:
-                // Recurse into children
                 foreach (var c in node.Children)
                     VisitNode(c);
                 break;
         }
     }
 
-    // Collection initialization validation moved to CollectionValidator
-
     private void ValidateFunctionCall(Node fnCallNode)
     {
-        // Expected shape: FunctionCall -> FunctionName, Arguments
         var fnameNode = fnCallNode.FindChild("FunctionName");
     var fname = SemanticUtils.ExtractIdentifierName(fnameNode) ?? fnameNode?.Children.FirstOrDefault()?.Type;
 
@@ -250,11 +205,9 @@ public class SemanticAnalyzer
         }
         else
         {
-            // Unknown function: error
             diagnostics.Report(fnCallNode, $"Function '{fname}' is not defined");
         }
 
-        // Visit arguments expressions
         if (argsNode != null)
         {
             foreach (var a in argsNode.Children)
@@ -281,21 +234,15 @@ public class SemanticAnalyzer
         return $"{message} (l{node.Line}:c{node.Column})";
     }
 
-    // Helpers moved to SemanticUtils and CollectionValidator
-
     private class SymbolInfo
     {
         public string Name { get; set; } = string.Empty;
         public SymbolKind Kind { get; set; }
-    // Declared type for variables (e.g., "integer", "string", "chainsaw", etc.)
         public string Type { get; set; } = string.Empty;
         public bool IsInitialized { get; set; }
     }
 
     private enum SymbolKind { Variable, Function }
-
-    // Determine if a value of sourceType can be assigned to a variable of targetType
-    // Promotion rules (widening): integer -> float -> double
     private bool CanAssign(string targetType, string sourceType)
     {
         if (SemanticUtils.IsNullLiteralType(sourceType))
@@ -308,28 +255,23 @@ public class SemanticAnalyzer
         if (string.Equals(targetType, sourceType, StringComparison.OrdinalIgnoreCase))
             return true;
 
-        // integer -> float or double
-            if (string.Equals(sourceType, TypeWords.INTEGER, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(sourceType, TypeWords.INTEGER, StringComparison.OrdinalIgnoreCase))
         {
-                if (string.Equals(targetType, TypeWords.FLOAT, StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(targetType, TypeWords.DOUBLE, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(targetType, TypeWords.FLOAT, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(targetType, TypeWords.DOUBLE, StringComparison.OrdinalIgnoreCase))
                 return true;
         }
 
-        // float -> double
-            if (string.Equals(sourceType, TypeWords.FLOAT, StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(targetType, TypeWords.DOUBLE, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(sourceType, TypeWords.FLOAT, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(targetType, TypeWords.DOUBLE, StringComparison.OrdinalIgnoreCase))
             return true;
 
         return false;
     }
-
-    // Walk an expression AST and report identifiers that are not defined in any accessible scope
     private void ValidateIdentifiersInExpression(Node? expr)
     {
         if (expr == null) return;
 
-        // If this node is an identifier node, check it's defined
         if (expr.Type == "IDENTIFIER" || expr.Type == "Identifier" || expr.Type == "Identifier" )
         {
             var name = SemanticUtils.ExtractIdentifierName(expr);
@@ -340,7 +282,6 @@ public class SemanticAnalyzer
             return;
         }
 
-        // If function call, validate function name and arguments
         if (expr.Type == "FunctionCall")
         {
             var fname = SemanticUtils.ExtractIdentifierName(expr.FindChild("FunctionName"));
@@ -356,7 +297,6 @@ public class SemanticAnalyzer
             return;
         }
 
-        // For other nodes, recurse into children
         if (expr.Children != null)
         {
             foreach (var c in expr.Children)

@@ -3,7 +3,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ParadigmasLang;
 
-namespace KaizenLang.UI;
+namespace KaizenLang.UI.Services;
 
 public class ExecutionService
 {

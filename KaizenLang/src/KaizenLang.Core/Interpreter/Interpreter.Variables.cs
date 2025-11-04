@@ -45,11 +45,13 @@ public partial class Interpreter
                 }
                 finalValue = CoerceValueToDeclaredType(finalValue, declaredType);
                 currentScope.SetVariableValue(name, finalValue);
-                output.Add($"Variable '{name}' declarada e inicializada con valor: {finalValue?.ToString() ?? "null"}");
+                if (VerboseMode)
+                    output.Add($"Variable '{name}' declarada e inicializada con valor: {finalValue?.ToString() ?? "null"}");
             }
             else
             {
-                output.Add($"Variable '{name}' de tipo '{declaredType}' declarada");
+                if (VerboseMode)
+                    output.Add($"Variable '{name}' de tipo '{declaredType}' declarada");
             }
         }
         return null;
@@ -76,7 +78,8 @@ public partial class Interpreter
                     if (i < 0 || i >= listTarget.Count)
                         throw new Exception($"Index fuera de rango: {i}");
                     listTarget[i] = rawValue;
-                    output.Add($"Index '{i}' asignado con valor: {rawValue}");
+                    if (VerboseMode)
+                        output.Add($"Index '{i}' asignado con valor: {rawValue}");
                     return null;
                 }
                 else
@@ -104,7 +107,8 @@ public partial class Interpreter
                     throw new Exception($"Variable '{varName}' no está declarada");
                 }
 
-                output.Add($"Variable '{varName}' asignada con valor: {finalValue?.ToString() ?? "null"}");
+                if (VerboseMode)
+                    output.Add($"Variable '{varName}' asignada con valor: {finalValue?.ToString() ?? "null"}");
             }
         }
         return null;

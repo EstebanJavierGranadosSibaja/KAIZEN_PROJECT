@@ -2,7 +2,6 @@ namespace ParadigmasLang;
 
 public partial class Parser
 {
-    // Utilidad para crear nodos de error con posición (siempre incluir posición approximation)
     private Node ErrorNode(string mensaje, int pos)
     {
         var n = new Node { Type = "Error", Line = 0, Column = pos };
@@ -17,8 +16,6 @@ public partial class Parser
 
     private bool IsFunctionDeclaration(List<Token> tokens, int pos)
     {
-        // tipo|reserved nombre ( ... ) { ... }
-        // Allow reserved words like 'void' to be used as the function return type
         return pos + 3 < tokens.Count && (tokens[pos].Type == "TYPE" || tokens[pos].Type == "RESERVED") && tokens[pos + 1].Type == "IDENTIFIER" && tokens[pos + 2].Type == "DELIMITER" && tokens[pos + 2].Value == "(";
     }
 
@@ -32,20 +29,13 @@ public partial class Parser
 
     private bool IsVariableDeclaration(List<Token> tokens, int pos)
     {
-        // Accept declarations of the form:
-        //  TYPE IDENTIFIER
-    //  chainsaw < TYPE > IDENTIFIER
-    //  hogyoku < TYPE > IDENTIFIER
         if (pos + 1 >= tokens.Count)
             return false;
 
-        // simple base-type declaration: TYPE name
         if (tokens[pos].Type == "TYPE" && tokens[pos + 1].Type == "IDENTIFIER")
             return true;
 
-    // composite types like chainsaw<integer> or hogyoku<integer> are tokenized as:
-    // IDENTIFIER('chainsaw'|'hogyoku') DELIMITER('<') TYPE DELIMITER('>') IDENTIFIER
-    if (tokens[pos].Type == "IDENTIFIER" && TypeWords.CompositeWrappers.Contains(tokens[pos].Value))
+        if (tokens[pos].Type == "IDENTIFIER" && TypeWords.CompositeWrappers.Contains(tokens[pos].Value))
         {
             if (pos + 4 < tokens.Count
                 && (tokens[pos + 1].Type == "DELIMITER" || tokens[pos + 1].Type == "OPERATOR") && tokens[pos + 1].Value == DelimiterWords.ANGLE_OPEN
@@ -55,9 +45,6 @@ public partial class Parser
             {
                 return true;
             }
-            // Also treat a bare 'chainsaw NAME' or 'hogyoku NAME' sequence as an attempted declaration
-            // so that the parser can produce a clearer error (missing element type) instead of
-            // parsing it as an expression.
             if (pos + 1 < tokens.Count && tokens[pos + 1].Type == "IDENTIFIER")
                 return true;
         }
@@ -65,12 +52,10 @@ public partial class Parser
         return false;
     }
 
-    // Buscar si una expresión termina en ; (útil para decidir si es ExpressionStatement)
     private bool IsExpressionStatement(List<Token> tokens, int pos)
     {
         if (pos >= tokens.Count)
             return false;
-        // If the current token is a block end, this is not an expression statement.
         if (tokens[pos].Type == "DELIMITER" && tokens[pos].Value == DelimiterWords.BLOCK_END)
             return false;
         int tempPos = pos;
@@ -92,14 +77,11 @@ public partial class Parser
         }
         return false;
     }
-
-    // Validación y construcción de parámetros de función
     private Node ParseParams(List<Token> tokens, ref int pos)
     {
         var parameters = new Node("Parameters");
         while (tokens[pos].Type != "DELIMITER" || tokens[pos].Value != DelimiterWords.PAREN_CLOSE)
         {
-            // support either base TYPE or composite 'chainsaw<type>' / 'hogyoku<type>'
             if (tokens[pos].Type == "TYPE" || (tokens[pos].Type == "IDENTIFIER" && TypeWords.CompositeWrappers.Contains(tokens[pos].Value)))
             {
                 Node typeNode = new Node("Unknown");
@@ -112,16 +94,15 @@ public partial class Parser
                 }
                 else
                 {
-                    // composite type starting with 'chainsaw' or 'hogyoku'
                     var wrapper = tokens[pos];
                     typeNode = new Node(wrapper.Value) { Line = wrapper.Line, Column = wrapper.Column };
-                    pos++; // consume 'chainsaw' or 'hogyoku'
+                    pos++;
                     if (!(pos < tokens.Count && (tokens[pos].Type == "DELIMITER" || tokens[pos].Type == "OPERATOR") && tokens[pos].Value == DelimiterWords.ANGLE_OPEN))
                     {
                         parameters.Children.Add(ErrorNode("Se esperaba '<' en tipo compuesto", pos));
                         break;
                     }
-                    pos++; // consume '<'
+                    pos++;
                     if (!(pos < tokens.Count && tokens[pos].Type == "TYPE"))
                     {
                         parameters.Children.Add(ErrorNode("Se esperaba tipo base dentro de '<>'", pos));
@@ -129,13 +110,13 @@ public partial class Parser
                     }
                     var inner = new Node(tokens[pos].Value) { Line = tokens[pos].Line, Column = tokens[pos].Column };
                     typeNode.Children.Add(inner);
-                    pos++; // consume inner TYPE
+                    pos++;
                     if (!(pos < tokens.Count && (tokens[pos].Type == "DELIMITER" || tokens[pos].Type == "OPERATOR") && tokens[pos].Value == DelimiterWords.ANGLE_CLOSE))
                     {
                         parameters.Children.Add(ErrorNode("Se esperaba '>' en tipo compuesto", pos));
                         break;
                     }
-                    pos++; // consume '>'
+                    pos++;
                 }
 
                 if (pos < tokens.Count && tokens[pos].Type == "IDENTIFIER")
