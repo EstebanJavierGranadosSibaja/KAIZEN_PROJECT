@@ -25,17 +25,17 @@ namespace ParadigmasLang
 
             switch (expr.Type)
             {
-                case "INT": return TypeWords.INTEGER;
-                case "FLOAT": return TypeWords.FLOAT;
-                case "STRING": return TypeWords.STRING;
+                case "INT": return TypeWords.GEAR;
+                case "FLOAT": return TypeWords.SHINKAI;
+                case "STRING": return TypeWords.GRIMOIRE;
                 case "LITERAL":
                     if (expr.Children.Count > 0)
                     {
                         var lit = expr.Children[0].Type;
-                        if (lit == LiteralWords.TRUE || lit == LiteralWords.FALSE) return TypeWords.BOOL;
+                        if (lit == LiteralWords.TRUE || lit == LiteralWords.FALSE) return TypeWords.SHIN;
                         if (lit == LiteralWords.NULL) return LiteralWords.NULL;
                     }
-                    return TypeWords.STRING;
+                    return TypeWords.GRIMOIRE;
                 case "IDENTIFIER":
                 case "Identifier":
                     var name = ExtractIdentifierName(expr);
@@ -56,7 +56,7 @@ namespace ParadigmasLang
                         return string.IsNullOrEmpty(sig.ReturnType) ? null : sig.ReturnType;
                     if (_builtins.ContainsKey(fname))
                     {
-                        if (string.Equals(fname, ReservedWords.INPUT, StringComparison.OrdinalIgnoreCase)) return TypeWords.STRING;
+                        if (string.Equals(fname, ReservedWords.INPUT, StringComparison.OrdinalIgnoreCase)) return TypeWords.GRIMOIRE;
                         return null;
                     }
                     _diagnostics.Report(expr, $"Function '{fname}' no definida");
@@ -121,21 +121,21 @@ namespace ParadigmasLang
                         var arithOps = new[] { OperatorWords.ADD, OperatorWords.SUBTRACT, OperatorWords.MULTIPLY, OperatorWords.DIVIDE };
                         if (Array.Exists(arithOps, o => o == opSymbol))
                         {
-                            if (string.Equals(left, TypeWords.INTEGER, StringComparison.OrdinalIgnoreCase) && string.Equals(right, TypeWords.INTEGER, StringComparison.OrdinalIgnoreCase))
-                                return TypeWords.INTEGER;
-                            if ((string.Equals(left, TypeWords.INTEGER, StringComparison.OrdinalIgnoreCase) && string.Equals(right, TypeWords.FLOAT, StringComparison.OrdinalIgnoreCase)) ||
-                                (string.Equals(left, TypeWords.FLOAT, StringComparison.OrdinalIgnoreCase) && string.Equals(right, TypeWords.INTEGER, StringComparison.OrdinalIgnoreCase)) ||
-                                (string.Equals(left, TypeWords.FLOAT, StringComparison.OrdinalIgnoreCase) && string.Equals(right, TypeWords.FLOAT, StringComparison.OrdinalIgnoreCase)))
-                                return TypeWords.FLOAT;
+                            if (string.Equals(left, TypeWords.GEAR, StringComparison.OrdinalIgnoreCase) && string.Equals(right, TypeWords.GEAR, StringComparison.OrdinalIgnoreCase))
+                                return TypeWords.GEAR;
+                            if ((string.Equals(left, TypeWords.GEAR, StringComparison.OrdinalIgnoreCase) && string.Equals(right, TypeWords.SHINKAI, StringComparison.OrdinalIgnoreCase)) ||
+                                (string.Equals(left, TypeWords.SHINKAI, StringComparison.OrdinalIgnoreCase) && string.Equals(right, TypeWords.GEAR, StringComparison.OrdinalIgnoreCase)) ||
+                                (string.Equals(left, TypeWords.SHINKAI, StringComparison.OrdinalIgnoreCase) && string.Equals(right, TypeWords.SHINKAI, StringComparison.OrdinalIgnoreCase)))
+                                return TypeWords.SHINKAI;
                             return null;
                         }
                         var cmpOps = new[] { OperatorWords.GREATER, OperatorWords.LESS, OperatorWords.GREATER_EQUAL, OperatorWords.LESS_EQUAL, OperatorWords.EQUAL, OperatorWords.NOT_EQUAL };
-                        if (Array.Exists(cmpOps, o => o == opSymbol)) return TypeWords.BOOL;
+                        if (Array.Exists(cmpOps, o => o == opSymbol)) return TypeWords.SHIN;
                         var boolOps = new[] { OperatorWords.AND, OperatorWords.OR };
                         if (Array.Exists(boolOps, o => o == opSymbol))
                         {
-                            if (string.Equals(left, TypeWords.BOOL, StringComparison.OrdinalIgnoreCase) && string.Equals(right, TypeWords.BOOL, StringComparison.OrdinalIgnoreCase))
-                                return TypeWords.BOOL;
+                            if (string.Equals(left, TypeWords.SHIN, StringComparison.OrdinalIgnoreCase) && string.Equals(right, TypeWords.SHIN, StringComparison.OrdinalIgnoreCase))
+                                return TypeWords.SHIN;
                             return null;
                         }
                     }

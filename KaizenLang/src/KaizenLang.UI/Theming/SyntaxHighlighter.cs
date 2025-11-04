@@ -228,7 +228,7 @@ namespace KaizenLang.UI.Theming
             var types = new[]
             {
                 // Tipos básicos de KaizenLang
-                TypeWords.INTEGER, TypeWords.STRING, TypeWords.BOOL, TypeWords.FLOAT, TypeWords.DOUBLE, "char", ReservedWords.VOID,
+                TypeWords.GEAR, TypeWords.GRIMOIRE, TypeWords.SHIN, TypeWords.SHINKAI, TypeWords.BANKAI, "char", ReservedWords.VOID,
                 // Tipos compuestos
                 TypeWords.CHAINSAW, TypeWords.HOGYOKU
             };

@@ -2,22 +2,22 @@ namespace ParadigmasLang;
 
 public static class TypeWords
 {
-    public const string INTEGER = "integer";
-    public const string FLOAT = "float";
-    public const string DOUBLE = "double";
-    public const string BOOL = "bool";
-    public const string STRING = "string";
+    public const string GEAR = "gear"; // INTEGER
+    public const string SHINKAI = "shikai"; // FLOAT
+    public const string BANKAI = "bankai"; // DOUBLE
+    public const string SHIN = "shin"; // BOOL
+    public const string GRIMOIRE = "grimoire"; // STRING
 
-    public const string CHAINSAW = "chainsaw";
-    public const string HOGYOKU = "hogyoku";
+    public const string CHAINSAW = "chainsaw"; // ARRAY
+    public const string HOGYOKU = "hogyoku"; // MATRIX
 
     public static readonly HashSet<string> Words = new HashSet<string>
     {
-        INTEGER,
-        FLOAT,
-        DOUBLE,
-        BOOL,
-        STRING
+        GEAR,
+        SHINKAI,
+        BANKAI,
+        SHIN,
+        GRIMOIRE
     };
 
     public static readonly HashSet<string> CompositeWrappers = new HashSet<string>

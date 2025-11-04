@@ -4,13 +4,13 @@
 // Prueba todas las operaciones aritméticas básicas
 
 output("=== OPERACIONES CON INTEGERS ===");
-integer a = 10;
-integer b = 3;
+gear a = 10;
+gear b = 3;
 
-integer suma = a + b;
-integer resta = a - b;
-integer multiplicacion = a * b;
-integer division = a / b;
+gear suma = a + b;
+gear resta = a - b;
+gear multiplicacion = a * b;
+gear division = a / b;
 
 output("a = " + a + ", b = " + b);
 output("Suma: " + a + " + " + b + " = " + suma);
@@ -19,13 +19,13 @@ output("Multiplicación: " + a + " * " + b + " = " + multiplicacion);
 output("División: " + a + " / " + b + " = " + division);
 
 output("=== OPERACIONES CON FLOATS ===");
-float x = 10.5;
-float y = 2.5;
+shikai x = 10.5;
+shikai y = 2.5;
 
-float sumaF = x + y;
-float restaF = x - y;
-float multF = x * y;
-float divF = x / y;
+shikai sumaF = x + y;
+shikai restaF = x - y;
+shikai multF = x * y;
+shikai divF = x / y;
 
 output("x = " + x + ", y = " + y);
 output("Suma: " + x + " + " + y + " = " + sumaF);
@@ -34,22 +34,22 @@ output("Multiplicación: " + x + " * " + y + " = " + multF);
 output("División: " + x + " / " + y + " = " + divF);
 
 output("=== OPERACIONES MIXTAS (PROMOCIÓN) ===");
-integer entero = 5;
-float decimal = 2.5;
-float resultado = entero + decimal;
-output("Integer + Float: " + entero + " + " + decimal + " = " + resultado);
+gear entero = 5;
+shikai decimal = 2.5;
+shikai resultado = entero + decimal;
+output("gear + shikai: " + entero + " + " + decimal + " = " + resultado);
 
 output("=== EXPRESIONES COMPLEJAS ===");
-integer complejo = (10 + 5) * 2 - 8 / 4;
+gear complejo = (10 + 5) * 2 - 8 / 4;
 output("(10 + 5) * 2 - 8 / 4 = " + complejo);
 
-float complejo2 = 10.0 / 3.0 + 5.5 * 2.0;
+shikai complejo2 = 10.0 / 3.0 + 5.5 * 2.0;
 output("10.0 / 3.0 + 5.5 * 2.0 = " + complejo2);
 
 output("=== NÚMEROS NEGATIVOS ===");
-integer neg1 = -15;
-integer neg2 = -5;
-integer sumaNeg = neg1 + neg2;
-integer restaNeg = neg1 - neg2;
+gear neg1 = -15;
+gear neg2 = -5;
+gear sumaNeg = neg1 + neg2;
+gear restaNeg = neg1 - neg2;
 output("Negativos: " + neg1 + " + " + neg2 + " = " + sumaNeg);
 output("Negativos: " + neg1 + " - " + neg2 + " = " + restaNeg);

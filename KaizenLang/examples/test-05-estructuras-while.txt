@@ -3,7 +3,7 @@
 // ========================================
 
 output("=== TEST WHILE BÁSICO ===");
-integer contador = 1;
+gear contador = 1;
 
 while (contador <= 5) ying
     output("Contador: " + contador);
@@ -11,8 +11,8 @@ while (contador <= 5) ying
 yang
 
 output("=== TEST WHILE CON SUMA ACUMULADA ===");
-integer i = 1;
-integer suma = 0;
+gear i = 1;
+gear suma = 0;
 
 while (i <= 10) ying
     suma = suma + i;
@@ -22,7 +22,7 @@ yang
 output("Suma de 1 a 10: " + suma);
 
 output("=== TEST WHILE CON CONDICIÓN COMPLEJA ===");
-integer num = 1;
+gear num = 1;
 
 while ((num <= 20) && (num < 100)) ying
     output("Número: " + num);
@@ -30,7 +30,7 @@ while ((num <= 20) && (num < 100)) ying
 yang
 
 output("=== TEST WHILE CON DECREMENTO ===");
-integer cuenta = 10;
+gear cuenta = 10;
 
 while (cuenta > 0) ying
     output("Cuenta regresiva: " + cuenta);
@@ -39,7 +39,7 @@ yang
 output("¡Despegue!");
 
 output("=== TEST WHILE CON BOOLEANO ===");
-integer iteracion = 0;
+gear iteracion = 0;
 
 while (iteracion < 5) ying
     output("Iteración: " + iteracion);
@@ -47,7 +47,7 @@ while (iteracion < 5) ying
 yang
 
 output("=== TEST WHILE CON SALTOS ===");
-integer x = 2;
+gear x = 2;
 
 while (x <= 20) ying
     output("Número par: " + x);
@@ -55,11 +55,11 @@ while (x <= 20) ying
 yang
 
 output("=== TEST WHILE CON MÚLTIPLOS ===");
-integer multiplo = 5;
-integer count = 1;
+gear multiplo = 5;
+gear count = 1;
 
 while (count <= 5) ying
-    integer resultado = multiplo * count;
+    gear resultado = multiplo * count;
     output(multiplo + " x " + count + " = " + resultado);
     count = count + 1;
 yang

@@ -62,6 +62,6 @@ public static class SemanticUtils
             normalized.StartsWith(TypeWords.HOGYOKU, StringComparison.OrdinalIgnoreCase))
             return true;
 
-        return string.Equals(normalized, TypeWords.STRING, StringComparison.OrdinalIgnoreCase);
+        return string.Equals(normalized, TypeWords.GRIMOIRE, StringComparison.OrdinalIgnoreCase);
     }
 }

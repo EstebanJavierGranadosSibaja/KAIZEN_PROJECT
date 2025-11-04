@@ -237,19 +237,19 @@ public partial class Interpreter
                                     var declaredTypeLower = primitiveParamType.ToLowerInvariant();
                                     switch (declaredTypeLower)
                                     {
-                                        case TypeWords.INTEGER:
+                                        case TypeWords.GEAR:
                                             coercedValue = Convert.ToInt32(argValue);
                                             break;
-                                        case TypeWords.FLOAT:
-                                        case TypeWords.DOUBLE:
+                                        case TypeWords.SHINKAI:
+                                        case TypeWords.BANKAI:
                                         case "real":
                                             coercedValue = Convert.ToDouble(argValue);
                                             break;
-                                        case TypeWords.STRING:
+                                        case TypeWords.GRIMOIRE:
                                         case "texto":
                                             coercedValue = Convert.ToString(argValue);
                                             break;
-                                        case TypeWords.BOOL:
+                                        case TypeWords.SHIN:
                                         case "boolean":
                                             coercedValue = Convert.ToBoolean(argValue);
                                             break;

@@ -175,7 +175,7 @@ Cambios e implementaciones importantes
   - Se mejoró la inferencia de tipos en expresiones y se añadió una excepción controlada para inicializaciones provenientes de `input()` (la conversión se delega al runtime/interpreter).
 
 - Runtime / Interpreter
-  - El `Interpreter` realiza conversiones de token a tipo declarado en tiempo de ejecución (por ejemplo, convertir la cadena leída por `input()` a `integer` si la variable es `integer`).
+  - El `Interpreter` realiza conversiones de token a tipo declarado en tiempo de ejecución (por ejemplo, convertir la cadena leída por `input()` a `gear` si la variable es `gear`).
   - Se mantiene manejo de buffer de entrada y proveedor de entradas desde UI para compatibilidad con la interfaz gráfica.
 
 - Herramienta de pruebas E2E (console)

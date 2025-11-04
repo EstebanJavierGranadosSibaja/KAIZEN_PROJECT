@@ -32,8 +32,8 @@ public class SemanticAnalyzer
         {
             functions[kv.Key] = new FunctionSignature { Name = kv.Key, Arity = kv.Value, IsBuiltin = true };
         }
-    if (functions.ContainsKey(ReservedWords.INPUT)) functions[ReservedWords.INPUT].ReturnType = TypeWords.STRING;
-    if (functions.ContainsKey("length")) functions["length"].ReturnType = TypeWords.INTEGER;
+    if (functions.ContainsKey(ReservedWords.INPUT)) functions[ReservedWords.INPUT].ReturnType = TypeWords.GRIMOIRE;
+    if (functions.ContainsKey("length")) functions["length"].ReturnType = TypeWords.GEAR;
     if (functions.ContainsKey(ReservedWords.OUTPUT)) functions[ReservedWords.OUTPUT].ReturnType = ReservedWords.VOID;
         if (functions.ContainsKey("print")) functions["print"].ReturnType = "void";
     typeResolver = new TypeResolver(scopes, functions, builtins, diagnostics);
@@ -255,15 +255,15 @@ public class SemanticAnalyzer
         if (string.Equals(targetType, sourceType, StringComparison.OrdinalIgnoreCase))
             return true;
 
-        if (string.Equals(sourceType, TypeWords.INTEGER, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(sourceType, TypeWords.GEAR, StringComparison.OrdinalIgnoreCase))
         {
-            if (string.Equals(targetType, TypeWords.FLOAT, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(targetType, TypeWords.DOUBLE, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(targetType, TypeWords.SHINKAI, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(targetType, TypeWords.BANKAI, StringComparison.OrdinalIgnoreCase))
                 return true;
         }
 
-        if (string.Equals(sourceType, TypeWords.FLOAT, StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(targetType, TypeWords.DOUBLE, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(sourceType, TypeWords.SHINKAI, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(targetType, TypeWords.BANKAI, StringComparison.OrdinalIgnoreCase))
             return true;
 
         return false;

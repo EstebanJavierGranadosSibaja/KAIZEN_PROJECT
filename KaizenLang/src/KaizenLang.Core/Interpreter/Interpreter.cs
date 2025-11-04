@@ -134,16 +134,16 @@ public partial class Interpreter
             return token;
         switch (expectedType)
         {
-            case TypeWords.INTEGER:
+            case TypeWords.GEAR:
                 if (int.TryParse(token, out var i))
                     return i;
                 break;
-            case TypeWords.FLOAT:
-            case TypeWords.DOUBLE:
+            case TypeWords.SHINKAI:
+            case TypeWords.BANKAI:
                 if (double.TryParse(token, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var d))
                     return d;
                 break;
-            case TypeWords.BOOL:
+            case TypeWords.SHIN:
                 if (bool.TryParse(token, out var b))
                     return b;
                 var low = token.ToLowerInvariant();
@@ -152,7 +152,7 @@ public partial class Interpreter
                 if (low == "0" || low == LiteralWords.FALSE)
                     return false;
                 break;
-            case TypeWords.STRING:
+            case TypeWords.GRIMOIRE:
                 return token;
             default:
                 return token;
@@ -186,7 +186,7 @@ public partial class Interpreter
         {
             switch (primitiveLower)
             {
-                case TypeWords.INTEGER:
+                case TypeWords.GEAR:
                     if (value is int)
                         return value;
                     if (value is bool boolVal)
@@ -208,8 +208,8 @@ public partial class Interpreter
                     }
                     break;
 
-                case TypeWords.FLOAT:
-                case TypeWords.DOUBLE:
+                case TypeWords.SHINKAI:
+                case TypeWords.BANKAI:
                     if (value is double || value is float)
                         return Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture);
                     if (value is int or long or short or decimal)
@@ -218,7 +218,7 @@ public partial class Interpreter
                         return parsedDouble;
                     break;
 
-                case TypeWords.BOOL:
+                case TypeWords.SHIN:
                     if (value is bool)
                         return value;
                     if (value is int intVal)
@@ -237,7 +237,7 @@ public partial class Interpreter
                     }
                     break;
 
-                case TypeWords.STRING:
+                case TypeWords.GRIMOIRE:
                     return value.ToString() ?? string.Empty;
             }
         }

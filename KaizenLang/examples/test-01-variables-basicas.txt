@@ -3,55 +3,55 @@
 // ========================================
 // Prueba declaración de variables con todos los tipos simples
 
-// Tipo integer
-integer edad = 25;
-integer temperatura = -10;
-integer grande = 1000000;
+// Tipo gear
+gear edad = 25;
+gear temperatura = -10;
+gear grande = 1000000;
 
 output("=== INTEGERS ===");
 output("Edad: " + edad);
 output("Temperatura: " + temperatura);
 output("Grande: " + grande);
 
-// Tipo float
-float precio = 19.99;
-float pi = 3.14159;
-float negativo = -2.5;
+// Tipo shikai
+shikai precio = 19.99;
+shikai pi = 3.14159;
+shikai negativo = -2.5;
 
 output("=== FLOATS ===");
 output("Precio: " + precio);
 output("Pi: " + pi);
 output("Negativo: " + negativo);
 
-// Tipo double
-double precision = 3.141592653589793;
-double cientifica = 299792458.0;
+// Tipo bankai
+bankai precision = 3.141592653589793;
+bankai cientifica = 299792458.0;
 
 output("=== DOUBLES ===");
 output("Precisión: " + precision);
 output("Científica: " + cientifica);
 
-// Tipo bool
-bool activo = true;
-bool completado = false;
+// Tipo shin
+shin activo = true;
+shin completado = false;
 
 output("=== BOOLEANS ===");
 output("Activo: " + activo);
 output("Completado: " + completado);
 
-// Tipo string
-string nombre = "Ana García";
-string mensaje = "Hola, KaizenLang!";
-string vacio = "";
+// Tipo grimoire
+grimoire nombre = "Ana García";
+grimoire mensaje = "Hola, KaizenLang!";
+grimoire vacio = "";
 
 output("=== STRINGS ===");
 output("Nombre: " + nombre);
 output("Mensaje: " + mensaje);
 output("Vacío: '" + vacio + "'");
 
-// Caracteres individuales con string
-string letra = "A";
-string simbolo = "@";
+// Caracteres individuales con grimoire
+grimoire letra = "A";
+grimoire simbolo = "@";
 
 output("=== CARACTERES ===");
 output("Letra: " + letra);

@@ -1,26 +1,26 @@
 // Test para verificar que los números negativos funcionan correctamente
-// También prueba precisión de double
+// También prueba precisión de bankai
 // Enteros negativos
-integer a = -10;
-integer b = -1000000;
+gear a = -10;
+gear b = -1000000;
 
 // Flotantes negativos
-double c = -2.5;
-double d = -3.141592653589793;
+bankai c = -2.5;
+bankai d = -3.141592653589793;
 
 // Número científico grande
-double e = 299792458.0;
+bankai e = 299792458.0;
 
 // Operaciones con negativos
-integer suma = a + 5;           // -10 + 5 = -5
-integer resta = a - b;          // -10 - (-1000000) = 999990
-double mult = c * 2.0;          // -2.5 * 2.0 = -5.0
+gear suma = a + 5;           // -10 + 5 = -5
+gear resta = a - b;          // -10 - (-1000000) = 999990
+bankai mult = c * 2.0;          // -2.5 * 2.0 = -5.0
 
 // Doble negación
-integer f = -(-10);             // -(-10) = 10
+gear f = -(-10);             // -(-10) = 10
 
 // Expresiones complejas
-integer g = -(5 + 3);           // -(8) = -8
+gear g = -(5 + 3);           // -(8) = -8
 
 output("a =", a);               // Debe ser -10
 output("b =", b);               // Debe ser -1000000

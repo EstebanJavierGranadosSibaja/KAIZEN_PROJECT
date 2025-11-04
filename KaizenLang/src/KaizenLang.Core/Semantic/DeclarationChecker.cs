@@ -299,15 +299,15 @@ public class DeclarationChecker
         if (string.Equals(targetType, sourceType, StringComparison.OrdinalIgnoreCase))
             return true;
 
-        if (string.Equals(sourceType, TypeWords.INTEGER, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(sourceType, TypeWords.GEAR, StringComparison.OrdinalIgnoreCase))
         {
-            if (string.Equals(targetType, TypeWords.FLOAT, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(targetType, TypeWords.DOUBLE, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(targetType, TypeWords.SHINKAI, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(targetType, TypeWords.BANKAI, StringComparison.OrdinalIgnoreCase))
                 return true;
         }
 
-        if (string.Equals(sourceType, TypeWords.FLOAT, StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(targetType, TypeWords.DOUBLE, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(sourceType, TypeWords.SHINKAI, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(targetType, TypeWords.BANKAI, StringComparison.OrdinalIgnoreCase))
             return true;
 
         return false;

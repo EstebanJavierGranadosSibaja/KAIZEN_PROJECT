@@ -12,14 +12,14 @@ Esta carpeta contiene 15 archivos de prueba diseñados para validar todas las fu
 
 #### **Test 01: Variables Básicas** (`test-01-variables-basicas.txt`)
 - Declaración de los 5 tipos simples
-- Tipos: `integer`, `float`, `double`, `bool`, `string`
-- Caracteres individuales con string
+- Tipos: `gear`, `shikai`, `bankai`, `shin`, `grimoire`
+- Caracteres individuales con grimoire
 - **Resultado esperado:** Imprime todos los valores correctamente
 
 #### **Test 02: Operaciones Aritméticas** (`test-02-operaciones-aritmeticas.txt`)
 - Suma, resta, multiplicación, división
 - Operaciones con integers y floats
-- Promoción numérica (integer → float)
+- Promoción numérica (gear → shikai)
 - Expresiones complejas con paréntesis
 - **Resultado esperado:** Cálculos matemáticos correctos
 
@@ -51,7 +51,7 @@ Esta carpeta contiene 15 archivos de prueba diseñados para validar todas las fu
 - **Resultado esperado:** Bucles funcionan correctamente
 
 #### **Test 07: Chainsaw Básicos** (`test-07-arrays-basicos.txt`)
-- Declaración: `chainsaw<integer>`, `chainsaw<string>`, etc.
+- Declaración: `chainsaw<gear>`, `chainsaw<grimoire>`, etc.
 - Acceso por índice
 - Función `length()`
 - Recorrido con for
@@ -59,7 +59,7 @@ Esta carpeta contiene 15 archivos de prueba diseñados para validar todas las fu
 - **Resultado esperado:** Operaciones con chainsaws correctas
 
 #### **Test 08: Hogyokus** (`test-08-matrices.txt`)
-- Declaración: `hogyoku<integer>`
+- Declaración: `hogyoku<gear>`
 - Acceso bidimensional `[i][j]`
 - For anidado para recorrer
 - Suma de elementos
@@ -69,7 +69,7 @@ Esta carpeta contiene 15 archivos de prueba diseñados para validar todas las fu
 #### **Test 09: Funciones Básicas** (`test-09-funciones-basicas.txt`)
 - Funciones `void` sin parámetros
 - Funciones `void` con parámetros
-- Funciones con retorno (`integer`, `float`, `bool`, `string`)
+- Funciones con retorno (`gear`, `shikai`, `shin`, `grimoire`)
 - Múltiples parámetros
 - **Resultado esperado:** Llamadas y retornos correctos
 
@@ -225,7 +225,7 @@ Los tests 13-14 deben:
 
 ### Test 02 - Aritmética
 - ✅ Operaciones básicas (+, -, *, /)
-- ✅ Promoción numérica (int → float)
+- ✅ Promoción numérica (gear → shikai)
 - ✅ Precedencia de operadores
 - ✅ Expresiones con paréntesis
 
@@ -298,7 +298,7 @@ Los tests 13-14 deben:
 
 ### Error: "Tipo incompatible"
 - Verificar que operaciones usen tipos compatibles
-- Recordar: integer + float = float (promoción)
+- Recordar: gear + shikai = shikai (promoción)
 
 ### Error: "Falta return"
 - Todas las funciones no-void deben tener `return`
@@ -306,7 +306,7 @@ Los tests 13-14 deben:
 
 ### Error: "Chainsaw heterogéneo"
 - Chainsaws deben tener elementos del mismo tipo
-- `chainsaw<integer>` solo acepta integers
+- `chainsaw<gear>` solo acepta integers
 
 ### Error: "Hogyoku no rectangular"
 - Todas las filas deben tener igual número de columnas

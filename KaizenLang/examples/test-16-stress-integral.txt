@@ -5,12 +5,12 @@
 // y operaciones mixtas para validar la robustez del runtime.
 
 output("=== STRESS: CONTROL PROFUNDO ===");
-integer hits = 0;
+gear hits = 0;
 
-for (integer i = 0; i < 4; i = i + 1) ying
-    for (integer j = 0; j < 4; j = j + 1) ying
-        for (integer k = 0; k < 4; k = k + 1) ying
-            integer sum = i + j + k;
+for (gear i = 0; i < 4; i = i + 1) ying
+    for (gear j = 0; j < 4; j = j + 1) ying
+        for (gear k = 0; k < 4; k = k + 1) ying
+            gear sum = i + j + k;
             if ((sum % 2) == 0) ying
                 hits = hits + 1;
                 if ((hits % 5) == 0) ying
@@ -24,33 +24,33 @@ yang
 output("Total combinaciones válidas: " + hits);
 
 output("=== STRESS: RECURSIÓN PROFUNDA ===");
-integer depthTracer(integer level, integer limit) ying
+gear depthTracer(gear level, gear limit) ying
     if (level >= limit) ying
         return level;
     yang
     return depthTracer(level + 1, limit);
 yang
 
-integer depthReached = depthTracer(0, 25);
+gear depthReached = depthTracer(0, 25);
 output("Recursión alcanzó el nivel: " + depthReached);
 
 output("=== STRESS: SUMA RECURSIVA ===");
-integer deepSum(integer n) ying
+gear deepSum(gear n) ying
     if (n <= 0) ying
         return 0;
     yang
     return n + deepSum(n - 1);
 yang
 
-integer sum15 = deepSum(15);
+gear sum15 = deepSum(15);
 output("Suma 1..15 = " + sum15);
 
 output("=== STRESS: COLECCIONES ===");
-chainsaw<integer> numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-chainsaw<float> floats = [0.5, 1.5, 2.5, 3.5, 4.5];
+chainsaw<gear> numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+chainsaw<shikai> floats = [0.5, 1.5, 2.5, 3.5, 4.5];
 
-integer idx = 0;
-integer running = 0;
+gear idx = 0;
+gear running = 0;
 
 for (idx = 0; idx < length(numbers); idx = idx + 1) ying
     running = running + numbers[idx];
@@ -58,8 +58,8 @@ yang
 
 output("Suma integers = " + running);
 
-integer floatIdx = 0;
-float runningFloat = 0.0;
+gear floatIdx = 0;
+shikai runningFloat = 0.0;
 
 for (floatIdx = 0; floatIdx < length(floats); floatIdx = floatIdx + 1) ying
     runningFloat = runningFloat + floats[floatIdx];
@@ -68,15 +68,15 @@ yang
 output("Suma floats = " + runningFloat);
 
 output("=== STRESS: HOGYOKU ===");
-hogyoku<integer> cube = [
+hogyoku<gear> cube = [
     [1, 2, 3],
     [4, 5, 6],
     [7, 8, 9]
 ];
 
-integer diag = 0;
-for (integer row = 0; row < 3; row = row + 1) ying
-    for (integer col = 0; col < 3; col = col + 1) ying
+gear diag = 0;
+for (gear row = 0; row < 3; row = row + 1) ying
+    for (gear col = 0; col < 3; col = col + 1) ying
         if (row == col) ying
             diag = diag + cube[row][col];
         yang
@@ -86,7 +86,7 @@ yang
 output("Suma diagonal = " + diag);
 
 output("=== STRESS: CONDICIONES ANIDADAS ===");
-integer value = 30;
+gear value = 30;
 if (value > 0) ying
     if ((value % 3) == 0) ying
         if ((value % 5) == 0) ying

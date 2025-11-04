@@ -3,16 +3,16 @@
 // ========================================
 
 output("=== OPERACIONES DE COMPARACIÓN ===");
-integer a = 10;
-integer b = 20;
-integer c = 10;
+gear a = 10;
+gear b = 20;
+gear c = 10;
 
-bool mayorQue = a > b;
-bool menorQue = a < b;
-bool mayorIgual = a >= c;
-bool menorIgual = b <= 100;
-bool igual = a == c;
-bool diferente = a != b;
+shin mayorQue = a > b;
+shin menorQue = a < b;
+shin mayorIgual = a >= c;
+shin menorIgual = b <= 100;
+shin igual = a == c;
+shin diferente = a != b;
 
 output("a = " + a + ", b = " + b + ", c = " + c);
 output("a > b: " + mayorQue);
@@ -23,43 +23,43 @@ output("a == c: " + igual);
 output("a != b: " + diferente);
 
 output("=== OPERACIONES LÓGICAS (AND) ===");
-bool verdadero = true;
-bool falso = false;
+shin verdadero = true;
+shin falso = false;
 
-bool and1 = verdadero && verdadero;
-bool and2 = verdadero && falso;
-bool and3 = falso && falso;
+shin and1 = verdadero && verdadero;
+shin and2 = verdadero && falso;
+shin and3 = falso && falso;
 
 output("true && true: " + and1);
 output("true && false: " + and2);
 output("false && false: " + and3);
 
 output("=== OPERACIONES LÓGICAS (OR) ===");
-bool or1 = verdadero || verdadero;
-bool or2 = verdadero || falso;
-bool or3 = falso || falso;
+shin or1 = verdadero || verdadero;
+shin or2 = verdadero || falso;
+shin or3 = falso || falso;
 
 output("true || true: " + or1);
 output("true || false: " + or2);
 output("false || false: " + or3);
 
 output("=== OPERACIONES LÓGICAS (NOT) ===");
-bool not1 = !verdadero;
-bool not2 = !falso;
+shin not1 = !verdadero;
+shin not2 = !falso;
 
 output("!true: " + not1);
 output("!false: " + not2);
 
 output("=== EXPRESIONES LÓGICAS COMPLEJAS ===");
-integer edad = 25;
-bool tieneCarnet = true;
+gear edad = 25;
+shin tieneCarnet = true;
 
-bool puedeConducir = (edad >= 18) && tieneCarnet;
+shin puedeConducir = (edad >= 18) && tieneCarnet;
 output("Edad >= 18 y tiene carnet: " + puedeConducir);
 
-integer nota = 85;
-bool aprobado = (nota >= 70) || (nota == 100);
+gear nota = 85;
+shin aprobado = (nota >= 70) || (nota == 100);
 output("Nota >= 70 o nota == 100: " + aprobado);
 
-bool complejo = ((a > 5) && (b < 30)) || (c == 10);
+shin complejo = ((a > 5) && (b < 30)) || (c == 10);
 output("((a > 5) && (b < 30)) || (c == 10): " + complejo);

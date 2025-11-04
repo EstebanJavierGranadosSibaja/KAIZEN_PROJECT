@@ -124,9 +124,9 @@ public class CollectionValidator
 
         if (IsNumericType(expected) && IsNumericType(actual))
         {
-            if (string.Equals(expected, TypeWords.FLOAT, StringComparison.OrdinalIgnoreCase) && string.Equals(actual, TypeWords.INTEGER, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(expected, TypeWords.SHINKAI, StringComparison.OrdinalIgnoreCase) && string.Equals(actual, TypeWords.GEAR, StringComparison.OrdinalIgnoreCase))
                 return true;
-            if (string.Equals(expected, TypeWords.DOUBLE, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(expected, TypeWords.BANKAI, StringComparison.OrdinalIgnoreCase))
                 return true;
         }
 
@@ -135,8 +135,8 @@ public class CollectionValidator
 
     private static bool IsNumericType(string typeName)
     {
-        return string.Equals(typeName, TypeWords.INTEGER, StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(typeName, TypeWords.FLOAT, StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(typeName, TypeWords.DOUBLE, StringComparison.OrdinalIgnoreCase);
+        return string.Equals(typeName, TypeWords.GEAR, StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(typeName, TypeWords.SHINKAI, StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(typeName, TypeWords.BANKAI, StringComparison.OrdinalIgnoreCase);
     }
 }

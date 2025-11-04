@@ -12,14 +12,14 @@ saludar();
 
 output("=== FUNCIONES VOID CON PARÁMETROS ===");
 
-void saludarPersona(string nombre) ying
+void saludarPersona(grimoire nombre) ying
     output("¡Hola " + nombre + "!");
 yang
 
 saludarPersona("Ana");
 saludarPersona("Luis");
 
-void mostrarNumero(integer num) ying
+void mostrarNumero(gear num) ying
     output("El número es: " + num);
 yang
 
@@ -28,71 +28,71 @@ mostrarNumero(100);
 
 output("=== FUNCIONES CON RETORNO ===");
 
-integer suma(integer a, integer b) ying
+gear suma(gear a, gear b) ying
     return a + b;
 yang
 
-integer resultado = suma(10, 5);
+gear resultado = suma(10, 5);
 output("Suma de 10 + 5: " + resultado);
 
-integer resultado2 = suma(25, 75);
+gear resultado2 = suma(25, 75);
 output("Suma de 25 + 75: " + resultado2);
 
 output("=== FUNCIÓN DE MULTIPLICACIÓN ===");
 
-integer multiplicar(integer x, integer y) ying
+gear multiplicar(gear x, gear y) ying
     return x * y;
 yang
 
-integer mult1 = multiplicar(5, 6);
-integer mult2 = multiplicar(12, 3);
+gear mult1 = multiplicar(5, 6);
+gear mult2 = multiplicar(12, 3);
 
 output("5 * 6 = " + mult1);
 output("12 * 3 = " + mult2);
 
-output("=== FUNCIÓN CON FLOAT ===");
+output("=== FUNCIÓN CON shikai ===");
 
-float dividir(float a, float b) ying
+shikai dividir(shikai a, shikai b) ying
     return a / b;
 yang
 
-float div1 = dividir(10.0, 2.0);
-float div2 = dividir(7.5, 2.5);
+shikai div1 = dividir(10.0, 2.0);
+shikai div2 = dividir(7.5, 2.5);
 
 output("10.0 / 2.0 = " + div1);
 output("7.5 / 2.5 = " + div2);
 
-output("=== FUNCIÓN CON BOOL ===");
+output("=== FUNCIÓN CON shin ===");
 
-bool esMayor(integer a, integer b) ying
+shin esMayor(gear a, gear b) ying
     return a > b;
 yang
 
-bool comp1 = esMayor(10, 5);
-bool comp2 = esMayor(3, 8);
+shin comp1 = esMayor(10, 5);
+shin comp2 = esMayor(3, 8);
 
 output("10 > 5: " + comp1);
 output("3 > 8: " + comp2);
 
-output("=== FUNCIÓN CON STRING ===");
+output("=== FUNCIÓN CON grimoire ===");
 
-string concatenar(string a, string b) ying
+grimoire concatenar(grimoire a, grimoire b) ying
     return a + " " + b;
 yang
 
-string frase = concatenar("Hola", "Mundo");
+grimoire frase = concatenar("Hola", "Mundo");
 output("Concatenación: " + frase);
 
 output("=== FUNCIÓN CON MÚLTIPLES PARÁMETROS ===");
 
-integer calcular(integer a, integer b, integer c) ying
+gear calcular(gear a, gear b, gear c) ying
     return (a + b) * c;
 yang
 
-integer calc1 = calcular(5, 3, 2);
+gear calc1 = calcular(5, 3, 2);
 output("(5 + 3) * 2 = " + calc1);
 
 output("=== LLAMADAS ANIDADAS ===");
 
-integer triple = multiplicar(suma(5, 5), 3);
+gear triple = multiplicar(suma(5, 5), 3);
 output("((5 + 5) * 3) = " + triple);

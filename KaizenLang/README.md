@@ -35,7 +35,7 @@ El nombre "Kaizen" (改善) proviene del japonés y significa "mejora continua".
 
 - **Tipado estricto**: No conversiones implícitas peligrosas, todas las variables deben declararse explícitamente
 - **Sintaxis única**: Usa `ying` y `yang` como delimitadores de bloques, inspirados en el concepto de balance
-- **5 tipos de datos simples**: `integer`, `float`, `double`, `bool`, `string`
+- **5 tipos de datos simples**: `gear`, `shikai`, `bankai`, `shin`, `grimoire`
 - **2 tipos de datos compuestos**: `chainsaw<T>`, `hogyoku<T>` (colecciones 1D y 2D)
 - **Estructuras de control**: `if-else`, `while`, `for`
 - **Funciones**: Con retorno de valores y funciones `void`
@@ -164,11 +164,11 @@ dotnet run --project tools/QuickRunner/QuickRunner.csproj
 
 ```kaizen
 // Tipado explícito obligatorio
-integer edad = 25;
-float altura = 1.75;
-double temperatura = 36.6;
-bool esEstudiante = true;
-string nombre = "Ana";
+gear edad = 25;
+shikai altura = 1.75;
+bankai temperatura = 36.6;
+shin esEstudiante = true;
+grimoire nombre = "Ana";
 ```
 
 ### Estructuras de Control
@@ -182,14 +182,14 @@ yang else ying
 yang
 
 // Bucle while
-integer contador = 0;
+gear contador = 0;
 while (contador < 5) ying
     output("Iteración: " + contador);
     contador = contador + 1;
 yang
 
 // Bucle for
-for (integer i = 0; i < 10; i = i + 1) ying
+for (gear i = 0; i < 10; i = i + 1) ying
     output("Número: " + i);
 yang
 ```
@@ -198,17 +198,17 @@ yang
 
 ```kaizen
 // Función con retorno
-integer suma(integer a, integer b) ying
+gear suma(gear a, gear b) ying
     return a + b;
 yang
 
 // Función void
-void saludar(string nombre) ying
+void saludar(grimoire nombre) ying
     output("Hola " + nombre + "!");
 yang
 
 // Llamadas a funciones
-integer resultado = suma(10, 5);
+gear resultado = suma(10, 5);
 saludar("KaizenLang");
 ```
 
@@ -216,33 +216,33 @@ saludar("KaizenLang");
 
 ```kaizen
 // Chainsaw con tipo genérico
-chainsaw<integer> numeros = [1, 2, 3, 4, 5];
-chainsaw<string> nombres = ["Ana", "Luis", "Pedro"];
+chainsaw<gear> numeros = [1, 2, 3, 4, 5];
+chainsaw<grimoire> nombres = ["Ana", "Luis", "Pedro"];
 
 // Acceso por índice
-integer primero = numeros[0];
-string persona = nombres[1];
+gear primero = numeros[0];
+grimoire persona = nombres[1];
 
 // Hogyoku (colecciones 2D)
-hogyoku<integer> tabla = [
+hogyoku<gear> tabla = [
     [1, 2, 3],
     [4, 5, 6],
     [7, 8, 9]
 ];
 
-integer elemento = tabla[0][1];  // Valor: 2
+gear elemento = tabla[0][1];  // Valor: 2
 ```
 
 ### Entrada y Salida
 
 ```kaizen
 // Solicitar entrada del usuario
-string nombre = input();
+grimoire nombre = input();
 output("Hola " + nombre);
 
 // Obtener longitud de un chainsaw
-chainsaw<integer> datos = [10, 20, 30];
-integer tam = length(datos);
+chainsaw<gear> datos = [10, 20, 30];
+gear tam = length(datos);
 output("Tamaño del chainsaw: " + tam);
 ```
 
@@ -250,16 +250,16 @@ output("Tamaño del chainsaw: " + tam);
 
 ```kaizen
 // Aritméticas
-integer x = 10 + 5 * 2;     // 20
-float y = 10.0 / 3.0;        // 3.333...
+gear x = 10 + 5 * 2;     // 20
+shikai y = 10.0 / 3.0;        // 3.333...
 
 // Comparación
-bool mayorQue = (x > 15);    // true
-bool igual = (y == 3.33);    // false
+shin mayorQue = (x > 15);    // true
+shin igual = (y == 3.33);    // false
 
 // Lógicas
-bool resultado = (x > 10) && (y < 5);  // true
-bool negacion = !resultado;             // false
+shin resultado = (x > 10) && (y < 5);  // true
+shin negacion = !resultado;             // false
 ```
 
 ---
@@ -269,25 +269,25 @@ bool negacion = !resultado;             // false
 ### Ejemplo 1: Factorial Recursivo
 
 ```kaizen
-integer factorial(integer n) ying
+gear factorial(gear n) ying
     if (n <= 1) ying
         return 1;
     yang
     return n * factorial(n - 1);
 yang
 
-integer resultado = factorial(5);
+gear resultado = factorial(5);
 output("5! = " + resultado);  // Output: 5! = 120
 ```
 
 ### Ejemplo 2: Suma de Chainsaw
 
 ```kaizen
-chainsaw<integer> numeros = [10, 20, 30, 40, 50];
-integer suma = 0;
-integer tam = length(numeros);
+chainsaw<gear> numeros = [10, 20, 30, 40, 50];
+gear suma = 0;
+gear tam = length(numeros);
 
-for (integer i = 0; i < tam; i = i + 1) ying
+for (gear i = 0; i < tam; i = i + 1) ying
     suma = suma + numeros[i];
 yang
 
@@ -298,8 +298,8 @@ output("La suma es: " + suma);  // Output: La suma es: 150
 
 ```kaizen
 void validarEdad() ying
-    string input_texto = input();
-    // Nota: En versión actual, conversión manual de string a integer
+    grimoire input_texto = input();
+    // Nota: En versión actual, conversión manual de grimoire a gear
     // está delegada al runtime para inputs
 
     if (edad >= 18) ying
@@ -407,7 +407,7 @@ El editor incluye resaltado de sintaxis para:
 
 - **Comentarios** - Verde e itálica (`//`)
 - **Palabras clave** - Bold (`if`, `else`, `for`, `while`, `ying`, `yang`)
-- **Tipos** - Bold (`integer`, `string`, `chainsaw<>`, `hogyoku<>`)
+- **Tipos** - Bold (`gear`, `grimoire`, `chainsaw<>`, `hogyoku<>`)
 - **Funciones builtin** - Color especial (`input`, `output`, `length`)
 - **Cadenas de texto** - Color distintivo
 - **Números** - Resaltados
@@ -454,35 +454,35 @@ KaizenLang valida errores en **todas las fases**:
 ### Errores Léxicos
 
 ```kaizen
-integer x = 123abc;  // ❌ Token inválido
+gear x = 123abc;  // ❌ Token inválido
 ```
 
 ### Errores Sintácticos
 
 ```kaizen
-integer x = 10  // ❌ Falta punto y coma
+gear x = 10  // ❌ Falta punto y coma
 if x > 5 ying   // ❌ Falta paréntesis en condición
-chainsaw<integer> = [1, 2, 3];  // ❌ Falta identificador
+chainsaw<gear> = [1, 2, 3];  // ❌ Falta identificador
 ```
 
 ### Errores Semánticos
 
 ```kaizen
-integer x = "texto";          // ❌ Tipo incompatible
-integer y = z + 10;           // ❌ Variable 'z' no declarada
-integer suma(integer a) ying  // ❌ Falta return en función no-void
-    integer b = 10;
+gear x = "texto";          // ❌ Tipo incompatible
+gear y = z + 10;           // ❌ Variable 'z' no declarada
+gear suma(gear a) ying  // ❌ Falta return en función no-void
+    gear b = 10;
 yang
-chainsaw<integer> nums = [1, "dos", 3];  // ❌ Elementos heterogéneos
-hogyoku<integer> mat = [[1, 2], [3]];  // ❌ Hogyoku no rectangular
+chainsaw<gear> nums = [1, "dos", 3];  // ❌ Elementos heterogéneos
+hogyoku<gear> mat = [[1, 2], [3]];  // ❌ Hogyoku no rectangular
 ```
 
 ### Errores de Runtime
 
 ```kaizen
-integer x = 10 / 0;           // ❌ División por cero
-chainsaw<integer> a = [1, 2, 3];
-integer y = a[10];            // ❌ Índice fuera de rango
+gear x = 10 / 0;           // ❌ División por cero
+chainsaw<gear> a = [1, 2, 3];
+gear y = a[10];            // ❌ Índice fuera de rango
 ```
 
 ---
@@ -500,7 +500,7 @@ integer y = a[10];            // ❌ Índice fuera de rango
 ### Requisitos Cumplidos
 
 ✅ Nombre del lenguaje definido
-✅ 5 tipos de datos simples (integer, float, double, bool, string)
+✅ 5 tipos de datos simples (gear, shikai, bankai, shin, grimoire)
 ✅ 2 tipos de datos compuestos (chainsaw, hogyoku)
 ✅ Palabras reservadas documentadas
 ✅ Sintaxis completa (control, funciones, operaciones)

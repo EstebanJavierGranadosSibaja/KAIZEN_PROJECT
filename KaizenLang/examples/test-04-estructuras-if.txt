@@ -3,14 +3,14 @@
 // ========================================
 
 output("=== TEST IF SIMPLE ===");
-integer numero = 10;
+gear numero = 10;
 
 if (numero > 5) ying
     output("El número es mayor que 5");
 yang
 
 output("=== TEST IF-ELSE ===");
-integer edad = 20;
+gear edad = 20;
 
 if (edad >= 18) ying
     output("Eres mayor de edad");
@@ -19,7 +19,7 @@ yang else ying
 yang
 
 output("=== TEST IF CON COMPARACIONES ===");
-integer temperatura = 25;
+gear temperatura = 25;
 
 if (temperatura > 30) ying
     output("Hace mucho calor");
@@ -28,7 +28,7 @@ yang else ying
 yang
 
 output("=== TEST IF CON EXPRESIONES LÓGICAS ===");
-integer nota = 85;
+gear nota = 85;
 
 if ((nota >= 70) && (nota < 90)) ying
     output("Tu calificación es: B");
@@ -39,7 +39,7 @@ if (nota >= 90) ying
 yang
 
 output("=== TEST IF CON VARIABLES BOOLEANAS ===");
-bool esActivo = true;
+shin esActivo = true;
 
 if (esActivo) ying
     output("El usuario está activo");
@@ -48,9 +48,9 @@ yang else ying
 yang
 
 output("=== TEST IF-ELSE MÚLTIPLES ===");
-integer puntos = 75;
+gear puntos = 75;
 
-string evaluacion = "Necesitas mejorar";
+grimoire evaluacion = "Necesitas mejorar";
 
 if (puntos >= 90) ying
     evaluacion = "Excelente";
@@ -63,9 +63,9 @@ yang
 output("Evaluación: " + evaluacion);
 
 output("=== TEST IF CON OPERACIONES ===");
-integer x = 10;
-integer y = 5;
-integer suma = x + y;
+gear x = 10;
+gear y = 5;
+gear suma = x + y;
 
 if (suma > 10) ying
     output("La suma es mayor que 10: " + suma);
@@ -74,7 +74,7 @@ yang else ying
 yang
 
 output("=== TEST IF CON STRINGS ===");
-string nombre = "Ana";
+grimoire nombre = "Ana";
 
 if (nombre == "Ana") ying
     output("Hola Ana!");
