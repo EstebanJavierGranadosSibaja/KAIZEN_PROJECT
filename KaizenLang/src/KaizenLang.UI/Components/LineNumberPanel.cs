@@ -11,10 +11,10 @@ namespace KaizenLang.UI.Components
 
         public LineNumberPanel()
         {
-            lineNumberFont = new Font("Consolas", 10F);
+            lineNumberFont = new Font("Consolas", 9F);
             SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint, true);
-            Width = 60;
-            Dock = DockStyle.Left;
+            Width = 45;
+            Dock = DockStyle.None;
             BorderStyle = BorderStyle.None;
         }
 
@@ -23,11 +23,39 @@ namespace KaizenLang.UI.Components
             associatedTextBox = textBox;
             if (associatedTextBox != null)
             {
+                // Establecer margen izquierdo directamente
+                SetTextBoxLeftMargin(associatedTextBox, 45); // 55 píxeles de margen
+
+                // Posicionar el panel sobre el textbox
+                this.Location = new Point(0, 0);
+                this.Height = associatedTextBox.Height;
+                this.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+
                 associatedTextBox.TextChanged += (s, e) => Invalidate();
                 associatedTextBox.VScroll += (s, e) => Invalidate();
-                associatedTextBox.Resize += (s, e) => Invalidate();
+                associatedTextBox.Resize += (s, e) =>
+                {
+                    this.Height = associatedTextBox.Height;
+                    Invalidate();
+                };
                 associatedTextBox.SelectionChanged += (s, e) => Invalidate();
             }
+        }
+
+        private void SetTextBoxLeftMargin(RichTextBox textBox, int marginPixels)
+        {
+            // Guardar la posición actual del cursor
+            int originalStart = textBox.SelectionStart;
+            int originalLength = textBox.SelectionLength;
+
+            // Seleccionar todo el texto
+            textBox.SelectAll();
+
+            // Establecer el margen izquierdo en píxeles
+            textBox.SelectionIndent = marginPixels;
+
+            // Restaurar la selección original
+            textBox.Select(originalStart, originalLength);
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -51,7 +79,7 @@ namespace KaizenLang.UI.Components
             {
                 var lineText = "1";
                 var textSize = g.MeasureString(lineText, lineNumberFont);
-                var x = Width - textSize.Width - 12;
+                var x = Width - textSize.Width - 8;
                 var y = associatedTextBox.GetPositionFromCharIndex(0).Y;
                 g.DrawString(lineText, lineNumberFont, brush, x, y);
             }
@@ -75,7 +103,7 @@ namespace KaizenLang.UI.Components
                     {
                         var lineText = displayLineNumber.ToString();
                         var textSize = g.MeasureString(lineText, lineNumberFont);
-                        var x = Width - textSize.Width - 12;
+                        var x = Width - textSize.Width - 8;
                         var y = p.Y;
 
                         g.DrawString(lineText, lineNumberFont, brush, x, y);

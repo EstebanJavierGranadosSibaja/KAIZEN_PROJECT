@@ -31,7 +31,6 @@ namespace KaizenLang.UI
             executionService.InputProvider = prompt => Prompt.Show("Entrada requerida", prompt);
 
             InitializeCustomComponents();
-            SetupEnhancedFeatures();
             SetupKeyboardShortcuts();
 
             // Configurar ícono de la aplicación
@@ -39,8 +38,12 @@ namespace KaizenLang.UI
 
             this.ApplyCurrentThemeRecursive();
 
-            // Cargar ejemplo con resaltado de sintaxis para mostrar la funcio
-            this.Load += (s, e) => TestSyntaxHighlighting();
+            // Cargar ejemplo y configurar números de línea cuando el formulario esté listo
+            this.Load += (s, e) =>
+            {
+                SetupEnhancedFeatures();
+                TestSyntaxHighlighting();
+            };
         }
 
         private void InitializeCustomComponents()
@@ -57,7 +60,7 @@ namespace KaizenLang.UI
                 {
                     var result = await Task.Run(() => compilationService.CompileCode(codeRichTextBox.Text));
                     DisplayResult(result.Output, result.IsSuccessful);
-                    UpdateStatus(result.IsSuccessful ? "Compilación exitosa" : "Compilación fallida", result.IsSuccessful);
+                    UpdateStatus(result.IsSuccessful ? "Listo" : "Error", result.IsSuccessful);
                 });
 
             executeButton.Click += async (s, e) => await RunWithUIFeedback(
@@ -65,7 +68,7 @@ namespace KaizenLang.UI
                 {
                     var result = await Task.Run(() => executionService.ExecuteCode(codeRichTextBox.Text));
                     DisplayResult(result.Output, result.IsSuccessful);
-                    UpdateStatus(result.IsSuccessful ? "Ejecución completada" : "Error en ejecución", result.IsSuccessful);
+                    UpdateStatus(result.IsSuccessful ? "Listo" : "Error", result.IsSuccessful);
                 });
 
             // Menú Archivo
@@ -383,7 +386,18 @@ namespace KaizenLang.UI
         {
             if (statusLabel == null || statusIcon == null) return;
 
-            statusLabel.Text = message;
+            // Si es error, cambiar el mensaje a "Error"
+            statusLabel.Text = success ? message : "Error";
+
+            // Cambiar color según el estado
+            if (success)
+            {
+                statusLabel.ForeColor = Color.FromArgb(50, 205, 50); // Verde
+            }
+            else
+            {
+                statusLabel.ForeColor = Color.FromArgb(220, 50, 50); // Rojo
+            }
 
             // Actualizar ícono según el estado
             var iconName = success ? "success" : "error";
@@ -399,6 +413,16 @@ namespace KaizenLang.UI
             if (statusLabel == null || statusIcon == null) return;
 
             statusLabel.Text = message;
+
+            // Color verde para "Listo", color normal para otros
+            if (message == "Listo")
+            {
+                statusLabel.ForeColor = Color.FromArgb(50, 205, 50); // Verde
+            }
+            else
+            {
+                statusLabel.ForeColor = SystemColors.ControlText; // Color normal
+            }
 
             var icon = IconFactory.GetIcon(iconName, 16, 16);
             if (icon != null)
@@ -423,14 +447,13 @@ namespace KaizenLang.UI
             catch (Exception ex)
             {
                 DisplayResult($"ERROR inesperado: {ex.Message}", false);
-                UpdateStatus("Error inesperado", false);
+                UpdateStatus("Error", false);
             }
             finally
             {
                 button.Enabled = true;
                 button.Text = defaultText;
-                // Restaurar ícono de info por defecto
-                UpdateStatusWithIcon("Listo", "info");
+                // NO restaurar estado aquí - el UpdateStatus de la acción ya lo estableció correctamente
             }
         }
 
@@ -465,10 +488,10 @@ namespace KaizenLang.UI
 // ============================================
 
 // EJEMPLO 1: Declaraciones básicas de variables
-integer numero = 42;
-string mensaje = ""Hola KaizenLang"";
-bool activo = true;
-float precio = 19.99;
+gear numero = 42;
+grimoire mensaje = ""Hola KaizenLang"";
+shin activo = true;
+shikai precio = 19.99;
 
 // EJEMPLO 2: Estructuras de control con ying/yang
 if (numero > 0) ying
@@ -478,19 +501,19 @@ yang else ying
 yang
 
 // EJEMPLO 3: Bucle while
-integer contador = 0;
+gear contador = 0;
 while (contador < 5) ying
     output(""Contador: "" + contador);
     contador = contador + 1;
 yang
 
 // EJEMPLO 4: Bucle for
-for (integer i = 0; i < 10; i++) ying
+for (gear i = 0; i < 10; i++) ying
     output(""Iteración: "" + i);
 yang
 
 // EJEMPLO 5: Función con sintaxis KaizenLang
-integer factorial(integer n) ying
+gear factorial(gear n) ying
     if (n <= 1) ying
         return 1;
     yang
@@ -498,26 +521,26 @@ integer factorial(integer n) ying
 yang
 
 // EJEMPLO 6: Función void
-void saludar(string nombre) ying
+void saludar(grimoire nombre) ying
     output(""Hola "" + nombre + ""!"");
 yang
 
 // EJEMPLO 7: Chainsaw y Hogyoku
-chainsaw<integer> numeros = [1, 2, 3, 4, 5];
-hogyoku<integer> tabla = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+chainsaw<gear> numeros = [1, 2, 3, 4, 5];
+hogyoku<gear> tabla = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
 
 // EJEMPLO 8: Funciones builtin
-string name = input();
+grimoire name = input();
 output(name);
-integer len = length(numeros);
+gear len = length(numeros);
 
 // EJEMPLO 9: Operaciones complejas
-integer resultado = (10 + 5) * 2;
-bool comparacion = (resultado > 25) && (numero < 100);
+gear resultado = (10 + 5) * 2;
+shin comparacion = (resultado > 25) && (numero < 100);
 
 // EJEMPLO 10: Acceso a chainsaw y hogyoku
-integer primero = numeros[0];
-integer elemento = tabla[0][1];
+gear primero = numeros[0];
+gear elemento = tabla[0][1];
 
 saludar(""KaizenLang"");";                codeRichTextBox.Text = exampleCode;
 
@@ -647,29 +670,29 @@ saludar(""KaizenLang"");";                codeRichTextBox.Text = exampleCode;
         {
             // Agregar números de línea al editor
             lineNumberPanel = new LineNumberPanel();
-            lineNumberPanel.AttachToTextBox(codeRichTextBox);
 
             var theme = ThemeManager.CurrentTheme;
             lineNumberPanel.BackColor = theme.TextBoxBackground;
             lineNumberPanel.ForeColor = Color.FromArgb(100, 100, 100);
+            lineNumberPanel.Visible = true;
 
-            if (codeSectionLayout != null && codeSectionLayout.Controls.Contains(codeRichTextBox))
+            // Buscar el contenedor padre del codeRichTextBox
+            Control? parent = codeRichTextBox.Parent;
+
+            if (parent != null)
             {
-                var codePanel = new Panel
-                {
-                    Dock = DockStyle.Fill
-                };
+                // Agregar el panel directamente al padre del RichTextBox
+                parent.Controls.Add(lineNumberPanel);
+                lineNumberPanel.BringToFront();
 
-                codeRichTextBox.Dock = DockStyle.Fill;
+                // Adjuntar al textbox (esto establecerá el margen izquierdo)
+                lineNumberPanel.AttachToTextBox(codeRichTextBox);
 
-                codePanel.Controls.Add(codeRichTextBox);
-                codePanel.Controls.Add(lineNumberPanel);
-
-                int rowIndex = codeSectionLayout.GetRow(codeRichTextBox);
-                int colIndex = codeSectionLayout.GetColumn(codeRichTextBox);
-
-                codeSectionLayout.Controls.Remove(codeRichTextBox);
-                codeSectionLayout.Controls.Add(codePanel, colIndex, rowIndex);
+                System.Diagnostics.Debug.WriteLine($"LineNumberPanel agregado: Visible={lineNumberPanel.Visible}, Width={lineNumberPanel.Width}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ No se pudo agregar LineNumberPanel. Parent es null");
             }
 
             // Configurar el sidebar con información

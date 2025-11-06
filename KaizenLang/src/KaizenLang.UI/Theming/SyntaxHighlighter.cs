@@ -22,7 +22,7 @@ namespace KaizenLang.UI.Theming
         private static readonly Regex _numberRegex = new Regex(@"\b\d+\.?\d*\b", RegexOptions.Multiline | RegexOptions.Compiled);
         private static readonly Regex _genericTypeRegex = new Regex(@"\b(chainsaw|hogyoku)\s*<\s*(\w+)\s*>", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         private static readonly Regex _functionRegex = new Regex(@"\b[a-zA-Z_][a-zA-Z0-9_]*\s*(?=\()", RegexOptions.Multiline | RegexOptions.Compiled);
-        
+
         // Control de highlighting asíncrono
         private static readonly Dictionary<RichTextBox, CancellationTokenSource> _pendingHighlights = new Dictionary<RichTextBox, CancellationTokenSource>();
         private static readonly Dictionary<RichTextBox, bool> _isHighlighting = new Dictionary<RichTextBox, bool>();

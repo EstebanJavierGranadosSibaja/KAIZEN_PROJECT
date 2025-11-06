@@ -136,7 +136,21 @@ public class SemanticAnalyzer
                 var rhs = node.FindChild("Expression") ?? (node.Children.Count > 1 ? node.Children[1] : null);
                 if (rhs != null)
                 {
-                    var rhsExpr = rhs.Children.Count > 0 ? rhs.Children[0] : rhs;
+                    // Navigate through Expression wrapper to find the actual expression node
+                    var rhsExpr = rhs;
+                    while (rhsExpr != null && rhsExpr.Type == "Expression" && rhsExpr.Children.Count > 0)
+                    {
+                        rhsExpr = rhsExpr.Children[0];
+                    }
+                    
+                    // Also check if there's an IndexAccess node in the expression tree
+                    if (rhsExpr != null && rhsExpr.Type != "IndexAccess")
+                    {
+                        var indexAccessNode = rhsExpr.FindChild("IndexAccess");
+                        if (indexAccessNode != null)
+                            rhsExpr = indexAccessNode;
+                    }
+                    
                     var rhsType = typeResolver?.Resolve(rhsExpr);
                     if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(rhsType))
                     {
