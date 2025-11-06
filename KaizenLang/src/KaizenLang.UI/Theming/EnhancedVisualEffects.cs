@@ -293,7 +293,7 @@ namespace KaizenLang.UI.Theming
         private static void SetupSyntaxHighlighting(RichTextBox richTextBox)
         {
             // Variable para evitar highlighting recursivo
-            bool isApplying = false;
+            bool isUserInteracting = false;
             System.Windows.Forms.Timer? delayTimer = null;
 
             // Aplicar highlighting inicial si ya hay texto
@@ -314,49 +314,49 @@ namespace KaizenLang.UI.Theming
             // Aplicar highlighting cuando el usuario termine de escribir (pierde el foco)
             richTextBox.Leave += (s, e) =>
             {
-                if (!isApplying && s is RichTextBox rtb && !string.IsNullOrEmpty(rtb.Text))
+                if (!isUserInteracting && s is RichTextBox rtb && !string.IsNullOrEmpty(rtb.Text))
                 {
-                    isApplying = true;
-                    try
-                    {
-                        SyntaxHighlighter.ApplySyntaxHighlighting(rtb);
-                    }
-                    finally
-                    {
-                        isApplying = false;
-                    }
+                    SyntaxHighlighter.ApplySyntaxHighlighting(rtb, true);
+                }
+            };
+
+            // Detectar cuando el usuario está seleccionando texto
+            richTextBox.SelectionChanged += (s, e) =>
+            {
+                if (s is RichTextBox rtb && rtb.SelectionLength > 0)
+                {
+                    isUserInteracting = true;
+                    delayTimer?.Stop();
+                    delayTimer?.Dispose();
+                    delayTimer = null;
+                }
+                else
+                {
+                    isUserInteracting = false;
                 }
             };
 
             // Aplicar highlighting con delay cuando el usuario escribe
             richTextBox.TextChanged += (s, e) =>
             {
-                if (isApplying || s is not RichTextBox rtb || string.IsNullOrEmpty(rtb.Text))
+                if (isUserInteracting || s is not RichTextBox rtb || string.IsNullOrEmpty(rtb.Text))
                     return;
 
                 // Cancelar timer anterior si existe
                 delayTimer?.Stop();
                 delayTimer?.Dispose();
 
-                // Crear nuevo timer con delay moderado
-                delayTimer = new System.Windows.Forms.Timer { Interval = 800 }; // 800ms - balance entre responsividad y suavidad
+                // Crear nuevo timer con delay más largo para evitar parpadeo
+                delayTimer = new System.Windows.Forms.Timer { Interval = 1200 }; // 1.2s para mejor experiencia
                 delayTimer.Tick += (ts, te) =>
                 {
                     delayTimer.Stop();
                     delayTimer.Dispose();
                     delayTimer = null;
 
-                    if (!isApplying)
+                    if (!isUserInteracting)
                     {
-                        isApplying = true;
-                        try
-                        {
-                            SyntaxHighlighter.ApplySyntaxHighlighting(rtb, false); // No forzar
-                        }
-                        finally
-                        {
-                            isApplying = false;
-                        }
+                        SyntaxHighlighter.ApplySyntaxHighlighting(rtb, false);
                     }
                 };
                 delayTimer.Start();

@@ -178,6 +178,10 @@ public partial class Interpreter
         if (!string.IsNullOrEmpty(fname) && functions.ContainsKey(fname))
         {
             var fnNode = functions[fname];
+            if ((currentCallDepth + 1) > maxCallDepth)
+                throw new Exception($"Se excedió la profundidad máxima de recursión permitida ({maxCallDepth}).");
+
+            currentCallDepth++;
             var oldScope = currentScope;
             try
             {
@@ -306,6 +310,7 @@ public partial class Interpreter
             }
             finally
             {
+                currentCallDepth--;
                 // restore to previous scope captured in oldScope
                 currentScope = oldScope;
             }

@@ -11,8 +11,21 @@ public partial class Interpreter
     private readonly Func<string?, string?>? inputProvider;
     private readonly Queue<string> inputBuffer = new Queue<string>();
     private readonly object inputLock = new object();
+    private int currentCallDepth;
+    private int maxCallDepth;
 
     public bool VerboseMode { get; set; } = false;
+
+    public int MaxCallDepth
+    {
+        get => maxCallDepth;
+        set
+        {
+            if (value < 1)
+                throw new ArgumentOutOfRangeException(nameof(value), "MaxCallDepth debe ser mayor que cero.");
+            maxCallDepth = value;
+        }
+    }
 
     public Interpreter() : this(null) { }
 
@@ -23,6 +36,8 @@ public partial class Interpreter
         currentScope = globalScope;
         output = new List<string>();
         functions = new Dictionary<string, Node>(StringComparer.OrdinalIgnoreCase);
+        currentCallDepth = 0;
+        maxCallDepth = 512;
     }
 
     // Internal exception used to unwind execution when a 'return' is executed inside a function

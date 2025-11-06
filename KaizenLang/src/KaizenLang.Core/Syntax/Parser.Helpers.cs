@@ -4,9 +4,54 @@ public partial class Parser
 {
     private Node ErrorNode(string mensaje, int pos)
     {
-        var n = new Node { Type = "Error", Line = 0, Column = pos };
-        n.Children.Add(new Node { Type = $"{mensaje} (posición {pos})" });
-        return n;
+        // Usar la información de línea y columna del token si está disponible
+        if (_currentTokens != null && pos < _currentTokens.Count)
+        {
+            var token = _currentTokens[pos];
+            var n = new Node { Type = "Error", Line = token.Line, Column = token.Column };
+            n.Children.Add(new Node { Type = $"{mensaje} (línea {token.Line}, columna {token.Column})" });
+            return n;
+        }
+        else if (_currentTokens != null && _currentTokens.Count > 0)
+        {
+            // Si estamos al final, usar el último token
+            var lastToken = _currentTokens[_currentTokens.Count - 1];
+            var n = new Node { Type = "Error", Line = lastToken.Line, Column = lastToken.Column };
+            n.Children.Add(new Node { Type = $"{mensaje} (línea {lastToken.Line}, columna {lastToken.Column})" });
+            return n;
+        }
+        else
+        {
+            // Fallback al formato antiguo si no hay tokens disponibles
+            var n = new Node { Type = "Error", Line = 1, Column = 1 };
+            n.Children.Add(new Node { Type = $"{mensaje} (línea 1, columna 1)" });
+            return n;
+        }
+    }
+
+    private Node ErrorNodeWithLocation(string mensaje, List<Token> tokens, int pos)
+    {
+        if (pos < tokens.Count)
+        {
+            var token = tokens[pos];
+            var n = new Node { Type = "Error", Line = token.Line, Column = token.Column };
+            n.Children.Add(new Node { Type = $"{mensaje} (línea {token.Line}, columna {token.Column})" });
+            return n;
+        }
+        else if (tokens.Count > 0)
+        {
+            // Si estamos al final, usar el último token
+            var lastToken = tokens[tokens.Count - 1];
+            var n = new Node { Type = "Error", Line = lastToken.Line, Column = lastToken.Column };
+            n.Children.Add(new Node { Type = $"{mensaje} (línea {lastToken.Line}, columna {lastToken.Column})" });
+            return n;
+        }
+        else
+        {
+            var n = new Node { Type = "Error", Line = 0, Column = 0 };
+            n.Children.Add(new Node { Type = $"{mensaje} (línea 1, columna 1)" });
+            return n;
+        }
     }
 
     private bool Match(List<Token> tokens, int pos, string type, string value)

@@ -85,6 +85,66 @@ yang
 
 output("Suma diagonal = " + diag);
 
+output("=== STRESS: RECURSIÓN SOBRE MATRICES ===");
+gear countEvenRecursive(gear row, gear col, gear size) ying
+    if (row >= size) ying
+        return 0;
+    yang
+    if (col >= size) ying
+        return countEvenRecursive(row + 1, 0, size);
+    yang
+    if ((cube[row][col] % 2) == 0) ying
+        return 1 + countEvenRecursive(row, col + 1, size);
+    yang
+    return countEvenRecursive(row, col + 1, size);
+yang
+
+gear evenCount = countEvenRecursive(0, 0, 3);
+output("Elementos pares en cube = " + evenCount);
+
+output("=== STRESS: CONTROL MIXTO ===");
+gear primes = 0;
+gear sumPrimes = 0;
+
+for (gear candidate = 2; candidate <= 30; candidate = candidate + 1) ying
+    shin isPrime = true;
+    for (gear divisor = 2; divisor < candidate; divisor = divisor + 1) ying
+        if ((candidate % divisor) == 0) ying
+            isPrime = false;
+        yang
+    yang
+    if (isPrime) ying
+        primes = primes + 1;
+        sumPrimes = sumPrimes + candidate;
+    yang
+yang
+
+output("Primos encontrados: " + primes + ", suma acumulada: " + sumPrimes);
+
+output("=== STRESS: STRINGS Y CADENAS ===");
+chainsaw<grimoire> etiquetas = ["kaizen", "balance", "yin", "yang"];
+grimoire etiquetasCombinadas = "";
+
+for (gear tagIdx = 0; tagIdx < length(etiquetas); tagIdx = tagIdx + 1) ying
+    if (tagIdx > 0) ying
+        etiquetasCombinadas = etiquetasCombinadas + " | ";
+    yang
+    etiquetasCombinadas = etiquetasCombinadas + etiquetas[tagIdx];
+yang
+
+output("Etiquetas combinadas: " + etiquetasCombinadas);
+
+output("=== STRESS: RECURSIÓN SOBRE ARRAYS ===");
+gear sumSquares(gear index) ying
+    if (index >= length(numbers)) ying
+        return 0;
+    yang
+    return (numbers[index] * numbers[index]) + sumSquares(index + 1);
+yang
+
+gear squaresTotal = sumSquares(0);
+output("Suma de cuadrados 1..10 = " + squaresTotal);
+
 output("=== STRESS: CONDICIONES ANIDADAS ===");
 gear value = 30;
 if (value > 0) ying

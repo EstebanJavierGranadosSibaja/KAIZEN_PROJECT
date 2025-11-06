@@ -2,9 +2,12 @@ namespace ParadigmasLang;
 
 public partial class Parser
 {
+    private List<Token>? _currentTokens;
+
     public Node Parse(List<Token> tokens)
     {
         ParadigmasLang.Logging.Logger.Debug($"Parser.Parse START - tokens: {tokens?.Count ?? 0}");
+        _currentTokens = tokens; // Guardar para uso en ErrorNode
         int pos = 0;
         Node root = new Node { Type = "Program" };
         if (tokens == null || tokens.Count == 0)
