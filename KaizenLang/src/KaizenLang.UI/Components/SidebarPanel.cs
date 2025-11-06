@@ -70,9 +70,9 @@ public class SidebarPanel : Panel
         {
             // Limpiar el contenido
             infoBox.Clear();
-            
+
             var theme = ThemeManager.CurrentTheme;
-            
+
             // Colores de sintaxis
             var keywordColor = Color.FromArgb(86, 156, 214);  // Azul para keywords
             var typeColor = Color.FromArgb(78, 201, 176);      // Verde agua para tipos
@@ -85,8 +85,8 @@ public class SidebarPanel : Panel
             void AddText(string text, Color color, bool bold = false)
             {
                 infoBox.SelectionColor = color;
-                infoBox.SelectionFont = bold 
-                    ? new Font(infoBox.Font, FontStyle.Bold) 
+                infoBox.SelectionFont = bold
+                    ? new Font(infoBox.Font, FontStyle.Bold)
                     : infoBox.Font;
                 infoBox.AppendText(text);
             }
@@ -103,13 +103,13 @@ public class SidebarPanel : Panel
             AddText(" numero = ", normalColor);
             AddText("10", Color.FromArgb(181, 206, 168));
             AddText(";\n", normalColor);
-            
+
             AddText("  ", normalColor);
             AddText("grimoire", typeColor, true);
             AddText(" texto = ", normalColor);
             AddText("\"Hola\"", stringColor);
             AddText(";\n", normalColor);
-            
+
             AddText("  ", normalColor);
             AddText("shin", typeColor, true);
             AddText(" estado = ", normalColor);
@@ -134,7 +134,7 @@ public class SidebarPanel : Panel
 
             // BUCLES
             AddText("▸ BUCLES\n\n", headerColor, true);
-            
+
             // While
             AddText("  ", normalColor);
             AddText("while", keywordColor, true);
@@ -199,7 +199,7 @@ public class SidebarPanel : Panel
             AddText("═══════════════════════════════\n", headerColor);
             AddText("⌨  ATAJOS DE TECLADO\n", headerColor, true);
             AddText("═══════════════════════════════\n\n", headerColor);
-            
+
             AddText("  F5        ", Color.FromArgb(156, 220, 254), true);
             AddText("→ Ejecutar código\n", normalColor);
             AddText("  F6        ", Color.FromArgb(156, 220, 254), true);
@@ -222,12 +222,12 @@ public class SidebarPanel : Panel
     {
         BackColor = theme.PanelBackground;
         titleLabel.ForeColor = theme.Foreground;
-        
+
         // Usar los mismos colores que el editor de código
         infoBox.BackColor = theme.TextBoxBackground;
         infoBox.ForeColor = theme.TextBoxForeground;
         headerPanel.BackColor = theme.PanelBackground;
-        
+
         // Recargar la guía con los nuevos colores
         LoadQuickGuide();
     }

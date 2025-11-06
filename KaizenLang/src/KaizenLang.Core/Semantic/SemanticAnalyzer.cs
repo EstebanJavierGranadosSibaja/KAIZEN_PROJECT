@@ -142,7 +142,7 @@ public class SemanticAnalyzer
                     {
                         rhsExpr = rhsExpr.Children[0];
                     }
-                    
+
                     // Also check if there's an IndexAccess node in the expression tree
                     if (rhsExpr != null && rhsExpr.Type != "IndexAccess")
                     {
@@ -150,7 +150,7 @@ public class SemanticAnalyzer
                         if (indexAccessNode != null)
                             rhsExpr = indexAccessNode;
                     }
-                    
+
                     var rhsType = typeResolver?.Resolve(rhsExpr);
                     if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(rhsType))
                     {
