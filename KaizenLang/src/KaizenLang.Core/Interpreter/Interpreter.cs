@@ -37,7 +37,7 @@ public partial class Interpreter
         output = new List<string>();
         functions = new Dictionary<string, Node>(StringComparer.OrdinalIgnoreCase);
         currentCallDepth = 0;
-        maxCallDepth = 512;
+        maxCallDepth = 100;
     }
 
     // Internal exception used to unwind execution when a 'return' is executed inside a function
