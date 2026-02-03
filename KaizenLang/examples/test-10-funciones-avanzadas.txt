@@ -1,0 +1,85 @@
+// ========================================
+// TEST 10: FUNCIONES AVANZADAS (SIN ANIDACIÓN)
+// ========================================
+
+output("=== FUNCIONES ARITMÉTICAS ===");
+
+gear duplicar(gear n) ying
+    return n * 2;
+yang
+
+gear cuadrado(gear n) ying
+    return n * n;
+yang
+
+gear duplicado = duplicar(6);
+gear cuadradoResultado = cuadrado(5);
+
+output("Duplicar 6: " + duplicado);
+output("Cuadrado de 5: " + cuadradoResultado);
+
+output("=== FUNCIONES CON ACUMULACIÓN ===");
+
+gear acumuladoGlobal = 0;
+
+gear acumular(gear valor) ying
+    acumuladoGlobal = acumuladoGlobal + valor;
+    return acumuladoGlobal;
+yang
+
+gear primerAcumulo = acumular(10);
+gear segundoAcumulo = acumular(5);
+
+output("Acumulado tras 10: " + primerAcumulo);
+output("Acumulado tras 5: " + segundoAcumulo);
+
+output("=== FUNCIONES CON BOOLEANS ===");
+
+shin esPar(gear numero) ying
+    return ((numero / 2) * 2) == numero;
+yang
+
+shin esMayorQue(gear valor, gear comparador) ying
+    return valor > comparador;
+yang
+
+shin parDe12 = esPar(12);
+shin parDe9 = esPar(9);
+shin mayorComparacion = esMayorQue(15, 8);
+
+output("12 es par: " + parDe12);
+output("9 es par: " + parDe9);
+output("15 es mayor que 8: " + mayorComparacion);
+
+output("=== FUNCIONES CON STRINGS ===");
+
+grimoire unirSaludo(grimoire nombre) ying
+    return "Hola " + nombre;
+yang
+
+grimoire saludoAna = unirSaludo("Ana");
+grimoire saludoLuis = unirSaludo("Luis");
+
+output(saludoAna);
+output(saludoLuis);
+
+output("=== FUNCIONES QUE COMBINAN OPERACIONES ===");
+
+gear combinar(gear a, gear b, gear c) ying
+    return (a + b) - c;
+yang
+
+gear combinado = combinar(20, 5, 3);
+output("(20 + 5) - 3 = " + combinado);
+
+output("=== FUNCIONES CON CONVERSIÓN LÓGICA ===");
+
+shin sonIguales(gear x, gear y) ying
+    return x == y;
+yang
+
+shin iguales = sonIguales(42, 42);
+shin distintos = sonIguales(10, 7);
+
+output("42 == 42: " + iguales);
+output("10 == 7: " + distintos);

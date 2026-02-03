@@ -1,0 +1,83 @@
+// ========================================
+// TEST 04: ESTRUCTURA IF-ELSE
+// ========================================
+
+output("=== TEST IF SIMPLE ===");
+gear numero = 10;
+
+if (numero > 5) ying
+    output("El número es mayor que 5");
+yang
+
+output("=== TEST IF-ELSE ===");
+gear edad = 20;
+
+if (edad >= 18) ying
+    output("Eres mayor de edad");
+yang else ying
+    output("Eres menor de edad");
+yang
+
+output("=== TEST IF CON COMPARACIONES ===");
+gear temperatura = 25;
+
+if (temperatura > 30) ying
+    output("Hace mucho calor");
+yang else ying
+    output("La temperatura es agradable");
+yang
+
+output("=== TEST IF CON EXPRESIONES LÓGICAS ===");
+gear nota = 85;
+
+if ((nota >= 70) && (nota < 90)) ying
+    output("Tu calificación es: B");
+yang
+
+if (nota >= 90) ying
+    output("Tu calificación es: A");
+yang
+
+output("=== TEST IF CON VARIABLES BOOLEANAS ===");
+shin esActivo = true;
+
+if (esActivo) ying
+    output("El usuario está activo");
+yang else ying
+    output("El usuario está inactivo");
+yang
+
+output("=== TEST IF-ELSE MÚLTIPLES ===");
+gear puntos = 75;
+
+grimoire evaluacion = "Necesitas mejorar";
+
+if (puntos >= 90) ying
+    evaluacion = "Excelente";
+yang
+
+if ((puntos >= 70) && (puntos < 90)) ying
+    evaluacion = "Bien";
+yang
+
+output("Evaluación: " + evaluacion);
+
+output("=== TEST IF CON OPERACIONES ===");
+gear x = 10;
+gear y = 5;
+gear suma = x + y;
+
+if (suma > 10) ying
+    output("La suma es mayor que 10: " + suma);
+yang else ying
+    output("La suma es menor o igual a 10: " + suma);
+yang
+
+output("=== TEST IF CON STRINGS ===");
+grimoire nombre = "Ana";
+
+if (nombre == "Ana") ying
+    output("Hola Ana!");
+yang else ying
+    output("Hola desconocido!");
+yang

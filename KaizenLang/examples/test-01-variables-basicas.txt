@@ -1,0 +1,58 @@
+// ========================================
+// TEST 01: VARIABLES BÁSICAS Y TIPOS
+// ========================================
+// Prueba declaración de variables con todos los tipos simples
+
+// Tipo gear
+gear edad = 25;
+gear temperatura = -10;
+gear grande = 1000000;
+
+output("=== INTEGERS ===");
+output("Edad: " + edad);
+output("Temperatura: " + temperatura);
+output("Grande: " + grande);
+
+// Tipo shikai
+shikai precio = 19.99;
+shikai pi = 3.14159;
+shikai negativo = -2.5;
+
+output("=== FLOATS ===");
+output("Precio: " + precio);
+output("Pi: " + pi);
+output("Negativo: " + negativo);
+
+// Tipo bankai
+bankai precision = 3.141592653589793;
+bankai cientifica = 299792458.0;
+
+output("=== DOUBLES ===");
+output("Precisión: " + precision);
+output("Científica: " + cientifica);
+
+// Tipo shin
+shin activo = true;
+shin completado = false;
+
+output("=== BOOLEANS ===");
+output("Activo: " + activo);
+output("Completado: " + completado);
+
+// Tipo grimoire
+grimoire nombre = "Ana García";
+grimoire mensaje = "Hola, KaizenLang!";
+grimoire vacio = "";
+
+output("=== STRINGS ===");
+output("Nombre: " + nombre);
+output("Mensaje: " + mensaje);
+output("Vacío: '" + vacio + "'");
+
+// Caracteres individuales con grimoire
+grimoire letra = "A";
+grimoire simbolo = "@";
+
+output("=== CARACTERES ===");
+output("Letra: " + letra);
+output("Símbolo: " + simbolo);

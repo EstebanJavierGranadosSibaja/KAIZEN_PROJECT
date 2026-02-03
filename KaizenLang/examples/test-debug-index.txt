@@ -1,0 +1,4 @@
+chainsaw<gear> arr = [1, 2, 3];
+gear x = 0;
+x = arr[0];
+output("x = " + x);

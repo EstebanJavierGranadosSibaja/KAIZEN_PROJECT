@@ -1,0 +1,333 @@
+// ========================================
+// TEST 16: STRESS INTEGRAL EXTREMO
+// ========================================
+// Cobertura exhaustiva del lenguaje:
+// - Control flow con 5 niveles de anidación
+// - Recursión profunda con múltiples patrones
+// - Operaciones intensivas con colecciones
+// - Cálculos matemáticos complejos
+// - Detección de patrones y estadísticas
+
+output("=== STRESS: CONTROL PROFUNDO EXTREMO ===");
+// Inicializar contadores y acumuladores
+gear hits = 0;           // Número de combinaciones válidas encontradas
+gear operations = 0;     // Total de operaciones ejecutadas
+gear maxValue = 0;       // Valor máximo encontrado durante la búsqueda
+gear patternCount = 0;   // Contador de patrones especiales detectados
+
+// Bucles anidados 5 niveles: i -> j -> k -> m -> n
+// Total de iteraciones: 8 * 8 * 8 * 4 * 2 = 4096 operaciones
+for (gear i = 0; i < 8; i = i + 1) ying
+    for (gear j = 0; j < 8; j = j + 1) ying
+        for (gear k = 0; k < 8; k = k + 1) ying
+            for (gear m = 0; m < 4; m = m + 1) ying
+                for (gear n = 0; n < 2; n = n + 1) ying
+                    operations = operations + 1;
+
+                    // Cálculos matemáticos complejos
+                    gear sum = i + j + k + m + n;              // Suma simple
+                    gear product = (i * j) + (k * m) + (n * 2); // Productos parciales
+                    gear combined = sum * product;              // Combinación multiplicativa
+                    gear squared = (i * i) + (j * j);          // Suma de cuadrados
+                    gear final = (combined + squared) / 2;     // Promedio ponderado
+
+                    // Filtro: solo procesar valores pares
+                    if ((final % 2) == 0) ying
+                        hits = hits + 1;
+
+                        // Actualizar máximo si encontramos un valor mayor
+                        if (final > maxValue) ying
+                            maxValue = final;
+                        yang
+
+                        // Checkpoint cada 25 hits para monitorear progreso
+                        if ((hits % 25) == 0) ying
+                            gear avgOps = operations / hits;
+                            output("Checkpoint #" + hits + ": max=" + maxValue + " en [" + i + "," + j + "," + k + "," + m + "," + n + "], avg=" + avgOps);
+
+                            // Milestone especial cada 100 hits
+                            if ((hits % 100) == 0) ying
+                                gear progress = (operations * 100) / 4096;
+                                output("  → Milestone 100x! Progreso: " + progress + "%, Total ops: " + operations);
+                            yang
+                        yang
+
+                        // Detectar patrones especiales (múltiplos de 30)
+                        if ((final % 3) == 0) ying
+                            if ((final % 5) == 0) ying
+                                if ((final % 2) == 0) ying
+                                    patternCount = patternCount + 1;
+                                    // Solo reportar cada 5 patrones para reducir output
+                                    if ((patternCount % 5) == 0) ying
+                                        output("  → Patrón múltiplo de 30: " + final + " (total: " + patternCount + ")");
+                                    yang
+                                yang
+                            yang
+                        yang
+
+                        // Detectar números perfectos cuadrados
+                        if ((i == j) && (k == m)) ying
+                            if ((n % 2) == 0) ying
+                                output("  → Simetría detectada en [" + i + "," + j + "," + k + "," + m + "," + n + "]");
+                            yang
+                        yang
+                    yang
+                yang
+            yang
+        yang
+    yang
+yang
+
+output("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+output("RESUMEN ESTADÍSTICO:");
+output("  • Total combinaciones válidas: " + hits);
+output("  • Total operaciones ejecutadas: " + operations);
+output("  • Valor máximo encontrado: " + maxValue);
+output("  • Patrones especiales detectados: " + patternCount);
+gear efficiency = (hits * 100) / operations;
+output("  • Eficiencia de filtrado: " + efficiency + "%");
+output("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+output("=== STRESS: RECURSIÓN PROFUNDA AVANZADA ===");
+// Función recursiva con acumulador para evitar overflow
+// Traza cada nivel de profundidad y retorna al alcanzar el límite
+gear depthTracer(gear level, gear limit) ying
+    if (level >= limit) ying
+        return level;  // Caso base: límite alcanzado
+    yang
+    return depthTracer(level + 1, limit);  // Recursión con incremento
+yang
+
+// Probar con mayor profundidad (50 niveles)
+gear depthReached = depthTracer(0, 50);
+output("Recursión lineal alcanzó el nivel: " + depthReached);
+
+// Función recursiva con cálculo acumulativo
+// Calcula la suma de 1 hasta n usando recursión
+gear deepSum(gear n) ying
+    if (n <= 0) ying
+        return 0;  // Caso base
+    yang
+    return n + deepSum(n - 1);  // n + suma(n-1)
+yang
+
+gear sum30 = deepSum(30);  // Suma de 1 a 30 = 465
+output("Suma recursiva 1..30 = " + sum30);
+
+// Función de Fibonacci recursiva (cálculo intensivo)
+// Cada llamada genera dos recursiones (árbol binario)
+gear fibonacci(gear n) ying
+    if (n <= 1) ying
+        return n;  // fib(0)=0, fib(1)=1
+    yang
+    return fibonacci(n - 1) + fibonacci(n - 2);  // fib(n) = fib(n-1) + fib(n-2)
+yang
+
+gear fib10 = fibonacci(10);  // Genera 177 llamadas recursivas
+output("Fibonacci(10) = " + fib10 + " (esperado: 55)");
+
+output("=== STRESS: COLECCIONES Y ARRAYS ===");
+// Chainsaw (array) de enteros - operaciones de suma y promedio
+chainsaw<gear> numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+chainsaw<shikai> floats = [0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5];
+
+gear idx = 0;
+gear running = 0;
+
+// Sumar todos los elementos del array
+for (idx = 0; idx < length(numbers); idx = idx + 1) ying
+    running = running + numbers[idx];
+yang
+
+gear average = running / length(numbers);
+output("Suma integers = " + running + ", Promedio = " + average);
+
+// Operaciones con floats - acumulación decimal
+shikai runningFloat = 0.0;
+
+for (gear floatIdx = 0; floatIdx < length(floats); floatIdx = floatIdx + 1) ying
+    runningFloat = runningFloat + floats[floatIdx];
+yang
+
+output("Suma floats = " + runningFloat);
+
+// Buscar el elemento máximo en el array
+gear maxElement = 0;
+for (idx = 0; idx < length(numbers); idx = idx + 1) ying
+    if (numbers[idx] > maxElement) ying
+        maxElement = numbers[idx];
+    yang
+yang
+output("Elemento máximo en numbers: " + maxElement);
+
+output("=== STRESS: HOGYOKU (MATRICES) ===");
+// Hogyoku (matriz 2D) - operaciones de recorrido y cálculo
+hogyoku<gear> cube = [
+    [1, 2, 3, 4],
+    [5, 6, 7, 8],
+    [9, 10, 11, 12],
+    [13, 14, 15, 16]
+];
+
+// Calcular la suma de la diagonal principal (1, 6, 11, 16)
+gear diag = 0;
+for (gear row = 0; row < 4; row = row + 1) ying
+    for (gear col = 0; col < 4; col = col + 1) ying
+        if (row == col) ying
+            diag = diag + cube[row][col];
+        yang
+    yang
+yang
+output("Suma diagonal principal (4x4): " + diag + " (esperado: 34)");
+
+// Calcular la suma de la diagonal secundaria (4, 7, 10, 13)
+gear antiDiag = 0;
+for (gear row2 = 0; row2 < 4; row2 = row2 + 1) ying
+    gear antiCol = 3 - row2;  // Columna inversa
+    antiDiag = antiDiag + cube[row2][antiCol];
+yang
+output("Suma diagonal secundaria: " + antiDiag + " (esperado: 34)");
+
+// Sumar todos los elementos de la matriz
+gear totalSum = 0;
+for (gear row3 = 0; row3 < 4; row3 = row3 + 1) ying
+    for (gear col3 = 0; col3 < 4; col3 = col3 + 1) ying
+        totalSum = totalSum + cube[row3][col3];
+    yang
+yang
+output("Suma total de la matriz: " + totalSum + " (esperado: 136)");
+
+output("=== STRESS: RECURSIÓN SOBRE MATRICES ===");
+// Función recursiva que recorre una matriz contando elementos pares
+// Parámetros: row (fila actual), col (columna actual), size (tamaño matriz)
+gear countEvenRecursive(gear row, gear col, gear size) ying
+    // Caso base: hemos recorrido todas las filas
+    if (row >= size) ying
+        return 0;
+    yang
+    // Si llegamos al final de la fila, pasar a la siguiente
+    if (col >= size) ying
+        return countEvenRecursive(row + 1, 0, size);
+    yang
+    // Si el elemento actual es par, contar 1 + recursión del resto
+    if ((cube[row][col] % 2) == 0) ying
+        return 1 + countEvenRecursive(row, col + 1, size);
+    yang
+    // Si es impar, solo continuar con la recursión
+    return countEvenRecursive(row, col + 1, size);
+yang
+
+gear evenCount = countEvenRecursive(0, 0, 4);  // Contar pares en matriz 4x4
+output("Elementos pares en matriz (recursivo): " + evenCount + " (esperado: 8)");
+
+output("=== STRESS: ALGORITMO DE NÚMEROS PRIMOS ===");
+// Implementación del algoritmo de criba para encontrar números primos
+// Rango: del 2 al 50
+gear primes = 0;        // Contador de primos encontrados
+gear sumPrimes = 0;     // Suma acumulada de primos
+gear maxPrime = 0;      // Mayor primo encontrado
+
+for (gear candidate = 2; candidate <= 50; candidate = candidate + 1) ying
+    shin isPrime = true;  // Asumir que es primo inicialmente
+
+    // Verificar divisibilidad desde 2 hasta candidate-1
+    for (gear divisor = 2; divisor < candidate; divisor = divisor + 1) ying
+        if ((candidate % divisor) == 0) ying
+            isPrime = false;  // Es divisible, no es primo
+        yang
+    yang
+
+    // Si pasó todas las pruebas, es primo
+    if (isPrime) ying
+        primes = primes + 1;
+        sumPrimes = sumPrimes + candidate;
+        maxPrime = candidate;  // Actualizar el mayor primo
+    yang
+yang
+
+gear avgPrime = sumPrimes / primes;
+output("Primos encontrados (2-50): " + primes);
+output("Suma de primos: " + sumPrimes);
+output("Mayor primo: " + maxPrime);
+output("Promedio de primos: " + avgPrime);
+
+output("=== STRESS: MANIPULACIÓN DE STRINGS ===");
+// Chainsaw de strings - concatenación y construcción dinámica
+chainsaw<grimoire> etiquetas = ["kaizen", "balance", "yin", "yang", "harmony", "flow"];
+grimoire etiquetasCombinadas = "";
+
+// Construir string concatenado con separadores
+for (gear tagIdx = 0; tagIdx < length(etiquetas); tagIdx = tagIdx + 1) ying
+    if (tagIdx > 0) ying
+        etiquetasCombinadas = etiquetasCombinadas + " | ";  // Separador
+    yang
+    etiquetasCombinadas = etiquetasCombinadas + etiquetas[tagIdx];
+yang
+
+output("Etiquetas concatenadas: " + etiquetasCombinadas);
+
+// Construir frase completa con índices
+grimoire frase = "Elementos: ";
+for (gear tagIdx2 = 0; tagIdx2 < length(etiquetas); tagIdx2 = tagIdx2 + 1) ying
+    frase = frase + "[" + tagIdx2 + ":" + etiquetas[tagIdx2] + "] ";
+yang
+output(frase);
+
+output("=== STRESS: RECURSIÓN SOBRE ARRAYS ===");
+// Función recursiva que calcula la suma de cuadrados de elementos de un array
+// Parámetro: index (índice actual en el array)
+gear sumSquares(gear index) ying
+    // Caso base: hemos procesado todos los elementos
+    if (index >= length(numbers)) ying
+        return 0;
+    yang
+    // Calcular cuadrado del elemento actual + recursión del resto
+    return (numbers[index] * numbers[index]) + sumSquares(index + 1);
+yang
+
+gear squaresTotal = sumSquares(0);  // 1² + 2² + ... + 15² = 1240
+output("Suma de cuadrados 1..15 = " + squaresTotal + " (esperado: 1240)");
+
+// Función recursiva para encontrar el mínimo en un array
+gear findMin(gear index, gear currentMin) ying
+    if (index >= length(numbers)) ying
+        return currentMin;  // Retornar el mínimo encontrado
+    yang
+    // Si el elemento actual es menor, actualizar el mínimo
+    if (numbers[index] < currentMin) ying
+        return findMin(index + 1, numbers[index]);
+    yang
+    return findMin(index + 1, currentMin);
+yang
+
+gear minValue = findMin(1, numbers[0]);  // Empezar desde índice 1
+output("Valor mínimo en array (recursivo): " + minValue);
+
+output("=== STRESS: CONDICIONALES PROFUNDAMENTE ANIDADOS ===");
+// Probar condiciones anidadas complejas con múltiples validaciones
+gear value = 60;
+
+// 6 niveles de condicionales anidados
+if (value > 0) ying
+    output("✓ Nivel 1: value es positivo");
+    if ((value % 2) == 0) ying
+        output("✓ Nivel 2: value es par");
+        if ((value % 3) == 0) ying
+            output("✓ Nivel 3: value es múltiplo de 3");
+            if ((value % 5) == 0) ying
+                output("✓ Nivel 4: value es múltiplo de 5");
+                if ((value % 4) == 0) ying
+                    output("✓ Nivel 5: value es múltiplo de 4");
+                    if (value >= 60) ying
+                        output("✓ Nivel 6: value >= 60");
+                        output("→ ¡60 pasa TODAS las validaciones anidadas!");
+                    yang
+                yang
+            yang
+        yang
+    yang
+yang
+
+output("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+output("TEST STRESS INTEGRAL COMPLETADO");
+output("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");

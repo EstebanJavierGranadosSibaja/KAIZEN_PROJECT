@@ -1,0 +1,98 @@
+// ========================================
+// TEST 09: FUNCIONES BÁSICAS
+// ========================================
+
+output("=== FUNCIONES VOID SIN PARÁMETROS ===");
+
+void saludar() ying
+    output("¡Hola desde una función!");
+yang
+
+saludar();
+
+output("=== FUNCIONES VOID CON PARÁMETROS ===");
+
+void saludarPersona(grimoire nombre) ying
+    output("¡Hola " + nombre + "!");
+yang
+
+saludarPersona("Ana");
+saludarPersona("Luis");
+
+void mostrarNumero(gear num) ying
+    output("El número es: " + num);
+yang
+
+mostrarNumero(42);
+mostrarNumero(100);
+
+output("=== FUNCIONES CON RETORNO ===");
+
+gear suma(gear a, gear b) ying
+    return a + b;
+yang
+
+gear resultado = suma(10, 5);
+output("Suma de 10 + 5: " + resultado);
+
+gear resultado2 = suma(25, 75);
+output("Suma de 25 + 75: " + resultado2);
+
+output("=== FUNCIÓN DE MULTIPLICACIÓN ===");
+
+gear multiplicar(gear x, gear y) ying
+    return x * y;
+yang
+
+gear mult1 = multiplicar(5, 6);
+gear mult2 = multiplicar(12, 3);
+
+output("5 * 6 = " + mult1);
+output("12 * 3 = " + mult2);
+
+output("=== FUNCIÓN CON shikai ===");
+
+shikai dividir(shikai a, shikai b) ying
+    return a / b;
+yang
+
+shikai div1 = dividir(10.0, 2.0);
+shikai div2 = dividir(7.5, 2.5);
+
+output("10.0 / 2.0 = " + div1);
+output("7.5 / 2.5 = " + div2);
+
+output("=== FUNCIÓN CON shin ===");
+
+shin esMayor(gear a, gear b) ying
+    return a > b;
+yang
+
+shin comp1 = esMayor(10, 5);
+shin comp2 = esMayor(3, 8);
+
+output("10 > 5: " + comp1);
+output("3 > 8: " + comp2);
+
+output("=== FUNCIÓN CON grimoire ===");
+
+grimoire concatenar(grimoire a, grimoire b) ying
+    return a + " " + b;
+yang
+
+grimoire frase = concatenar("Hola", "Mundo");
+output("Concatenación: " + frase);
+
+output("=== FUNCIÓN CON MÚLTIPLES PARÁMETROS ===");
+
+gear calcular(gear a, gear b, gear c) ying
+    return (a + b) * c;
+yang
+
+gear calc1 = calcular(5, 3, 2);
+output("(5 + 3) * 2 = " + calc1);
+
+output("=== LLAMADAS ANIDADAS ===");
+
+gear triple = multiplicar(suma(5, 5), 3);
+output("((5 + 5) * 3) = " + triple);

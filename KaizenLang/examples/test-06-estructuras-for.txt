@@ -1,0 +1,59 @@
+// ========================================
+// TEST 06: ESTRUCTURA FOR
+// ========================================
+
+output("=== TEST FOR BÁSICO ===");
+for (gear i = 1; i <= 5; i = i + 1) ying
+    output("Iteración: " + i);
+yang
+
+output("=== TEST FOR DE 0 A 10 ===");
+for (gear n = 0; n <= 10; n = n + 1) ying
+    output("Número: " + n);
+yang
+
+output("=== TEST FOR CUENTA REGRESIVA ===");
+for (gear j = 10; j >= 1; j = j - 1) ying
+    output("Cuenta regresiva: " + j);
+yang
+output("¡Despegue!");
+
+output("=== TEST FOR CON SALTOS DE 2 ===");
+for (gear par = 0; par <= 20; par = par + 2) ying
+    output("Número par: " + par);
+yang
+
+output("=== TEST FOR CON SALTOS DE 5 ===");
+for (gear cinco = 5; cinco <= 50; cinco = cinco + 5) ying
+    output("Múltiplo de 5: " + cinco);
+yang
+
+output("=== TEST FOR CON OPERACIONES ===");
+gear sumaTotal = 0;
+
+for (gear k = 1; k <= 10; k = k + 1) ying
+    sumaTotal = sumaTotal + k;
+    output("Suma parcial: " + sumaTotal);
+yang
+
+output("Suma total: " + sumaTotal);
+
+output("=== TEST FOR CON MULTIPLICACIÓN ===");
+for (gear m = 1; m <= 10; m = m + 1) ying
+    gear resultado = 7 * m;
+    output("7 x " + m + " = " + resultado);
+yang
+
+output("=== TEST FOR CON POTENCIAS ===");
+gear base = 2;
+gear potenciaActual = 1;
+
+for (gear exp = 0; exp <= 5; exp = exp + 1) ying
+    output("2^" + exp + " = " + potenciaActual);
+    potenciaActual = potenciaActual * base;
+yang
+
+output("=== TEST FOR CON CONDICIONES ===");
+for (gear num = 11; num <= 20; num = num + 1) ying
+    output("Mayor que 10: " + num);
+yang

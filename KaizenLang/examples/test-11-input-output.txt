@@ -1,0 +1,56 @@
+// ========================================
+// TEST 11: ENTRADA Y SALIDA (INPUT/OUTPUT)
+// ========================================
+// NOTA: Este test requiere interacción del usuario
+
+output("=== TEST INPUT BÁSICO ===");
+output("Por favor ingresa tu nombre:");
+grimoire nombre = input();
+output("¡Hola " + nombre + "!");
+
+output("=== TEST INPUT CON OPERACIONES ===");
+output("Ingresa un número:");
+grimoire texto = input();
+// Nota: La conversión de grimoire a número se maneja en runtime
+output("Recibido: " + texto);
+
+output("=== TEST MÚLTIPLES INPUTS ===");
+output("Ingresa tu nombre:");
+grimoire nombre1 = input();
+
+output("Ingresa tu edad:");
+grimoire edad = input();
+
+output("Ingresa tu ciudad:");
+grimoire ciudad = input();
+
+output("=== RESUMEN ===");
+output("Nombre: " + nombre1);
+output("Edad: " + edad);
+output("Ciudad: " + ciudad);
+
+output("=== TEST OUTPUT MÚLTIPLE ===");
+gear numero1 = 10;
+gear numero2 = 20;
+gear suma = numero1 + numero2;
+
+output("Número 1: " + numero1);
+output("Número 2: " + numero2);
+output("Suma: " + suma);
+
+output("=== TEST CONCATENACIÓN COMPLEJA ===");
+grimoire saludo = "Hola";
+grimoire complemento = "Mundo";
+grimoire mensaje = saludo + " " + complemento + "!";
+output(mensaje);
+
+output("=== TEST OUTPUT CON TIPOS MIXTOS ===");
+gear edad2 = 25;
+grimoire texto2 = "años";
+output("Tienes " + edad2 + " " + texto2);
+
+shikai precio = 19.99;
+output("El precio es: $" + precio);
+
+shin activo = true;
+output("Estado activo: " + activo);

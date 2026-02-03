@@ -1,0 +1,65 @@
+// ========================================
+// TEST 05: ESTRUCTURA WHILE
+// ========================================
+
+output("=== TEST WHILE BÁSICO ===");
+gear contador = 1;
+
+while (contador <= 5) ying
+    output("Contador: " + contador);
+    contador = contador + 1;
+yang
+
+output("=== TEST WHILE CON SUMA ACUMULADA ===");
+gear i = 1;
+gear suma = 0;
+
+while (i <= 10) ying
+    suma = suma + i;
+    i = i + 1;
+yang
+
+output("Suma de 1 a 10: " + suma);
+
+output("=== TEST WHILE CON CONDICIÓN COMPLEJA ===");
+gear num = 1;
+
+while ((num <= 20) && (num < 100)) ying
+    output("Número: " + num);
+    num = num * 2;
+yang
+
+output("=== TEST WHILE CON DECREMENTO ===");
+gear cuenta = 10;
+
+while (cuenta > 0) ying
+    output("Cuenta regresiva: " + cuenta);
+    cuenta = cuenta - 1;
+yang
+output("¡Despegue!");
+
+output("=== TEST WHILE CON BOOLEANO ===");
+gear iteracion = 0;
+
+while (iteracion < 5) ying
+    output("Iteración: " + iteracion);
+    iteracion = iteracion + 1;
+yang
+
+output("=== TEST WHILE CON SALTOS ===");
+gear x = 2;
+
+while (x <= 20) ying
+    output("Número par: " + x);
+    x = x + 2;
+yang
+
+output("=== TEST WHILE CON MÚLTIPLOS ===");
+gear multiplo = 5;
+gear count = 1;
+
+while (count <= 5) ying
+    gear resultado = multiplo * count;
+    output(multiplo + " x " + count + " = " + resultado);
+    count = count + 1;
+yang

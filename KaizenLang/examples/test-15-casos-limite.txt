@@ -1,0 +1,102 @@
+// ========================================
+// TEST 15: CASOS LÍMITE Y EDGE CASES
+// ========================================
+
+output("=== CASO 1: VALORES EXTREMOS ===");
+gear max = 2147483647;
+gear min = -2147483648;
+output("Máximo gear: " + max);
+output("Mínimo gear: " + min);
+
+output("=== CASO 2: shikai PRECISIÓN ===");
+shikai pequeño = 0.0001;
+shikai grande = 999999.99;
+output("shikai pequeño: " + pequeño);
+output("shikai grande: " + grande);
+
+output("=== CASO 3: STRINGS VACÍOS ===");
+grimoire vacio = "";
+grimoire espacios = "   ";
+output("grimoire vacío: '" + vacio + "'");
+output("grimoire con espacios: '" + espacios + "'");
+
+output("=== CASO 4: CHAINSAWS VACÍOS ===");
+chainsaw<gear> arrayVacio = [];
+gear tamañoVacio = length(arrayVacio);
+output("Tamaño de chainsaw vacío: " + tamañoVacio);
+
+output("=== CASO 5: CHAINSAWS DE UN ELEMENTO ===");
+chainsaw<gear> unElemento = [42];
+gear tam1 = length(unElemento);
+gear valor1 = unElemento[0];
+output("Chainsaw de 1 elemento, tamaño: " + tam1);
+output("Valor único: " + valor1);
+
+output("=== CASO 6: OPERACIONES CON CERO ===");
+gear ceroMas = 0 + 10;
+gear ceroMenos = 10 - 0;
+gear ceroMult = 0 * 100;
+output("0 + 10 = " + ceroMas);
+output("10 - 0 = " + ceroMenos);
+output("0 * 100 = " + ceroMult);
+
+// División por cero (causará error en runtime)
+// gear divCero = 10 / 0;
+
+output("=== CASO 7: OPERACIONES LÓGICAS EXTREMAS ===");
+shin siempreTrue = true || false;
+shin siempreFalse = false && true;
+output("true || false: " + siempreTrue);
+output("false && true: " + siempreFalse);
+
+output("=== CASO 8: BUCLES CON 0 ITERACIONES ===");
+gear contador = 0;
+for (gear i = 10; i < 5; i = i + 1) ying
+    contador = contador + 1;
+yang
+output("Iteraciones ejecutadas: " + contador);
+
+output("=== CASO 9: CONDICIONALES SIEMPRE TRUE/FALSE ===");
+if (true) ying
+    output("Este bloque siempre se ejecuta");
+yang
+
+if (false) ying
+    output("Este bloque nunca se ejecuta");
+yang else ying
+    output("El else siempre se ejecuta");
+yang
+
+output("=== CASO 10: FUNCIONES SIN ANIDACIÓN ===");
+
+gear duplicar(gear n) ying
+    return n * 2;
+yang
+
+gear resultadoFuncion = duplicar(21);
+output("Duplicar 21: " + resultadoFuncion);
+
+output("=== CASO 11: VERIFICACIONES COMBINADAS ===");
+gear x = 10;
+
+shin condicionesCumplidas = (x > 5) && (x > 8) && (x == 10);
+
+if (condicionesCumplidas) ying
+    output("Todas las condiciones son verdaderas");
+yang
+
+output("=== CASO 12: MÚLTIPLES OPERADORES ===");
+gear complejo = ((10 + 5) * (20 - 10)) / 5;
+output("Expresión compleja: " + complejo);
+
+shin logicoComplejo = ((10 > 5) && (20 < 30)) || (false);
+output("Lógica compleja: " + logicoComplejo);
+
+output("=== CASO 13: CONCATENACIÓN MÚLTIPLE ===");
+grimoire parte1 = "Hola";
+grimoire parte2 = "desde";
+grimoire parte3 = "KaizenLang";
+grimoire completa = parte1 + " " + parte2 + " " + parte3 + "!";
+output(completa);
+
+output("=== PRUEBA COMPLETADA ===");

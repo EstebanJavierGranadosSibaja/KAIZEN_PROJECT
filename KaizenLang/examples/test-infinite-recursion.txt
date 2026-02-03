@@ -1,0 +1,10 @@
+// Prueba de recursión infinita para observar el comportamiento del runtime
+output("=== STRESS: RECURSIÓN INFINITA ===");
+
+gear infinito(gear n) ying
+    return infinito(n + 1);
+yang
+
+gear start = 0;
+gear result = infinito(start);
+output("Este mensaje nunca se mostrará. Resultado = " + result);

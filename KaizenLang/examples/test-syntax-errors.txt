@@ -1,0 +1,5 @@
+// Test de errores de sintaxis para verificar mensajes línea:columna
+output("Hola mundo")
+gear x = 5
+shikai y = 3.14
+output(x + y)

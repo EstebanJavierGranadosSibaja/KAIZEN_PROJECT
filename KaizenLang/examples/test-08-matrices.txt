@@ -1,0 +1,92 @@
+// ========================================
+// TEST 08: HOGYOKUS (CHAINSAWS 2D)
+// ========================================
+
+output("=== DECLARACIÓN DE HOGYOKUS ===");
+
+// Hogyoku 3x3 de integers
+hogyoku<gear> tabla = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+];
+output("Hogyoku 3x3 declarado");
+
+// Hogyoku 2x3 de floats
+hogyoku<shikai> precios = [
+    [10.5, 20.0, 15.75],
+    [5.25, 30.0, 8.99]
+];
+output("Hogyoku de precios declarado");
+
+output("=== ACCESO A ELEMENTOS ===");
+gear elem00 = tabla[0][0];
+gear elem11 = tabla[1][1];
+gear elem22 = tabla[2][2];
+
+output("Elemento [0][0]: " + elem00);
+output("Elemento [1][1]: " + elem11);
+output("Elemento [2][2]: " + elem22);
+
+gear elem01 = tabla[0][1];
+gear elem12 = tabla[1][2];
+
+output("Elemento [0][1]: " + elem01);
+output("Elemento [1][2]: " + elem12);
+
+output("=== RECORRER HOGYOKU CON FOR ANIDADO ===");
+output("Hogyoku completo:");
+for (gear idx = 0; idx < 9; idx = idx + 1) ying
+    gear filaRecorrido = idx / 3;
+    gear colRecorrido = idx - (filaRecorrido * 3);
+    gear valor = tabla[filaRecorrido][colRecorrido];
+    output("Posición [" + filaRecorrido + "][" + colRecorrido + "]: " + valor);
+yang
+
+output("=== SUMA DE ELEMENTOS DE HOGYOKU ===");
+gear sumaTotal = 0;
+
+for (gear indice = 0; indice < 9; indice = indice + 1) ying
+    gear filaSuma = indice / 3;
+    gear colSuma = indice - (filaSuma * 3);
+    sumaTotal = sumaTotal + tabla[filaSuma][colSuma];
+yang
+
+output("Suma total de elementos: " + sumaTotal);
+
+output("=== BUSCAR ELEMENTO EN HOGYOKU ===");
+gear buscar = 5;
+gear filaObjetivo = 1;
+gear colObjetivo = 1;
+shin encontrado = tabla[filaObjetivo][colObjetivo] == buscar;
+
+if (encontrado) ying
+    output("Encontrado " + buscar + " en [" + filaObjetivo + "][" + colObjetivo + "]");
+yang else ying
+    output("No encontrado");
+yang
+
+output("=== HOGYOKU IDENTIDAD 3x3 ===");
+hogyoku<gear> identidad = [
+    [1, 0, 0],
+    [0, 1, 0],
+    [0, 0, 1]
+];
+
+output("Diagonal principal:");
+for (gear d = 0; d < 3; d = d + 1) ying
+    gear diagonal = identidad[d][d];
+    output("Posición [" + d + "][" + d + "]: " + diagonal);
+yang
+
+output("=== HOGYOKU DE STRINGS ===");
+hogyoku<grimoire> nombres = [
+    ["Ana", "Luis", "Pedro"],
+    ["María", "José", "Carmen"]
+];
+
+output("Primera fila:");
+output(nombres[0][0] + ", " + nombres[0][1] + ", " + nombres[0][2]);
+
+output("Segunda fila:");
+output(nombres[1][0] + ", " + nombres[1][1] + ", " + nombres[1][2]);
