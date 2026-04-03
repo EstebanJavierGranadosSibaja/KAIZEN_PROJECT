@@ -1,7 +1,7 @@
 # KaizenLang
 
 <p align="center">
-  <img src="Resources/assets/LOGO_KAIZEN.png" alt="KaizenLang logo" width="170" />
+  <img src="KaizenLang/Resources/assets/LOGO_KAIZEN.png" alt="KaizenLang logo" width="170" />
 </p>
 
 <p align="center">
@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <img src="documentation/UNA%20Logo2.png" alt="Universidad Nacional de Costa Rica" width="360" />
+  <img src="KaizenLang/documentation/UNA%20Logo2.png" alt="Universidad Nacional de Costa Rica" width="360" />
 </p>
 
 ---
